@@ -1,0 +1,11 @@
+.godot/
+**/bin/
+**/obj/
+builds/
+.superpowers/
+tools/environment.local.json
+references/
+*.docx
+游戏人物图片/
+test-output/
+*.log
