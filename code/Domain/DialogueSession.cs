@@ -10,7 +10,7 @@ public sealed class DialogueSession
     public DialogueStartResult Start(string nodeId,ContentCatalog catalog)
     {
         active=false;
-        if(!catalog.Dialogues.TryGetValue(nodeId,out var node)||node.Lines==null||node.Lines.Length==0||node.Lines.Any(string.IsNullOrWhiteSpace))return new(false,"missing_node");
+        if(!catalog.Dialogues.TryGetValue(nodeId,out var node)||node==null||node.Lines==null||node.Lines.Length==0||node.Lines.Any(string.IsNullOrWhiteSpace))return new(false,"missing_node");
         lines=node.Lines;Speaker=node.Speaker;index=0;visible=0;lastAdvance=0;active=true;return new(true,null);
     }
     public DialogueStepResult Advance(double activeTime)

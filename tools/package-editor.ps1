@@ -7,6 +7,9 @@ try {
     $destinationPath=[IO.Path]::GetFullPath($Destination)
     $buildsPath=[IO.Path]::GetFullPath((Join-Path $script:ProjectRoot 'builds'))+[IO.Path]::DirectorySeparatorChar
     if(!$destinationPath.StartsWith($buildsPath,[StringComparison]::OrdinalIgnoreCase)){throw 'DESTINATION_OUTSIDE_BUILDS'}
+    [IO.Directory]::CreateDirectory($buildsPath)|Out-Null
+    $ignoreFile=Join-Path $buildsPath '.gdignore'
+    if(!(Test-Path -LiteralPath $ignoreFile)){[IO.File]::WriteAllText($ignoreFile,'')}
     $files=$resources+@('project.godot','GeXingzhou.csproj','global.json','export_presets.cfg','README.md','.gitignore','code/Domain/GeXingzhou.Domain.csproj')
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
         foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot $folder) -File -Recurse -Force) {

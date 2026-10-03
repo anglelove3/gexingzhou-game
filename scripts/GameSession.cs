@@ -31,7 +31,6 @@ public partial class GameSession : Node
     {
         var result=ContentCatalog.LoadText(name => Godot.FileAccess.GetFileAsString("res://content/vs01/"+name));
         Catalog=result.Catalog; ContentError=string.Join("\n",result.Errors);
-        if(Catalog!=null)try{Catalog.Dialogues=JsonSerializer.Deserialize<Dictionary<string,DialogueNode>>(Godot.FileAccess.GetFileAsString("res://content/vs01/dialogues.json"))??new();}catch(JsonException ex){ContentError=ex.Message;Catalog=null;}
         var args=OS.GetCmdlineUserArgs();var supplied=args.FirstOrDefault(a=>a.StartsWith("--test-save-root="))?.Split('=',2)[1];
         var location=args.Any(a=>a.StartsWith("--suite="))?"res://test-output/integration/"+Guid.NewGuid():"user://saves/vs01";
         if(supplied!=null&&supplied.StartsWith("res://test-output/")&&!supplied.Contains(".."))location=supplied;

@@ -43,5 +43,9 @@ public static class StoryChecks
         tests.Add(("Dialogue","MissingNodeNeverStarts",()=>{
             var s=new DialogueSession();Check.True(!s.Start("missing",new()).Success);Check.True(!s.Advance(1).Applied);
         }));
+        tests.Add(("Dialogue","NullNodeIsRecoverable",()=>{
+            var s=new DialogueSession();var c=new ContentCatalog{Dialogues=new Dictionary<string,DialogueNode>{{"bad",null!}}};
+            Check.True(!s.Start("bad",c).Success);Check.True(!s.Advance(1).Applied);
+        }));
     }
 }

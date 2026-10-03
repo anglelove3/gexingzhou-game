@@ -4,6 +4,12 @@ public static class ContentChecks
 {
     public static void Register(List<(string,string,Action)> tests)
     {
+        tests.Add(("Content","RejectsNullOrMissingDialogue",()=>{
+            foreach(var bad in new[]{"{\"soup.start\":null}","{}"}) {
+                var result=ContentCatalog.LoadText(name=>name=="dialogues.json"?bad:File.ReadAllText(Path.Combine("content/vs01",name)));
+                Check.True(!result.Success);Check.True(result.Catalog==null);
+            }
+        }));
         tests.Add(("Content","LoadsValidContract", () => {
             var loaded = ContentCatalog.Load("content/vs01"); Check.True(loaded.Success);
             Check.Equal(112d,loaded.Catalog!.Parameters["move.walk_speed"]);
@@ -18,6 +24,7 @@ public static class ContentChecks
         tests.Add(("Content",name,()=>{
             var dir=Path.Combine("test-output",Guid.NewGuid().ToString("N")); Directory.CreateDirectory(dir);
             File.Copy("content/vs01/parameters.json",Path.Combine(dir,"parameters.json"));
+            File.Copy("content/vs01/dialogues.json",Path.Combine(dir,"dialogues.json"));
             File.WriteAllText(Path.Combine(dir,"scenes.json"),scenes); File.WriteAllText(Path.Combine(dir,"events.json"),events);
             var result=ContentCatalog.Load(dir); Check.True(!result.Success); Check.True(result.Errors.Count>0);
         }));

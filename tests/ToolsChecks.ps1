@@ -10,6 +10,11 @@ Check-Rejection 'UnknownSuite' "$projectRoot/tools/verify.ps1" @('-Suite','does_
 Check-Rejection 'MissingGodot' "$projectRoot/tools/verify.ps1" @('-GodotExe',"$projectRoot/test-output/no-godot.exe") 'GODOT_NOT_FOUND'
 Check-Rejection 'MissingTemplate' "$projectRoot/tools/export-windows.ps1" @('-TemplateDirectory',"$projectRoot/test-output/no-template") 'TEMPLATES_MISSING'
 . "$projectRoot/tools/Common.ps1"
+$probeDir=Join-Path $projectRoot ('builds/compile-check-'+[Guid]::NewGuid().ToString('N'))
+[IO.Directory]::CreateDirectory($probeDir)|Out-Null
+Copy-Item -LiteralPath "$PSScriptRoot/fixtures/CompileProbe.cs" -Destination $probeDir
+$items=(& dotnet msbuild "$projectRoot/GeXingzhou.csproj" -getItem:Compile | Out-String)|ConvertFrom-Json
+if($items.Items.Compile.Identity -match '^builds[/\\]'){$failures++;Write-Output 'FAIL PackagePollutesRootCompile'}else{Write-Output 'PASS PackageExcludedFromRootCompile'}
 foreach($path in @('references/story.docx','assets/photo.docx','游戏人物图片/a.zip','tests/integration/Smoke.tscn','scripts/Testing/SmokeHarness.cs','test-output/events.jsonl','tools/environment.local.json')) {
     try { Assert-PublicResourcePaths @($path);$failures++;Write-Output "FAIL PrivateResource $path accepted" } catch {Write-Output "PASS PrivateResource $path"}
 }

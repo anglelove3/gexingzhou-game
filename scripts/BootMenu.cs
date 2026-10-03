@@ -24,7 +24,7 @@ public partial class BootMenu : Control
         var settings=new Button{Text="设置"};box.AddChild(settings);settings.Pressed+=preferences.Open;
         var quit=new Button{Text="退出"}; box.AddChild(quit); quit.Pressed+=()=>GetTree().Quit(); start.GrabFocus();
         var error=GetNode<GameSession>("/root/GameSession").ContentError;
-        if(error.Length>0){start.Disabled=true; box.AddChild(new Label{Text="内容加载失败："+error});}
+        if(error.Length>0||session.Catalog==null){foreach(var button in box.GetChildren().OfType<Button>())if(button!=settings&&button!=quit)button.Disabled=true;box.AddChild(new Label{Text="内容加载失败："+error,AutowrapMode=TextServer.AutowrapMode.WordSmart});}
         if(session.FontWarning.Length>0)box.AddChild(new Label{Text=session.FontWarning});
     }
     public override void _Input(InputEvent ev){if(ev is InputEventKey{Pressed:true,Echo:false,PhysicalKeycode:Key.Escape})foreach(var settings in GetChildren().OfType<SettingsController>())if(settings.IsOpen){settings.Close();Theme=GetNode<GameSession>("/root/GameSession").CreateUiTheme();GetViewport().SetInputAsHandled();}}

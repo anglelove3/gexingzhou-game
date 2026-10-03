@@ -5,6 +5,17 @@ public static class SaveChecks
     private static string DirectoryFor(string purpose){var path=Path.Combine("test-output",purpose+"-"+Guid.NewGuid());Directory.CreateDirectory(path);return Path.GetFullPath(path);}
     public static void Register(List<(string,string,Action)> tests)
     {
+        tests.Add(("Save","RejectsUnsafeReturnPosition",()=>{
+            var s=new WorldSnapshot{SceneId="memory_soup_table",Stage=SliceStage.MemoryActive,MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(955,280),"soup.return",true)};
+            Check.True(SaveRepository.Validate(s)!=null);
+        }));
+        tests.Add(("Save","RejectsImpossibleProgressAndOutsideScene",()=>{
+            var impossible=new WorldSnapshot{Stage=SliceStage.MemoryReturned,SceneId="soup_shop",MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(440,280),"soup.return",true)};
+            Check.True(SaveRepository.Validate(impossible)!=null);
+            Check.True(SaveRepository.Validate(new(){SceneId="soup_shop",PlayerPosition=new(1500,280)})!=null);
+            Check.True(SaveRepository.Validate(new(){Stage=SliceStage.SliceComplete})!=null);
+            Check.True(SaveRepository.Validate(new(){SceneId="memory_soup_table"})!=null);
+        }));
         tests.Add(("Save","CheckpointRoundTripsAndBackup",()=>{
             var dir=DirectoryFor("save");var repo=new SaveRepository(dir);Check.Equal(LoadStatus.NotFound,repo.Load().Status);
             var s=new WorldSnapshot{Stage=SliceStage.CandyHeyPending,CandyCount=1};Check.True(repo.Save(s).Success);

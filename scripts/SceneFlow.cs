@@ -8,7 +8,7 @@ public partial class SceneFlow : Node
     {
         if(busy)return new(false,"busy");
         var s=GetNode<GameSession>("/root/GameSession");var source=s.Flow;busy=true;s.Flow=FlowState.Transition;
-        var fade=new ColorRect{Size=new Vector2(1280,720),Color=new Color(0,0,0,0),MouseFilter=Control.MouseFilterEnum.Ignore};Main.AddChild(fade);
+        var fade=new ColorRect{ZIndex=100,Size=new Vector2(1280,720),Color=new Color(0,0,0,0),MouseFilter=Control.MouseFilterEnum.Ignore};Main.AddChild(fade);
         bool success=false;
         try
         {

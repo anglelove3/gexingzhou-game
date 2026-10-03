@@ -55,7 +55,8 @@ public sealed class SaveRepository
     {
         if(s.SchemaVersion!=1||s.ContentVersion!="vs01-0.1")return "不支持的存档版本。";
         if(s.SceneId is not ("community_gate" or "convenience_street" or "soup_shop" or "memory_soup_table")||!Enum.IsDefined(s.Stage)||s.CompletedActions==null||s.ChoiceCodes==null||s.InvitationState==null||s.Settings==null||s.SceneActiveMilliseconds==null||string.IsNullOrWhiteSpace(s.PlaythroughId))return "存档内容不完整。";
-        if(!float.IsFinite(s.PlayerPosition.X)||!float.IsFinite(s.PlayerPosition.Y)||s.PlayerPosition.X<0||s.PlayerPosition.X>1600||s.PlayerPosition.Y!=280||s.GameDay!=1||s.CandyCount is <0 or >1)return "存档数值异常。";
+        var width=s.SceneId switch{"community_gate"=>1600,"convenience_street"=>1280,"soup_shop"=>960,_=>640};
+        if(!float.IsFinite(s.PlayerPosition.X)||!float.IsFinite(s.PlayerPosition.Y)||s.PlayerPosition.X<8||s.PlayerPosition.X>width-8||s.PlayerPosition.Y!=280||s.GameDay!=1||s.CandyCount is <0 or >1)return "存档数值异常。";
         if(s.Stage==SliceStage.CandyHeyPending&&s.CandyCount!=1||s.Stage>SliceStage.CandyHeyPending&&s.CandyCount!=0)return "喜糖与任务阶段不一致。";
         if(!double.IsFinite(s.InvitationState.Elapsed)||s.InvitationState.Elapsed<0)return "邀请计时异常。";
         if(s.MemoryState is {} m)
@@ -63,8 +64,11 @@ public sealed class SaveRepository
             if(m.PushedCoinIds==null||m.PushedCoinIds.Any(id=>id is not ("c1" or "c2" or "c3" or "c4"))||m.PushedTotal!=m.PushedCoinIds.Sum(id=>id=="c4"?2:1)||m.Completed!=(m.FoodChoice!=null)||m.Completed&&m.PushedTotal!=5||m.FoodChoice!=null&&!Enum.IsDefined(m.FoodChoice.Value))return "回忆进度异常。";
             if(m.InstanceId==null||!m.InstanceId.StartsWith("soup-")||!int.TryParse(m.InstanceId[5..],out var ordinal)||ordinal<1||s.MemoryOrdinal!=ordinal)return "回忆实例异常。";
         }
-        if(s.SceneId=="memory_soup_table"||s.Stage is SliceStage.MemoryActive or SliceStage.MemoryReturned)
-        {if(s.MemoryState==null||s.ReturnContext is not {SceneId:"soup_shop",IsAdult:true,DialogueNodeId:"soup.return"} c||!float.IsFinite(c.Position.X)||c.Position.X<0||c.Position.X>960||c.Position.Y!=280)return "回忆返回上下文缺失。";}
+        if(s.MemoryState!=null&&s.Stage<SliceStage.MemoryActive||s.SceneId=="memory_soup_table"&&s.Stage is not (SliceStage.MemoryActive or SliceStage.SliceComplete))return "回忆与任务阶段不一致。";
+        if(s.Stage==SliceStage.MemoryReturned&&s.MemoryState is not {Completed:true,Replay:false}||s.Stage==SliceStage.SliceComplete&&(s.MemoryState==null||!s.MemoryState.Completed&&!s.MemoryState.Replay))return "任务完成但回忆未完成。";
+        if(s.MemoryState is {Replay:true}&& (s.Stage!=SliceStage.SliceComplete||!s.CompletedActions.Contains("slice.complete:slice-1")))return "重看缺少已完成主线。";
+        if(s.MemoryState!=null||s.Stage is SliceStage.MemoryActive or SliceStage.MemoryReturned or SliceStage.SliceComplete)
+        {if(s.MemoryState==null||s.ReturnContext is not {SceneId:"soup_shop",IsAdult:true,DialogueNodeId:"soup.return"} c||!float.IsFinite(c.Position.X)||c.Position.X<8||c.Position.X>952||c.Position.Y!=280)return "回忆返回上下文缺失。";}
         return null;
     }
 }

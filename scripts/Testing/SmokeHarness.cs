@@ -37,6 +37,10 @@ public partial class SmokeHarness : Node
                 if(settingsMain.Settings.IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Settings did not restore field flow");
                 settingsMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Accessibility");GetTree().Quit();return;
             }
+            if(suite=="Recovery")
+            {
+                await RecoveryChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Recovery");GetTree().Quit();return;
+            }
             if(suite is "Resume" or "ResumeSeed")
             {
                 await MemoryPath(false,0,false,true);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
@@ -187,7 +191,11 @@ public partial class SmokeHarness : Node
         {
             main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Choose(main,0);await Frames(50);
             if(s.Snapshot.MemoryState!.InstanceId!="soup-2"||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete)throw new Exception("Replay changed story or reused instance");
-            for(int i=0;i<4;i++){KeyPress(Key.E);await Frames(2);}KeyPress(Key.E);await Frames(50);await Finish(main);
+            KeyPress(Key.E);await Frames(2);KeyPress(Key.Escape);await Frames(50);
+            main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");
+            main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Choose(main,0);await Frames(50);
+            if(s.Snapshot.MemoryState!.InstanceId!="soup-2"||s.Snapshot.MemoryState.PushedTotal!=1)throw new Exception("Interrupted replay did not survive reload/reentry");
+            for(int i=0;i<3;i++){KeyPress(Key.E);await Frames(2);}KeyPress(Key.E);await Frames(50);await Finish(main);
             if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete)throw new Exception("Replay regressed story");
         }
         var before=s.Snapshot;var result=await main.SceneFlow.TryEnter("missing_scene",new(1,1));
@@ -216,4 +224,26 @@ public partial class SmokeHarness : Node
         var timer=System.Diagnostics.Stopwatch.StartNew();while(!condition()&&timer.Elapsed.TotalSeconds<5)await Frames();if(!condition())throw new Exception(name+" timed out");await Frames(2);
     }
     private async Task GameTime(double duration){double passed=0;var timer=System.Diagnostics.Stopwatch.StartNew();while(passed<duration&&timer.Elapsed.TotalSeconds<5){await Frames();passed+=GetProcessDeltaTime();}if(passed<duration)throw new Exception("Engine game time stalled");}
+    private async Task RecoveryChecks()
+    {
+        var failures=new List<string>();void Verify(bool ok,string name){if(!ok)failures.Add(name);GD.Print((ok?"RECOVERY_PASS ":"RECOVERY_FAIL ")+name);}
+        var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
+        var context=new GeXingzhou.Domain.SceneReturnContext("soup_shop",new(440,280),"soup.return",true);
+        s.PendingRestore=new(){Stage=GeXingzhou.Domain.SliceStage.MemoryActive,SceneId="memory_soup_table",MemoryState=new(),MemoryOrdinal=1,ReturnContext=context};
+        var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
+        foreach(var broken in new[]{false,true}) {
+            if(broken){var testRoot=ProjectSettings.GlobalizePath("res://test-output/");if(!s.SaveDirectory.StartsWith(testRoot))throw new Exception("Unsafe test directory");System.IO.Directory.CreateDirectory(s.SaveDirectory);System.IO.File.WriteAllText(System.IO.Path.Combine(s.SaveDirectory,"manual.json"),"{broken");}
+            KeyPress(Key.F9);await Frames(2);Verify(main.Dialogue.IsOpen&&main.Dialogue.ZIndex>main.Memory!.ZIndex,"Visible memory F9 notice "+broken);
+            KeyPress(Key.Escape);await Frames(2);Verify(s.Flow==GeXingzhou.Domain.FlowState.Memory,"Memory flow restored "+broken);s.Flow=GeXingzhou.Domain.FlowState.Memory;
+        }
+        var previousFocus=GetViewport().GuiGetFocusOwner();KeyPress(Key.Tab);await Frames(2);
+        Verify(main.Phone.IsOpen&&main.Phone.ZIndex>main.Memory!.ZIndex,"Phone above memory");KeyPress(Key.Escape);await Frames(2);Verify(s.Flow==GeXingzhou.Domain.FlowState.Memory,"Phone flow recovery");Verify(previousFocus!=null&&GetViewport().GuiGetFocusOwner()==previousFocus,"Phone keyboard focus recovery");
+        s.BeginMemory(context with {SceneId="missing_scene"},false);await main.ReturnMemory(false);await Frames(2);Verify(main.Dialogue.IsOpen,"Failed return notice");KeyPress(Key.Escape);await Frames(2);Verify(s.Flow==GeXingzhou.Domain.FlowState.Memory,"Failed return restores memory flow");s.Flow=GeXingzhou.Domain.FlowState.Memory;s.BeginMemory(context,false);
+        main.Free();await Frames(2);
+        Verify(s.Saves.Save(s.Snapshot).Success,"Save prepared for broken content");Verify(s.ManualSaves.PreserveForNewGame().Success&&s.ManualSaves.Save(s.Snapshot).Success,"Manual save prepared");
+        typeof(GameSession).GetProperty(nameof(GameSession.Catalog))!.SetValue(s,null);typeof(GameSession).GetProperty(nameof(GameSession.ContentError))!.SetValue(s,"Required dialogue invalid");
+        var boot=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate<BootMenu>();AddChild(boot);await Frames(2);
+        var entries=boot.FindChildren("*","Button",true,false).OfType<Button>().Where(b=>b.Text.StartsWith("继续")||b.Text=="回到故乡").ToArray();Verify(entries.Length==3&&entries.All(b=>b.Disabled),"Broken content blocks all gameplay entries");boot.Free();await Frames(2);
+        if(failures.Count>0)throw new Exception(string.Join("; ",failures));
+    }
 }

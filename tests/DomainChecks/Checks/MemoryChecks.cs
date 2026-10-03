@@ -4,6 +4,11 @@ public static class MemoryChecks
 {
     public static void Register(List<(string,string,Action)> tests)
     {
+        tests.Add(("Return","InterruptedReplayKeepsInstance",()=>{
+            var old=MemorySession.PushCoin(new(){InstanceId="soup-2",Replay=true},"c1");
+            var resumed=MemorySession.Begin(new(){Stage=SliceStage.SliceComplete,MemoryState=old,MemoryOrdinal=2},new("soup_shop",new(440,280),"soup.return",true),true);
+            Check.Equal("soup-2",resumed.InstanceId);Check.Equal(1,resumed.PushedTotal);Check.True(resumed.Replay);
+        }));
         tests.Add(("Memory","AllCoinPermutationsAndDuplicates",()=>{
             foreach(var order in Permutations(new[]{"c1","c2","c3","c4"}))
             {var m=new MemoryState();foreach(var id in order){m=MemorySession.PushCoin(m,id);m=MemorySession.PushCoin(m,id);}Check.Equal(5,m.PushedTotal);Check.Equal(4,m.PushedCoinIds.Count);}

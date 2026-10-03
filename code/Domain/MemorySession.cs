@@ -13,7 +13,7 @@ public static class MemorySession
 {
     public static MemoryState Begin(WorldSnapshot state,SceneReturnContext context,bool replay)
     {
-        if(!replay&&state.MemoryState is {Completed:false} old)return old;
+        if(state.MemoryState is {Completed:false} old&&old.Replay==replay)return old;
         return new(){InstanceId="soup-"+(state.MemoryOrdinal+1),Replay=replay};
     }
     public static MemoryState PushCoin(MemoryState state,string coinId)
