@@ -1,11 +1,17 @@
 using Godot;
 using GeXingzhou.Domain;
 using System.Text.Json;
+public sealed record RestoreResult(bool Success,string? ErrorCode=null);
 public partial class GameSession : Node
 {
     public WorldSnapshot Snapshot {get;private set;} = new();
     public ContentCatalog? Catalog {get;private set;}
     public string ContentError {get;private set;} = "";
+    public string SaveMessage {get;private set;}="";
+    public string SaveDirectory {get;private set;}="";
+    public SaveRepository Saves {get;private set;}=null!;
+    public SaveRepository ManualSaves {get;private set;}=null!;
+    public WorldSnapshot? PendingRestore {get;set;}
     public FlowState Flow {get;set;} = FlowState.Field;
     public void UpdatePosition(Position2 position) => Snapshot=Snapshot with {PlayerPosition=position};
     public void UpdateScene(string sceneId,Position2 position)=>Snapshot=Snapshot with {SceneId=sceneId,PlayerPosition=position};
@@ -19,14 +25,28 @@ public partial class GameSession : Node
         var result=ContentCatalog.LoadText(name => Godot.FileAccess.GetFileAsString("res://content/vs01/"+name));
         Catalog=result.Catalog; ContentError=string.Join("\n",result.Errors);
         if(Catalog!=null)try{Catalog.Dialogues=JsonSerializer.Deserialize<Dictionary<string,DialogueNode>>(Godot.FileAccess.GetFileAsString("res://content/vs01/dialogues.json"))??new();}catch(JsonException ex){ContentError=ex.Message;Catalog=null;}
+        var args=OS.GetCmdlineUserArgs();var supplied=args.FirstOrDefault(a=>a.StartsWith("--test-save-root="))?.Split('=',2)[1];
+        var location=args.Any(a=>a.StartsWith("--suite="))?"res://test-output/integration/"+Guid.NewGuid():"user://saves/vs01";
+        if(supplied!=null&&supplied.StartsWith("res://test-output/")&&!supplied.Contains(".."))location=supplied;
+        SaveDirectory=ProjectSettings.GlobalizePath(location);Saves=new(SaveDirectory);ManualSaves=new(SaveDirectory,"manual");
     }
-    public void NewGame(){Snapshot=new();Flow=FlowState.Field;}
+    public void NewGame(){Snapshot=new();PendingRestore=null;Flow=FlowState.Field;SaveMessage="";}
+    public RestoreResult Restore(WorldSnapshot snapshot)
+    {
+        var error=SaveRepository.Validate(snapshot);if(error!=null)return new(false,error);
+        Snapshot=ResumePolicy.Normalize(snapshot);Flow=Snapshot.SceneId=="memory_soup_table"?FlowState.Memory:FlowState.Field;PendingRestore=null;return new(true);
+    }
+    public void SaveCheckpoint(){var r=Saves.Save(Snapshot);SaveMessage=r.Success?"":r.Message;}
+    public void SaveManual(){var r=ManualSaves.Save(Snapshot);SaveMessage=r.Message;}
     public void AdvanceClock(double delta)
     {
         if(Catalog==null||Snapshot.Stage>=SliceStage.CandyHeyPending)return;
         var p=Catalog.Parameters;var inv=InvitationClock.Advance(Snapshot.InvitationState,delta,Flow==FlowState.Field,p["invitation.voice_delay"],p["invitation.call_delay"],p["invitation.car_fallback"]);
         Snapshot=Snapshot with {InvitationState=inv,Stage=Snapshot.Stage==SliceStage.FreeArrival&&inv.VoiceReceived?SliceStage.InvitationPending:Snapshot.Stage};
     }
-    public TransitionResult TryDispatch(StoryAction action){var r=QuestReducer.Apply(Snapshot,action);if(r.Applied)Snapshot=r.Next;return r;}
+    public TransitionResult TryDispatch(StoryAction action)
+    {
+        var r=QuestReducer.Apply(Snapshot,action);if(r.Applied){Snapshot=r.Next;if(action.Id is "invitation.meeting_complete" or "candy.hey.delivered" or "soup.meet" or "soup.response" or "memory.soup.enter" or "memory.coin.push" or "memory.food.resolve" or "memory.return" or "slice.complete")SaveCheckpoint();}return r;
+    }
     public static string TaskText(WorldSnapshot s)=>s.Stage switch{SliceStage.FreeArrival=>"走走，看看搬迁后的故乡",SliceStage.InvitationPending or SliceStage.InvitationResolved=>s.InvitationState.CarArrived?"张大炮到了，小区门口见":"等待张大炮，可以按Tab看手机",SliceStage.CandyHeyPending=>"去便利店街，把喜糖交给Hey哥",SliceStage.CandyHeyDelivered=>"去汤店找张大炮",SliceStage.SoupMeet=>"坐下，听张大炮聊聊近况",SliceStage.MemoryActive=>"推过硬币，决定如何接过那碗汤；Esc可暂时离开",SliceStage.MemoryReturned=>"听听明天的伴郎安排",SliceStage.SliceComplete=>"首段结束 · 明天见（完整版尚未制作）",_=>"首段故事尚在开发"};
 }
