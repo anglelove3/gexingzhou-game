@@ -16,7 +16,15 @@ public partial class WorldView : Node2D
         {
             AddTarget("community",80,"回安置小区","","scene:community_gate");
             AddTarget("hey",600,"Hey哥 · 递喜糖 / 聊两句","","candy.hey.delivered");
-            AddTarget("soup",1120,"汤店方向","汤店还没开门，先把喜糖送到。","observe");
+            AddTarget("soup",1120,"去鸭血粉丝汤店","","scene:soup_shop");
+        }
+        else if(SceneId=="soup_shop")
+        {
+            AddTarget("street",80,"回便利店街","","scene:convenience_street");
+            AddTarget("seat",440,"张大炮 · 桌边坐下","","soup.meet");
+            AddTarget("sign",200,"旧招牌","店换了地方，招牌搬了过来。边角的油烟擦不掉。","observe");
+            AddTarget("menu",700,"看看菜单","鸭血粉丝汤。记忆里便宜，现在也够吃顿热乎的。","observe");
+            AddTarget("counter",800,"收银台","吃完再结账。老板摆摆手：先坐。","observe");
         }
         else
         {

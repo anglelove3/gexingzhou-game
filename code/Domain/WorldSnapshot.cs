@@ -11,4 +11,9 @@ public sealed record WorldSnapshot
     public int CandyCount {get;init;}
     public HashSet<string> CompletedActions {get;init;} = new();
     public string PhoneState {get;init;} = "closed";
+    public InvitationState InvitationState {get;init;}=new();
+    public Dictionary<string,string> ChoiceCodes {get;init;}=new();
+    public MemoryState? MemoryState {get;init;}
+    public SceneReturnContext? ReturnContext {get;init;}
+    public int MemoryOrdinal {get;init;}
 }

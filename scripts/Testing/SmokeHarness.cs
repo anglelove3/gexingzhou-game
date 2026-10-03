@@ -6,6 +6,11 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="Soup")
+            {
+                foreach(var (code,index) in new[]{("eat",0),("set_chopsticks",1),("check_phone",2)})await SoupPath(code,index);
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Soup");GetTree().Quit();return;
+            }
             if(suite is "Invitation" or "Hey")
             {
                 foreach(var answer in new[]{false,true})await StoryPath(answer,suite);
@@ -47,7 +52,7 @@ public partial class SmokeHarness : Node
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
     private async Task Finish(MainView main)
     {
-        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await Frames(12);KeyPress(Key.E);}
+        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await Frames(12);if(!main.Dialogue.IsOpen)break;KeyPress(Key.E);await Frames(2);}
         if(main.Dialogue.IsOpen)throw new Exception("Dialogue never finished with keyboard");
     }
     private async Task StoryPath(bool answer,string suite)
@@ -73,8 +78,27 @@ public partial class SmokeHarness : Node
             main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
             var hey=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="hey");hey.TryInteract(s);await Finish(main);
             if(s.Snapshot.CandyCount!=0||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.CandyHeyDelivered)throw new Exception("Hey delivery failed");
-            hey.TryInteract(s);await Finish(main);if(s.Snapshot.CandyCount!=0)throw new Exception("Repeated delivery changed candy");
+            await Choose(main,0);await Finish(main);
+            hey.TryInteract(s);await Choose(main,1);await Finish(main);if(s.Snapshot.CandyCount!=0)throw new Exception("Repeated delivery changed candy");
         }
         GD.Print("STORY_PATH_PASS "+(answer?"answered":"ignored")+" "+suite);main.Free();await Frames();
+    }
+    private async Task Choose(MainView main,int index)
+    {
+        if(!main.Choices.IsOpen)throw new Exception("Expected keyboard choice");
+        await Frames(2);for(int i=0;i<index;i++){KeyPress(Key.Down);await Frames(2);}KeyPress(Key.Enter);await Frames(2);
+        if(main.Choices.IsOpen)throw new Exception("Keyboard choice did not close");
+    }
+    private async Task SoupPath(string code,int index)
+    {
+        await StoryPath(false,"Hey");var s=GetNode<GameSession>("/root/GameSession");
+        var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
+        main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
+        main.ChangeWorld("convenience_street",new(1120,280));main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
+        main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Finish(main);await Choose(main,index);await Finish(main);
+        if(s.Snapshot.ChoiceCodes["soup-response-1"]!=code||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SoupMeet)throw new Exception("Wrong soup route: want="+code+" got="+s.Snapshot.ChoiceCodes["soup-response-1"]);
+        var stage=s.Snapshot.Stage;main.ShowDialogue("missing_node");await Frames(2);KeyPress(Key.Escape);await Frames(2);
+        if(s.Flow!=GeXingzhou.Domain.FlowState.Field||s.Snapshot.Stage!=stage)throw new Exception("Missing node locked or changed story");
+        GD.Print("SOUP_PATH_PASS "+code);main.Free();await Frames();
     }
 }
