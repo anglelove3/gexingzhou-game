@@ -12,6 +12,12 @@ public static class QuestReducer
             "candy.hey.delivered" when state.Stage==SliceStage.CandyHeyPending&&state.CandyCount==1 => state with {Stage=SliceStage.CandyHeyDelivered,CandyCount=0},
             "soup.meet" when state.Stage==SliceStage.CandyHeyDelivered => state with {Stage=SliceStage.SoupMeet},
             "soup.response" when state.Stage==SliceStage.SoupMeet&&action.ChoiceCode is "eat" or "set_chopsticks" or "check_phone" => state,
+            "memory.soup.enter" when state.Stage==SliceStage.SoupMeet&&state.MemoryState!=null&&state.ChoiceCodes.ContainsKey("soup-response-1") => state with {Stage=SliceStage.MemoryActive},
+            "memory.coin.push" when state.MemoryState is {Completed:false} m&&action.ChoiceCode is "c1" or "c2" or "c3" or "c4"&&!m.PushedCoinIds.Contains(action.ChoiceCode) => state with {MemoryState=MemorySession.PushCoin(m,action.ChoiceCode)},
+            "memory.food.resolve" when state.MemoryState is {Completed:false,PushedTotal:5} m&&Enum.TryParse<FoodChoice>(action.ChoiceCode,true,out var food)&&Enum.IsDefined(food) => state with {MemoryState=MemorySession.ResolveFood(m,food)},
+            "memory.return" when state.Stage==SliceStage.MemoryActive&&state.MemoryState is {Completed:true} => state with {Stage=SliceStage.MemoryReturned},
+            "memory.return" when state.MemoryState is {Replay:true,Completed:true} => state,
+            "slice.complete" when state.Stage==SliceStage.MemoryReturned => state with {Stage=SliceStage.SliceComplete},
             _ => null
         };
         if(next==null)return new(false,state,"invalid_stage_or_action");

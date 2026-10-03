@@ -6,6 +6,12 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite is "Memory" or "Slice")
+            {
+                if(suite=="Memory")for(int food=0;food<3;food++)await MemoryPath(false,food,true);
+                else foreach(var answer in new[]{false,true})await MemoryPath(answer,0,false);
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
+            }
             if(suite=="Soup")
             {
                 foreach(var (code,index) in new[]{("eat",0),("set_chopsticks",1),("check_phone",2)})await SoupPath(code,index);
@@ -89,16 +95,46 @@ public partial class SmokeHarness : Node
         await Frames(2);for(int i=0;i<index;i++){KeyPress(Key.Down);await Frames(2);}KeyPress(Key.Enter);await Frames(2);
         if(main.Choices.IsOpen)throw new Exception("Keyboard choice did not close");
     }
-    private async Task SoupPath(string code,int index)
+    private async Task<MainView> SoupPath(string code,int index,bool keep=false,bool answer=false)
     {
-        await StoryPath(false,"Hey");var s=GetNode<GameSession>("/root/GameSession");
+        await StoryPath(answer,"Hey");var s=GetNode<GameSession>("/root/GameSession");
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
         main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
         main.ChangeWorld("convenience_street",new(1120,280));main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
         main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Finish(main);await Choose(main,index);await Finish(main);
         if(s.Snapshot.ChoiceCodes["soup-response-1"]!=code||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SoupMeet)throw new Exception("Wrong soup route: want="+code+" got="+s.Snapshot.ChoiceCodes["soup-response-1"]);
+        if(main.Choices.IsOpen){KeyPress(Key.Escape);await Frames(2);}
         var stage=s.Snapshot.Stage;main.ShowDialogue("missing_node");await Frames(2);KeyPress(Key.Escape);await Frames(2);
         if(s.Flow!=GeXingzhou.Domain.FlowState.Field||s.Snapshot.Stage!=stage)throw new Exception("Missing node locked or changed story");
-        GD.Print("SOUP_PATH_PASS "+code);main.Free();await Frames();
+        GD.Print("SOUP_PATH_PASS "+code);if(!keep){main.Free();await Frames();}return main;
+    }
+    private async Task MemoryPath(bool answer,int food,bool exercise)
+    {
+        var main=await SoupPath("eat",0,true,answer);var s=GetNode<GameSession>("/root/GameSession");
+        var seat=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat");seat.TryInteract(s);await Choose(main,0);await Frames(50);
+        if(main.Memory==null||s.Flow!=GeXingzhou.Domain.FlowState.Memory)throw new Exception("Memory scene failed to enter");
+        KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);var id=s.Snapshot.MemoryState!.InstanceId;
+        if(exercise)
+        {
+            KeyPress(Key.Escape);await Frames(50);
+            if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.MemoryActive||s.Snapshot.SceneId!="soup_shop")throw new Exception("Escape incorrectly completed memory");
+            main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Choose(main,0);await Frames(50);
+            if(s.Snapshot.MemoryState!.InstanceId!=id||s.Snapshot.MemoryState.PushedTotal!=2)throw new Exception("Memory resume lost coins or instance");
+        }
+        KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);
+        if(s.Snapshot.MemoryState!.PushedTotal!=5)throw new Exception("Keyboard did not push all coins");
+        for(int i=0;i<food;i++){KeyPress(Key.Right);await Frames(2);}KeyPress(Key.E);await Frames(50);await Finish(main);
+        if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Snapshot.SceneId!="soup_shop")throw new Exception("Memory did not return and complete slice");
+        if((int)s.Snapshot.MemoryState!.FoodChoice!.Value!=food)throw new Exception("Wrong memory food choice");
+        if(exercise)
+        {
+            main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Choose(main,0);await Frames(50);
+            if(s.Snapshot.MemoryState!.InstanceId!="soup-2"||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete)throw new Exception("Replay changed story or reused instance");
+            for(int i=0;i<4;i++){KeyPress(Key.E);await Frames(2);}KeyPress(Key.E);await Frames(50);await Finish(main);
+            if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete)throw new Exception("Replay regressed story");
+        }
+        var before=s.Snapshot;var result=await main.SceneFlow.TryEnter("missing_scene",new(1,1));
+        if(result.Success||s.Snapshot.Stage!=before.Stage||s.Snapshot.SceneId!=before.SceneId||s.Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Failed transition changed state or locked input");
+        GD.Print("MEMORY_PATH_PASS "+(answer?"answered":"ignored")+" food="+food);main.Free();await Frames();
     }
 }
