@@ -4,6 +4,7 @@ public sealed record ContentLoadResult(bool Success, ContentCatalog? Catalog, IR
 public sealed class ContentCatalog
 {
     public IReadOnlyDictionary<string, double> Parameters { get; init; } = new Dictionary<string, double>();
+    public IReadOnlyDictionary<string,DialogueNode> Dialogues {get;set;} = new Dictionary<string,DialogueNode>();
     public static ContentLoadResult Load(string directory) => LoadText(name => File.ReadAllText(Path.Combine(directory,name)));
     public static ContentLoadResult LoadText(Func<string,string> read)
     {

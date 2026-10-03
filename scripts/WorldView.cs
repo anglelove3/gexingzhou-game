@@ -12,8 +12,18 @@ public partial class WorldView : Node2D
         Player.GetNode<Camera2D>("Camera2D").LimitRight=Width;
         Floor(new Vector2(Width/2f,288),new Vector2(Width,16));Floor(new Vector2(-8,180),new Vector2(16,360));Floor(new Vector2(Width+8,180),new Vector2(16,360));
         Interactions=new InteractionController{Player=Player};AddChild(Interactions);
-        AddTarget("old_sign",160,"看看旧路牌","路是新的，牌还是旧的。以前闭着眼能走到家的地方，现在得看导航。", "observe");
-        AddTarget("bench",960,"坐一会儿","统一搬来的楼，一排一排。人也整齐了，记忆没那么听话。", "observe");
+        if(SceneId=="convenience_street")
+        {
+            AddTarget("community",80,"回安置小区","","scene:community_gate");
+            AddTarget("hey",600,"Hey哥 · 递喜糖 / 聊两句","","candy.hey.delivered");
+            AddTarget("soup",1120,"汤店方向","汤店还没开门，先把喜糖送到。","observe");
+        }
+        else
+        {
+            AddTarget("old_sign",160,"看看旧路牌","路是新的，牌还是旧的。以前闭着眼能走到家的地方，现在得看导航。", "observe");
+            AddTarget("bench",960,"坐一会儿","统一搬来的楼，一排一排。人也整齐了，记忆没那么听话。", "observe");
+            AddTarget("street",1480,"去便利店街","","scene:convenience_street");
+        }
         QueueRedraw();
     }
     public Interactable AddTarget(string id,float x,string caption,string body,string action)

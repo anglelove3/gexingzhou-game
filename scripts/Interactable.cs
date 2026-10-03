@@ -12,7 +12,7 @@ public partial class Interactable : Node2D
         var main=GetTree().CurrentScene as MainView;
         if(main==null)main=GetParent().GetParent()?.GetParent()?.GetParent() as MainView;
         if(main==null)return false;
-        main.ShowNotice(Caption,Description);return true;
+        main.HandleInteraction(this);return true;
     }
     public override void _Draw(){DrawRect(new Rect2(-10,-36,20,36),new Color("b6a071"));}
 }

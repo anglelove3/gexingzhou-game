@@ -6,6 +6,12 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite is "Invitation" or "Hey")
+            {
+                foreach(var answer in new[]{false,true})await StoryPath(answer,suite);
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
+                GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
+            }
             if(suite!="Movement") {GD.PrintErr("UNKNOWN_SUITE "+suite);GetTree().Quit(2);return;}
             var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate(); AddChild(main);
             await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);
@@ -36,5 +42,39 @@ public partial class SmokeHarness : Node
             GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();
         }
         catch(Exception ex){GD.PrintErr("GODOT_CHECKS_FAIL "+ex.Message);GetTree().Quit(1);}
+    }
+    private async Task Frames(int count=1){for(int i=0;i<count;i++)await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);}
+    private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
+    private async Task Finish(MainView main)
+    {
+        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await Frames(12);KeyPress(Key.E);}
+        if(main.Dialogue.IsOpen)throw new Exception("Dialogue never finished with keyboard");
+    }
+    private async Task StoryPath(bool answer,string suite)
+    {
+        var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
+        var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
+        s.AdvanceClock(35);KeyPress(Key.Tab);await Frames(2);
+        if(!main.Phone.IsOpen)throw new Exception("Keyboard did not open phone");
+        var time=s.Snapshot.InvitationState.Elapsed;s.AdvanceClock(100);
+        if(s.Snapshot.InvitationState.Elapsed!=time)throw new Exception("Phone did not freeze invitation");
+        if(answer){KeyPress(Key.Enter);await Frames(2);if(s.Snapshot.InvitationState.Resolution!=GeXingzhou.Domain.InvitationResolution.Answered)throw new Exception("Phone answer button not keyboard accessible");await Finish(main);}
+        else {KeyPress(Key.Escape);await Frames(2);}
+        if(s.Snapshot.CandyCount!=0)throw new Exception("Phone gave candy early");
+        s.AdvanceClock(30);await Frames(2);
+        var cannon=main.World.GetNodeOrNull<Interactable>("Cannon");
+        if(cannon==null)throw new Exception($"Cannon missing: elapsed={s.Snapshot.InvitationState.Elapsed} arrived={s.Snapshot.InvitationState.CarArrived} flow={s.Flow} stage={s.Snapshot.Stage} scene={main.World.SceneId}");
+        if(!cannon.TryInteract(s))throw new Exception("Cannot meet cannon");await Finish(main);
+        if(s.Snapshot.CandyCount!=1)throw new Exception("Meeting did not give one candy");
+        if(suite=="Hey")
+        {
+            main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
+            main.ChangeWorld("community_gate",new(320,280));await Frames(2);
+            main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
+            var hey=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="hey");hey.TryInteract(s);await Finish(main);
+            if(s.Snapshot.CandyCount!=0||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.CandyHeyDelivered)throw new Exception("Hey delivery failed");
+            hey.TryInteract(s);await Finish(main);if(s.Snapshot.CandyCount!=0)throw new Exception("Repeated delivery changed candy");
+        }
+        GD.Print("STORY_PATH_PASS "+(answer?"answered":"ignored")+" "+suite);main.Free();await Frames();
     }
 }
