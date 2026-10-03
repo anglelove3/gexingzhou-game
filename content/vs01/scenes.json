@@ -1,0 +1,6 @@
+[
+  {"scene_id":"community_gate","width":1600,"stage":"free_arrival"},
+  {"scene_id":"convenience_street","width":1280,"stage":"candy_hey_pending"},
+  {"scene_id":"soup_shop","width":960,"stage":"soup_meet"},
+  {"scene_id":"memory_soup_table","width":640,"stage":"memory_active"}
+]

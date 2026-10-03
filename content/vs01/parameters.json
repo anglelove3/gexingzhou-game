@@ -1,0 +1,7 @@
+{
+  "move.walk_speed":112,"move.run_speed":168,"move.acceleration":800,"move.deceleration":1200,
+  "interact.radius":40,"interact.hysteresis":8,"interact.repeat_guard":0.25,
+  "dialogue.min_advance_delay":0.15,"dialogue.type_speed":30,
+  "invitation.voice_delay":20,"invitation.call_delay":15,"invitation.car_fallback":30,
+  "memory.fade":0.65,"phone.max_blocking_fx":0.6
+}

@@ -1,0 +1,1 @@
+{"version":"2.0.0","tasks":[{"label":"构建游戏","type":"process","command":"dotnet","args":["build","GeXingzhou.csproj"],"problemMatcher":"$msCompile","group":{"kind":"build","isDefault":true}},{"label":"规则测试","type":"process","command":"dotnet","args":["run","--project","tests/DomainChecks"],"problemMatcher":[]}]}

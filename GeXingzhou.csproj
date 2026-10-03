@@ -1,0 +1,5 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework><EnableDynamicLoading>true</EnableDynamicLoading><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup><Compile Remove="code/Domain/**/*.cs;tests/**/*.cs" /><ProjectReference Include="code/Domain/GeXingzhou.Domain.csproj" /></ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'"><Compile Remove="scripts/Testing/**/*.cs" /></ItemGroup>
+</Project>
