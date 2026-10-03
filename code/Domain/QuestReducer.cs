@@ -17,6 +17,7 @@ public static class QuestReducer
             "memory.food.resolve" when state.MemoryState is {Completed:false,PushedTotal:5} m&&Enum.TryParse<FoodChoice>(action.ChoiceCode,true,out var food)&&Enum.IsDefined(food) => state with {MemoryState=MemorySession.ResolveFood(m,food)},
             "memory.return" when state.Stage==SliceStage.MemoryActive&&state.MemoryState is {Completed:true} => state with {Stage=SliceStage.MemoryReturned},
             "memory.return" when state.MemoryState is {Replay:true,Completed:true} => state,
+            "soup.payment" when state.Stage==SliceStage.MemoryReturned&&action.ChoiceCode=="zhang_pays"&&action.OpportunityId=="soup-payment-1" => state,
             "slice.complete" when state.Stage==SliceStage.MemoryReturned => state with {Stage=SliceStage.SliceComplete},
             _ => null
         };

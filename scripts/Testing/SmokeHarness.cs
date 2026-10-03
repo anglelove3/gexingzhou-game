@@ -1,11 +1,42 @@
 using Godot;
 public partial class SmokeHarness : Node
 {
+    private string? captureDirectory;private readonly HashSet<string> captured=new();
     public override async void _Ready()
     {
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="Capture")
+            {
+                if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
+                var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
+                if(requested!=null){var dimensions=requested.Split('x');GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(dimensions[0]),int.Parse(dimensions[1]));await Frames(3);}
+                var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
+                GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
+                var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate();AddChild(menu);await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);GD.Print("MENU_FIRST_DRAW_MS "+Godot.Time.GetTicksMsec());await Capture("menu");menu.Free();await Frames(2);
+                await MemoryPath(false,2,false);GD.Print("RENDER_FPS "+Engine.GetFramesPerSecond());GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Capture");GetTree().Quit();return;
+            }
+            if(suite=="Accessibility")
+            {
+                var clock=GetNode<GameSession>("/root/GameSession");clock.NewGame();
+                for(int i=0;i<1000;i++)clock.AdvanceClock(.0015);
+                if(clock.Snapshot.SceneActiveMilliseconds.GetValueOrDefault("community_gate")!=1500)throw new Exception("Active time loses sub-millisecond precision");
+                foreach(var font in new[]{20,24,32})foreach(var enabled in new[]{false,true})
+                {
+                    var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true,Assistance=true,RecordEventsEnabled=enabled},false);
+                    var log=System.IO.Path.Combine(s.SaveDirectory,"behavior","events.jsonl");var before=System.IO.File.Exists(log)?System.IO.File.ReadAllLines(log).Length:0;
+                    await MemoryPath(false,2,false);
+                    if(s.FontWarning.Length>0)throw new Exception(s.FontWarning);
+                    var after=System.IO.File.Exists(log)?System.IO.File.ReadAllLines(log).Length:0;
+                    if(!enabled&&after!=before||enabled&&after-before!=7)throw new Exception($"Event switch or pairing failed: enabled={enabled} before={before} after={after}");
+                    GD.Print($"ACCESSIBILITY_PATH_PASS font={font} instant=true reduced=true records={enabled}");
+                }
+                var settingsMain=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(settingsMain);await Frames(3);KeyPress(Key.Escape);await Frames(2);
+                if(!settingsMain.Settings.IsOpen)throw new Exception("Settings not keyboard accessible");KeyPress(Key.Escape);await Frames(2);
+                if(settingsMain.Settings.IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Settings did not restore field flow");
+                settingsMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Accessibility");GetTree().Quit();return;
+            }
             if(suite is "Resume" or "ResumeSeed")
             {
                 await MemoryPath(false,0,false,true);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
@@ -69,7 +100,7 @@ public partial class SmokeHarness : Node
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
     private async Task Finish(MainView main)
     {
-        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await Frames(12);if(!main.Dialogue.IsOpen)break;KeyPress(Key.E);await Frames(2);}
+        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await GameTime(.18);if(!main.Dialogue.IsOpen)break;KeyPress(Key.E);await Frames(2);if(main.Dialogue.IsOpen){var panel=main.Dialogue.GetChildren().OfType<PanelContainer>().Single();if(panel.GetGlobalRect().End.Y>720.1f)throw new Exception("Dialogue overflows logical screen");}}
         if(main.Dialogue.IsOpen)throw new Exception("Dialogue never finished with keyboard");
     }
     private async Task StoryPath(bool answer,string suite,bool resume=false)
@@ -78,6 +109,7 @@ public partial class SmokeHarness : Node
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
         s.AdvanceClock(35);KeyPress(Key.Tab);await Frames(2);
         if(!main.Phone.IsOpen)throw new Exception("Keyboard did not open phone");
+        await Capture("phone");
         var time=s.Snapshot.InvitationState.Elapsed;s.AdvanceClock(100);
         if(s.Snapshot.InvitationState.Elapsed!=time)throw new Exception("Phone did not freeze invitation");
         KeyPress(Key.F5);await Frames(2);
@@ -116,6 +148,7 @@ public partial class SmokeHarness : Node
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
         main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
         main.ChangeWorld("convenience_street",new(1120,280));main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
+        await Capture("soup");
         main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);}
         await Finish(main);await Choose(main,index);await Finish(main);
@@ -129,7 +162,9 @@ public partial class SmokeHarness : Node
     {
         var main=await SoupPath("eat",0,true,answer,resume);var s=GetNode<GameSession>("/root/GameSession");
         var seat=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat");seat.TryInteract(s);await Choose(main,0);await Frames(50);
+        await WaitUntil(()=>main.Memory!=null&&s.Flow==GeXingzhou.Domain.FlowState.Memory&&s.Snapshot.MemoryState!=null,"Memory entry");
         if(main.Memory==null||s.Flow!=GeXingzhou.Domain.FlowState.Memory)throw new Exception("Memory scene failed to enter");
+        await Capture("memory");
         KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);var id=s.Snapshot.MemoryState!.InstanceId;
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(s.Snapshot.MemoryState!.PushedTotal!=2)throw new Exception("Saved coins missing after real scene restore");}
         if(exercise)
@@ -141,10 +176,11 @@ public partial class SmokeHarness : Node
         }
         KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);
         if(s.Snapshot.MemoryState!.PushedTotal!=5)throw new Exception("Keyboard did not push all coins");
-        for(int i=0;i<food;i++){KeyPress(Key.Right);await Frames(2);}KeyPress(Key.E);await Frames(50);
+        for(int i=0;i<food;i++){KeyPress(Key.Right);await Frames(2);}KeyPress(Key.E);await Frames(50);await WaitUntil(()=>main.Memory==null&&s.Flow!=GeXingzhou.Domain.FlowState.Transition,"Memory return");
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);}
         await Finish(main);
         if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Snapshot.SceneId!="soup_shop")throw new Exception("Memory did not return and complete slice");
+        if(!s.Snapshot.CompletedActions.Contains("soup.payment:soup-payment-1"))throw new Exception("Payment feedback missing");
         if((int)s.Snapshot.MemoryState!.FoodChoice!.Value!=food)throw new Exception("Wrong memory food choice");
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");}
         if(exercise)
@@ -168,4 +204,16 @@ public partial class SmokeHarness : Node
         if(s.Snapshot.SceneId!="memory_soup_table"&&(main.World.Player.Position.X!=expected.X||s.Flow!=GeXingzhou.Domain.FlowState.Field))throw new Exception("Restore position or input lock wrong");
         GD.Print("CHECKPOINT_RESTART_PASS "+stage);return main;
     }
+    private async Task Capture(string label)
+    {
+        if(captureDirectory==null||!captured.Add(label))return;
+        await Frames(3);await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+        System.IO.Directory.CreateDirectory(captureDirectory);using var pixels=GetViewport().GetTexture().GetImage();var path=System.IO.Path.Combine(captureDirectory,label+".png");
+        if(pixels.IsEmpty()||pixels.SavePng(path)!=Error.Ok)throw new Exception("Screenshot save failed");GD.Print($"CAPTURE {label} {pixels.GetWidth()}x{pixels.GetHeight()} {path}");
+    }
+    private async Task WaitUntil(Func<bool> condition,string name)
+    {
+        var timer=System.Diagnostics.Stopwatch.StartNew();while(!condition()&&timer.Elapsed.TotalSeconds<5)await Frames();if(!condition())throw new Exception(name+" timed out");await Frames(2);
+    }
+    private async Task GameTime(double duration){double passed=0;var timer=System.Diagnostics.Stopwatch.StartNew();while(passed<duration&&timer.Elapsed.TotalSeconds<5){await Frames();passed+=GetProcessDeltaTime();}if(passed<duration)throw new Exception("Engine game time stalled");}
 }

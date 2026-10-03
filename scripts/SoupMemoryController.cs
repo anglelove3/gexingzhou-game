@@ -6,7 +6,7 @@ public partial class SoupMemoryController : Control
     public override void _Ready()
     {
         var backdrop=new ColorRect{Size=new Vector2(1280,720),Color=new Color("594838")};AddChild(backdrop);
-        var panel=new PanelContainer{Position=new Vector2(120,130),Size=new Vector2(1040,480)};AddChild(panel);var box=new VBoxContainer{CustomMinimumSize=new Vector2(1000,440)};panel.AddChild(box);
+        var panel=new PanelContainer{Position=new Vector2(120,130),Size=new Vector2(1040,480)};panel.AddThemeStyleboxOverride("panel",UiStyles.Panel());AddChild(panel);var box=new VBoxContainer{CustomMinimumSize=new Vector2(1000,440)};panel.AddChild(box);
         box.AddChild(new Label{Text="那年清晨 · 网吧包夜之后\n原型美术 / 回忆不会改写过去",CustomMinimumSize=new Vector2(960,100)});
         status=new Label{CustomMinimumSize=new Vector2(960,65)};box.AddChild(status);
         var row=new HBoxContainer();box.AddChild(row);coins=new Button[4];

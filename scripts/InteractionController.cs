@@ -4,7 +4,8 @@ public partial class InteractionController : Node
 {
     public PlayerController Player {get;set;}=null!;
     public string Prompt {get;private set;}="";
-    private readonly InteractionPolicy policy=new(); private string? selected;private double elapsed;
+    private InteractionPolicy policy=null!;private string? selected;private double elapsed;
+    public override void _Ready(){var p=GetNode<GameSession>("/root/GameSession").Catalog!.Parameters;policy=new((float)p["interact.radius"],(float)p["interact.hysteresis"],p["interact.repeat_guard"]);}
     public override void _Process(double delta)
     {
         var session=GetNode<GameSession>("/root/GameSession"); if(session.Flow!=FlowState.Field){Prompt="";return;} elapsed+=delta;

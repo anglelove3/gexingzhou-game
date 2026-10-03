@@ -12,10 +12,10 @@ public partial class SceneFlow : Node
         bool success=false;
         try
         {
-            var tween=CreateTween();tween.TweenProperty(fade,"color:a",1f,.325);await ToSignal(tween,Tween.SignalName.Finished);
+            var half=s.Options.FadeDuration/2;var tween=CreateTween();tween.TweenProperty(fade,"color:a",1f,half);await ToSignal(tween,Tween.SignalName.Finished);
             success=sceneId=="memory_soup_table"?Main.EnterMemoryView():Main.ChangeWorld(sceneId,position);
             if(success)s.UpdateScene(sceneId,position);
-            tween=CreateTween();tween.TweenProperty(fade,"color:a",0f,.325);await ToSignal(tween,Tween.SignalName.Finished);
+            Main.MoveChild(fade,Main.GetChildCount()-1);tween=CreateTween();tween.TweenProperty(fade,"color:a",0f,half);await ToSignal(tween,Tween.SignalName.Finished);
             return new(success,success?null:"missing_scene");
         }
         catch(Exception ex){return new(false,ex.GetType().Name);}

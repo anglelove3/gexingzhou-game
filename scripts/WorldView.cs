@@ -41,6 +41,12 @@ public partial class WorldView : Node2D
     private void Floor(Vector2 p,Vector2 size){var body=new StaticBody2D{Position=p,CollisionLayer=1};body.AddChild(new CollisionShape2D{Shape=new RectangleShape2D{Size=size}});AddChild(body);}
     public override void _Draw()
     {
+        if(SceneId=="soup_shop")
+        {
+            DrawRect(new Rect2(0,0,Width,280),new Color("9d8869"));DrawRect(new Rect2(0,40,Width,110),new Color("735c4c"));
+            for(int x=220;x<Width;x+=280){DrawRect(new Rect2(x,220,130,16),new Color("473932"));DrawRect(new Rect2(x+8,236,8,44),new Color("3b302c"));DrawRect(new Rect2(x+114,236,8,44),new Color("3b302c"));DrawRect(new Rect2(x+45,209,34,10),new Color("d3c3a4"));}
+            DrawRect(new Rect2(0,280,Width,80),new Color("62554a"));for(int x=0;x<Width;x+=64)DrawLine(new Vector2(x,280),new Vector2(x+40,360),new Color("51463e"),1);return;
+        }
         DrawRect(new Rect2(0,0,Width,360),new Color("a0adb3"));
         for(int x=40;x<Width;x+=220){DrawRect(new Rect2(x,34,172,218),new Color("697c88"));for(int row=0;row<5;row++)for(int col=0;col<5;col++)DrawRect(new Rect2(x+12+col*30,48+row*37,14,22),new Color("bbbdac"));}
         DrawRect(new Rect2(0,252,Width,28),new Color("657c6d"));DrawRect(new Rect2(0,280,Width,80),new Color("494f56"));

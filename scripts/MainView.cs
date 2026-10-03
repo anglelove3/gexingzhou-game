@@ -8,6 +8,8 @@ public partial class MainView : Control
     public ChoiceController Choices {get;private set;}=null!;
     public SceneFlow SceneFlow {get;private set;}=null!;
     public SoupMemoryController? Memory {get;private set;}
+    public SettingsController Settings {get;private set;}=null!;private int lastFont;
+    public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
     public override void _Ready()
     {
@@ -18,10 +20,13 @@ public partial class MainView : Control
         var resource=ScenePath(worldScene);if(resource==null)throw new InvalidOperationException("Unknown saved scene");
         World=GD.Load<PackedScene>("res://scenes/world/"+resource+".tscn").Instantiate<WorldView>();viewport.AddChild(World);
         World.Player.Position=candidate.SceneId=="memory_soup_table"?new Vector2(candidate.ReturnContext!.Position.X,candidate.ReturnContext.Position.Y):new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y);
-        status=new Label{Position=new Vector2(30,24),CustomMinimumSize=new Vector2(1220,80),AutowrapMode=TextServer.AutowrapMode.WordSmart};AddChild(status);
+        AddChild(new ColorRect{Size=new Vector2(1280,148),Color=new Color(0,0,0,.76f),MouseFilter=MouseFilterEnum.Ignore});
+        AddChild(new ColorRect{Position=new Vector2(0,640),Size=new Vector2(1280,80),Color=new Color(0,0,0,.76f),MouseFilter=MouseFilterEnum.Ignore});
+        status=new Label{Position=new Vector2(30,16),CustomMinimumSize=new Vector2(1220,88),AutowrapMode=TextServer.AutowrapMode.WordSmart};AddChild(status);
         prompt=new Label{Position=new Vector2(30,658)};AddChild(prompt);
         Dialogue=new DialogueController();AddChild(Dialogue);Choices=new ChoiceController();AddChild(Choices);Phone=new PhoneController();AddChild(Phone);
         SceneFlow=new SceneFlow{Main=this};AddChild(SceneFlow);
+        Settings=new SettingsController();AddChild(Settings);Theme=s.CreateUiTheme();lastFont=s.Options.SubtitleSize;
         if(s.PendingRestore!=null)
         {
             if(candidate.SceneId=="memory_soup_table"&&!EnterMemoryView()){ShowNotice("继续失败","回忆场景无法加载，原档保留。请返回菜单重试。");return;}
@@ -32,7 +37,11 @@ public partial class MainView : Control
     public override void _Process(double delta)
     {
         var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);prompt.Text=World.Interactions.Prompt+" · Tab 手机";
-        status.Text="原型美术 / 葛行舟首段试玩\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
+        if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
+        if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色目标按E";
+        prompt.Visible=s.Flow==FlowState.Field;
+        var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
+        status.Text="原型美术 / 葛行舟首段试玩 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
         if(s.Snapshot.InvitationState.CarArrived&&s.Snapshot.Stage<=SliceStage.InvitationResolved&&World.SceneId=="community_gate"&&World.GetNodeOrNull("Cannon")==null)
         {var t=World.AddTarget("cannon",400,"张大炮 · 见面","","invitation.meeting_complete");t.Name="Cannon";}
     }
@@ -88,10 +97,23 @@ public partial class MainView : Control
         var s=GetNode<GameSession>("/root/GameSession");if(s.Snapshot.ReturnContext is not {} context)return;
         var result=await SceneFlow.TryReturn(context);if(!result.Success){ShowNotice("切场失败","返回暂时失败，回忆进度保留。请重试。");return;}
         if(Memory!=null){Memory.Free();Memory=null;}World.Visible=true;
+        s.RecordMemoryReturned();
         s.SaveCheckpoint();
         if(complete&&s.Snapshot.MemoryState is {} m){s.TryDispatch(new("memory.return","return",m.InstanceId));if(!m.Replay)ShowDialogue(context.DialogueNodeId,FinishSlice);else ShowNotice("回忆结束","过去没有被改写。你仍坐在现实的汤店里。");}
     }
-    private void FinishSlice()=>ShowDialogue("soup.tomorrow",()=>GetNode<GameSession>("/root/GameSession").TryDispatch(new("slice.complete","completed","slice-1")));
+    private void FinishSlice()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        if(s.TryDispatch(new("soup.payment","zhang_pays","soup-payment-1")).Applied)
+        {
+            PaymentFeedbackCount++;
+            var feedback=new Label{Text="张大炮把钱压在碗边：这顿我来。",Position=new(560,220),MouseFilter=MouseFilterEnum.Ignore};AddChild(feedback);
+            var coin=new ColorRect{Color=Colors.Gold,Position=new(580,300),Size=new(18,18),MouseFilter=MouseFilterEnum.Ignore};AddChild(coin);
+            var tween=CreateTween();tween.TweenProperty(coin,"position",new Vector2(800,300),s.Options.FadeDuration);
+            tween.TweenInterval(.6);tween.TweenCallback(Callable.From(()=>{coin.QueueFree();feedback.QueueFree();}));
+        }
+        ShowDialogue("soup.tomorrow",()=>s.TryDispatch(new("slice.complete","completed","slice-1")));
+    }
     public bool ChangeWorld(string sceneId,Position2 position)
     {
         var path=ScenePath(sceneId);if(path==null)return false;
@@ -103,13 +125,15 @@ public partial class MainView : Control
     {
         if(ev is not InputEventKey{Pressed:true,Echo:false} key)return;
         if(GetNode<GameSession>("/root/GameSession").Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
-        if(key.PhysicalKeycode==Key.F5)GetNode<GameSession>("/root/GameSession").SaveManual();
+        if(Settings.IsOpen){if(key.PhysicalKeycode==Key.Escape)Settings.Close();else return;}
+        else if(key.PhysicalKeycode==Key.F5)GetNode<GameSession>("/root/GameSession").SaveManual();
         else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
         else if(Phone.IsOpen){if(key.PhysicalKeycode==Key.Tab||key.PhysicalKeycode==Key.Escape)Phone.Close();else return;}
         else if(key.PhysicalKeycode==Key.Tab)Phone.Open("messages");
         else if(Choices.IsOpen){if(key.PhysicalKeycode is Key.Escape or Key.E)Choices.HandleKey(key.PhysicalKeycode);else return;}
         else if(Dialogue.IsOpen)Dialogue.HandleKey(key.PhysicalKeycode);
         else if(Memory!=null)Memory.HandleKey(key.PhysicalKeycode);
+        else if(key.PhysicalKeycode==Key.Escape)Settings.Open();
         else return;
         GetViewport().SetInputAsHandled();
     }

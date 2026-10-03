@@ -16,4 +16,8 @@ public sealed record WorldSnapshot
     public MemoryState? MemoryState {get;init;}
     public SceneReturnContext? ReturnContext {get;init;}
     public int MemoryOrdinal {get;init;}
+    public int MemoryVisitOrdinal {get;init;}
+    public string PlaythroughId {get;init;}=Guid.NewGuid().ToString();
+    public Dictionary<string,long> SceneActiveMilliseconds {get;init;}=new();
+    public GameSettings Settings {get;init;}=new();
 }

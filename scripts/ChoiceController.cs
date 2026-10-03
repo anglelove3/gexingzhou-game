@@ -5,7 +5,7 @@ public partial class ChoiceController : Control
     private PanelContainer? panel;public bool IsOpen=>panel!=null;
     public void Open(string title,IReadOnlyList<(string Caption,Action Act)> options)
     {
-        Close();panel=new PanelContainer{Position=new Vector2(230,220),Size=new Vector2(820,380)};AddChild(panel);
+        Close();panel=new PanelContainer{Position=new Vector2(230,220),Size=new Vector2(820,380)};panel.AddThemeStyleboxOverride("panel",UiStyles.Panel());AddChild(panel);
         var box=new VBoxContainer{CustomMinimumSize=new Vector2(780,320)};panel.AddChild(box);
         box.AddChild(new Label{Text=title,AutowrapMode=TextServer.AutowrapMode.WordSmart,CustomMinimumSize=new Vector2(760,90)});
         foreach(var option in options){var button=new Button{Text=option.Caption,CustomMinimumSize=new Vector2(760,56)};box.AddChild(button);button.Pressed+=()=>{Close();option.Act();};}

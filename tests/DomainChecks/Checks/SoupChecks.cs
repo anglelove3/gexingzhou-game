@@ -4,6 +4,12 @@ public static class SoupChecks
 {
     public static void Register(List<(string,string,Action)> tests)
     {
+        tests.Add(("Soup","PaymentOccursOnceAfterMemory",()=>{
+            Check.True(!QuestReducer.Apply(new(),new("soup.payment","zhang_pays","soup-payment-1")).Applied);
+            var paid=QuestReducer.Apply(new(){Stage=SliceStage.MemoryReturned},new("soup.payment","zhang_pays","soup-payment-1"));
+            Check.True(paid.Applied);Check.Equal(SliceStage.MemoryReturned,paid.Next.Stage);
+            Check.True(!QuestReducer.Apply(paid.Next,new("soup.payment","zhang_pays","soup-payment-1")).Applied);
+        }));
         tests.Add(("Soup","RejectsEarlyMeeting",()=>Check.True(!QuestReducer.Apply(new(){Stage=SliceStage.CandyHeyPending,CandyCount=1},new("soup.meet","sit","soup-seat-1")).Applied)));
         foreach(var choice in new[]{"eat","set_chopsticks","check_phone"})tests.Add(("Soup","Merges_"+choice,()=>{
             var before=new WorldSnapshot{Stage=SliceStage.CandyHeyDelivered};

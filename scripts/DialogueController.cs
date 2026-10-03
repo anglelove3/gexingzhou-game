@@ -6,7 +6,8 @@ public partial class DialogueController : Control
     public bool IsOpen {get;private set;}
     public override void _Ready()
     {
-        var panel=new PanelContainer{Position=new Vector2(60,442),Size=new Vector2(1160,230)};AddChild(panel);
+        var panel=new PanelContainer{Position=new Vector2(60,410),Size=new Vector2(1160,260)};AddChild(panel);
+        panel.AddThemeStyleboxOverride("panel",UiStyles.Panel());
         text=new Label{CustomMinimumSize=new Vector2(1100,210),AutowrapMode=TextServer.AutowrapMode.WordSmart};panel.AddChild(text);Visible=false;
     }
     public bool Open(string id,Action? onFinished=null)
@@ -22,7 +23,7 @@ public partial class DialogueController : Control
     public override void _Process(double delta)
     {
         if(!IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Dialogue)return;
-        elapsed+=delta;dialogue.Tick(delta,30);text.Text=dialogue.Speaker+"\n\n"+dialogue.Text+"\n\n[E / Enter 继续 · Esc 返回]";
+        elapsed+=delta;dialogue.Tick(delta,GetNode<GameSession>("/root/GameSession").Options.TextSpeed);text.Text=dialogue.Speaker+"\n\n"+dialogue.Text+"\n\n[E / Enter 继续 · Esc 返回]";
     }
     public void HandleKey(Key key)
     {

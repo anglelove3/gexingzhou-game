@@ -6,7 +6,7 @@ public partial class PhoneController : Control
     public bool IsOpen {get;private set;}
     public override void _Ready()
     {
-        var panel=new PanelContainer{Position=new Vector2(230,70),Size=new Vector2(820,570)};AddChild(panel);
+        AddChild(UiStyles.Dim());var panel=new PanelContainer{Position=new Vector2(230,70),Size=new Vector2(820,570)};panel.AddThemeStyleboxOverride("panel",UiStyles.Panel());AddChild(panel);
         box=new VBoxContainer{CustomMinimumSize=new Vector2(760,530)};panel.AddChild(box);
         body=new Label{AutowrapMode=TextServer.AutowrapMode.WordSmart,CustomMinimumSize=new Vector2(740,320)};box.AddChild(body);
         answer=new Button{Text="接听张大炮的电话"};box.AddChild(answer);answer.Pressed+=Answer;
