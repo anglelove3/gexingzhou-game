@@ -1,27 +1,40 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
 [application]
+
 config/name="葛行舟｜首段试玩"
 run/main_scene="res://scenes/Boot.tscn"
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 
 [autoload]
+
 GameSession="*res://scripts/GameSession.cs"
 
 [display]
+
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
 [dotnet]
+
 project/assembly_name="GeXingzhou"
 
+[gui]
+
+theme/custom="res://assets/theme.tres"
+
 [rendering]
+
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/default_filters/use_nearest_mipmap_filter=false
-environment/defaults/default_clear_color=Color(0.055,0.075,0.10,1)
-
-[gui]
-theme/custom="res://assets/theme.tres"
+environment/defaults/default_clear_color=Color(0.055, 0.075, 0.1, 1)

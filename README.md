@@ -8,6 +8,8 @@
 
 ## 开始试玩
 
+跨电脑开发使用独立私有仓库[anglelove3/gexingzhou-game](https://github.com/anglelove3/gexingzhou-game)，开发分支`feature/vs01`。首次克隆、登录、环境准备及给另一台Codex的接续提示见[GitHub与跨设备接续](docs/development/09_GitHub与跨设备接续.md)。原始故事集、照片、存档和本机配置不随Git同步；原有fangguoge-game保持不变。
+
 1. 用Godot **4.7.2 .NET版**导入本目录的`project.godot`。需要.NET SDK 8（本机锁定8.0.425，可使用较新的8.0补丁）。普通Godot版不能运行C#。
 2. 在项目根目录终端执行`dotnet build GeXingzhou.csproj`，等编译完成；Godot按F5运行，选择“开始新游戏”。已有存档不会无提示被抹掉。
 3. A/D或←→移动，Shift加快；金色标记附近E互动。Tab手机，Esc关闭当前界面或打开设置。剧情选择用方向键/Tab切焦点，Enter确认；休息菜单用↑↓选择，Tab始终打开手机；对白用E推进。F5保存手动槽，F9读手动槽。
