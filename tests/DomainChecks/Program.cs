@@ -2,6 +2,7 @@ using GeXingzhou.DomainChecks;
 var tests = new List<(string Group, string Name, Action Run)>();
 ContentChecks.Register(tests);
 MovementChecks.Register(tests);
+RestChecks.Register(tests);
 StoryChecks.Register(tests);
 SoupChecks.Register(tests);
 MemoryChecks.Register(tests);

@@ -1,0 +1,6 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v2/bench-foreground.png" id="Art"]
+[resource]
+atlas=ExtResource("Art")
+region=Rect2(50,298,2072,130)
+filter_clip=true

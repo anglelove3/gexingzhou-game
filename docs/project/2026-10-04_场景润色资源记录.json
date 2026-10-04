@@ -3,7 +3,8 @@
   "tool": "built-in image_gen",
   "model": "tool-managed; version not exposed",
   "references": [
-    "assets/art/vs01-v1/community-v1.png"
+    "assets/art/vs01-v1/community-v1.png",
+    "assets/art/vs01-v1/player-v1.png"
   ],
   "private_photos_used": false,
   "assets": [
@@ -34,15 +35,144 @@
       "generated_on": "2026-10-04",
       "license_status": "AI_generated_for_project; commercial_release_review_required",
       "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    },
+    {
+      "id": "player-rest",
+      "file": "assets/art/vs01-v2/player-rest.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "9ECA1B4DA18431CB7BE86DEE15281BC3211571D6A708806663A76CD1A147A2BB",
+      "usage": "16_individual_measured_pose_crops; sit4_seated1_smoke6_rise4",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    },
+    {
+      "id": "bench-foreground",
+      "file": "assets/art/vs01-v2/bench-foreground.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "7D0F661EF3D90296B2A5E831565AECC06BF26FB75D67AA84B65BE79382A78C61",
+      "usage": "thin_seat_front_occlusion_atlas",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
     }
   ],
   "prompts": {
     "phone-frame": "Use case: stylized-concept. Asset type: production game UI texture, one old smartphone frame for a Chinese narrative adventure. Image 1 is STYLE REFERENCE ONLY, do not include the street scene. Front-on flat orthographic phone, dark worn blue-gray metal and rubber case, discreet amber reflected edges, small speaker slit and tiny camera dot at top, no logos. Landscape game use but phone itself vertical, portrait 2:3 shape centered and filling canvas with a small genuinely transparent margin. Entire inner screen is solid near-black blue-gray (#111d27), blank calm area for separate live text/buttons. Exterior outside rounded phone silhouette fully transparent. Fine hand-painted pixel-inspired texture matching reference, subtle scuffs at edges only, restrained everyday realism, no sci-fi, no text/letters/numbers/interface/icons, no hands, no perspective, no background or shadows outside silhouette. Uniform straight border edges suitable for nine-slice resizing; keep decorative top/bottom details close to corners, interior unadorned. Deliver a single isolated full phone texture, not a mockup.",
-    "dialogue-frame": "Use case: stylized-concept. Asset type: single production 2D narrative game dialogue panel texture for nine-slice stretching. Image 1 is palette/texture style reference only. Very wide landscape rectangular panel, 3:1 silhouette, filling canvas with only tiny transparent outer margin. Front-on flat dark desaturated blue-gray painted surface, gently rounded corners, delicate aged amber metal thin outline, muted warm edge highlights and subtle understated grain, quiet ordinary Jiangsu town feeling, literary melancholy, not fantasy or sci-fi. Entire inside almost uniform opaque very dark blue gray for readable live Chinese text, no interior divisions, no imagery, no text, no icons, no logos, no watermark. Exterior outside rounded panel genuinely transparent, no exterior glow or shadow. Nine-slice-ready straight edges; all decoration restrained along small borders; one panel only, not a UI screenshot or multiple components. Match reference art with modest worn texture."
+    "dialogue-frame": "Use case: stylized-concept. Asset type: single production 2D narrative game dialogue panel texture for nine-slice stretching. Image 1 is palette/texture style reference only. Very wide landscape rectangular panel, 3:1 silhouette, filling canvas with only tiny transparent outer margin. Front-on flat dark desaturated blue-gray painted surface, gently rounded corners, delicate aged amber metal thin outline, muted warm edge highlights and subtle understated grain, quiet ordinary Jiangsu town feeling, literary melancholy, not fantasy or sci-fi. Entire inside almost uniform opaque very dark blue gray for readable live Chinese text, no interior divisions, no imagery, no text, no icons, no logos, no watermark. Exterior outside rounded panel genuinely transparent, no exterior glow or shadow. Nine-slice-ready straight edges; all decoration restrained along small borders; one panel only, not a UI screenshot or multiple components. Match reference art with modest worn texture.",
+    "player-rest": "Use case: stylized-concept. Asset type: production transparent sprite animation sheet, square 2048x2048, exactly 4 columns by 4 rows, 16 equal cells 512x512 without visible grid. Image 1 is CHARACTER and STYLE reference only: same Chinese young adult male, messy short tied-back black ponytail, dark worn denim jacket over black vest, jeans with wallet chain, black Martin boots, lean build, relaxed scruffy rock musician. Strict same right-facing side/three-quarter view as reference in every cell, same proportions and drawing scale, full body including boots entirely within each cell, no overlapping cells. Transparent background, no chair, no floor, no text, no borders, no extra props except one tiny cigarette used in smoking frames. Align feet around y=465 within each cell; standing figure head around y=25. Sitting torso/head retain same physical scale, knees bend naturally, hips around y=330 and boots around y=465. Row 1: four DIFFERENT sequential sit-down poses: standing relaxed, bending knees, lowering into invisible seat, fully seated facing right. Row 2: first four DIFFERENT seated smoking poses: hand reaches pocket, brings cigarette out, lighter cupped toward cigarette, hand raises lit cigarette to lips. Row 3: two DIFFERENT final seated smoking poses then two seated rest poses: small inhale, hand lowered and gentle exhale with small wispy smoke to right, seated quietly hands on thighs, seated quietly slight relaxed lean. Row 4: four DIFFERENT rise-to-standing poses: seated, leans forward preparing to rise, halfway rising with straightening knees, fully standing relaxed. Crisp hand-painted pixel-inspired semi-realistic raster rendering matching reference. NO bench, no background, no logos, no watermark, no text, no missing poses. Maintain character identity, clothing, head size and body scale across frames; make sequential motion usable, not duplicated images.",
+    "bench-foreground": "Use case: stylized-concept. Asset type: single thin transparent foreground occlusion strip for a 2D game bench. Image 1 is reference for the exact bench wood and amber evening light only. Draw one straight horizontal weathered dark-brown wooden front edge of the bench seat, flat front-on, approximately 1200 pixels wide by 65 pixels tall, centered on a wide transparent canvas. Tiny black metal support caps at two ends only. No bench back, no legs, no floor, no objects, no text, no watermark, no shadows outside the strip. Genuine transparent space above and below. Painted pixel-inspired semi-realistic texture matching reference, muted warm edge light. This is only a thin front wooden lip used to mask a seated character's hip at a seat surface, not a new whole bench or scene."
   },
   "alpha_checks": {
     "phone_corner": 0,
     "phone_edge": 0
   },
-  "note": "原始PNG不改写，裁切仅用Godot AtlasTexture；项目引用只指向E目录副本。商用前仍需审核素材与整体内容。"
+  "note": "原始PNG不改写，裁切仅用Godot AtlasTexture；项目引用只指向E目录副本。商用前仍需审核素材与整体内容。",
+  "rest_regions": [
+    [
+      166,
+      6,
+      94,
+      311
+    ],
+    [
+      438,
+      40,
+      118,
+      278
+    ],
+    [
+      716,
+      76,
+      137,
+      241
+    ],
+    [
+      1008,
+      95,
+      179,
+      225
+    ],
+    [
+      101,
+      360,
+      203,
+      267
+    ],
+    [
+      419,
+      363,
+      178,
+      264
+    ],
+    [
+      721,
+      367,
+      175,
+      260
+    ],
+    [
+      1016,
+      358,
+      196,
+      266
+    ],
+    [
+      119,
+      646,
+      186,
+      267
+    ],
+    [
+      422,
+      647,
+      182,
+      266
+    ],
+    [
+      721,
+      653,
+      190,
+      260
+    ],
+    [
+      1016,
+      659,
+      231,
+      253
+    ],
+    [
+      131,
+      970,
+      150,
+      254
+    ],
+    [
+      438,
+      944,
+      137,
+      279
+    ],
+    [
+      730,
+      923,
+      131,
+      301
+    ],
+    [
+      1034,
+      911,
+      99,
+      313
+    ]
+  ],
+  "rest_note": "工具实际输出1254×1254而非提示请求2048。逐帧测量真实alpha边界，AtlasTexture裁切不修改PNG；pivot元数据校准座面，所有帧保持307源像素对应68世界单位。减少动效版本复用无烟雾姿态，保留动作时间与状态完成信号。"
 }

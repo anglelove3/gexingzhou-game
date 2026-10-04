@@ -1,0 +1,105 @@
+[gd_resource type="SpriteFrames" load_steps=18 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v2/player-rest.png" id="Art"]
+[sub_resource type="AtlasTexture" id="Pose0"]
+atlas=ExtResource("Art")
+region=Rect2(166,6,94,311)
+filter_clip=true
+metadata/seat_pivot=Vector2(44,171)
+metadata/stand_pivot=Vector2(44,308)
+[sub_resource type="AtlasTexture" id="Pose1"]
+atlas=ExtResource("Art")
+region=Rect2(438,40,118,278)
+filter_clip=true
+metadata/seat_pivot=Vector2(53,158)
+metadata/stand_pivot=Vector2(53,275)
+[sub_resource type="AtlasTexture" id="Pose2"]
+atlas=ExtResource("Art")
+region=Rect2(716,76,137,241)
+filter_clip=true
+metadata/seat_pivot=Vector2(72,149)
+metadata/stand_pivot=Vector2(72,238)
+[sub_resource type="AtlasTexture" id="Pose3"]
+atlas=ExtResource("Art")
+region=Rect2(1008,95,179,225)
+filter_clip=true
+metadata/seat_pivot=Vector2(72,152)
+metadata/stand_pivot=Vector2(72,222)
+[sub_resource type="AtlasTexture" id="Pose4"]
+atlas=ExtResource("Art")
+region=Rect2(101,360,203,267)
+filter_clip=true
+metadata/seat_pivot=Vector2(79,160)
+metadata/stand_pivot=Vector2(79,264)
+[sub_resource type="AtlasTexture" id="Pose5"]
+atlas=ExtResource("Art")
+region=Rect2(419,363,178,264)
+filter_clip=true
+metadata/seat_pivot=Vector2(70,164)
+metadata/stand_pivot=Vector2(70,261)
+[sub_resource type="AtlasTexture" id="Pose6"]
+atlas=ExtResource("Art")
+region=Rect2(721,367,175,260)
+filter_clip=true
+metadata/seat_pivot=Vector2(69,159)
+metadata/stand_pivot=Vector2(69,257)
+[sub_resource type="AtlasTexture" id="Pose7"]
+atlas=ExtResource("Art")
+region=Rect2(1016,358,196,266)
+filter_clip=true
+metadata/seat_pivot=Vector2(70,169)
+metadata/stand_pivot=Vector2(70,263)
+[sub_resource type="AtlasTexture" id="Pose8"]
+atlas=ExtResource("Art")
+region=Rect2(119,646,186,267)
+filter_clip=true
+metadata/seat_pivot=Vector2(76,166)
+metadata/stand_pivot=Vector2(76,264)
+[sub_resource type="AtlasTexture" id="Pose9"]
+atlas=ExtResource("Art")
+region=Rect2(422,647,182,266)
+filter_clip=true
+metadata/seat_pivot=Vector2(81,167)
+metadata/stand_pivot=Vector2(81,263)
+[sub_resource type="AtlasTexture" id="Pose10"]
+atlas=ExtResource("Art")
+region=Rect2(721,653,190,260)
+filter_clip=true
+metadata/seat_pivot=Vector2(68,164)
+metadata/stand_pivot=Vector2(68,257)
+[sub_resource type="AtlasTexture" id="Pose11"]
+atlas=ExtResource("Art")
+region=Rect2(1016,659,231,253)
+filter_clip=true
+metadata/seat_pivot=Vector2(84,155)
+metadata/stand_pivot=Vector2(84,250)
+[sub_resource type="AtlasTexture" id="Pose12"]
+atlas=ExtResource("Art")
+region=Rect2(131,970,150,254)
+filter_clip=true
+metadata/seat_pivot=Vector2(61,165)
+metadata/stand_pivot=Vector2(61,251)
+[sub_resource type="AtlasTexture" id="Pose13"]
+atlas=ExtResource("Art")
+region=Rect2(438,944,137,279)
+filter_clip=true
+metadata/seat_pivot=Vector2(75,176)
+metadata/stand_pivot=Vector2(75,276)
+[sub_resource type="AtlasTexture" id="Pose14"]
+atlas=ExtResource("Art")
+region=Rect2(730,923,131,301)
+filter_clip=true
+metadata/seat_pivot=Vector2(85,172)
+metadata/stand_pivot=Vector2(85,298)
+[sub_resource type="AtlasTexture" id="Pose15"]
+atlas=ExtResource("Art")
+region=Rect2(1034,911,99,313)
+filter_clip=true
+metadata/seat_pivot=Vector2(46,171)
+metadata/stand_pivot=Vector2(46,310)
+[resource]
+animations=[
+{"frames":[{"duration":1.0,"texture":SubResource("Pose0")},{"duration":1.0,"texture":SubResource("Pose1")},{"duration":1.0,"texture":SubResource("Pose2")},{"duration":1.0,"texture":SubResource("Pose3")}],"loop":false,"name":&"sit_down","speed":6.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Pose10")}],"loop":true,"name":&"seated","speed":1.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Pose4")},{"duration":1.0,"texture":SubResource("Pose5")},{"duration":1.0,"texture":SubResource("Pose6")},{"duration":1.0,"texture":SubResource("Pose7")},{"duration":1.0,"texture":SubResource("Pose8")},{"duration":1.0,"texture":SubResource("Pose9")}],"loop":false,"name":&"smoke","speed":3.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Pose12")},{"duration":1.0,"texture":SubResource("Pose13")},{"duration":1.0,"texture":SubResource("Pose14")},{"duration":1.0,"texture":SubResource("Pose15")}],"loop":false,"name":&"stand_up","speed":6.0}
+]

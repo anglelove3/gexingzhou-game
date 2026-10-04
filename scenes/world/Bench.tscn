@@ -1,5 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 [ext_resource type="Script" path="res://scripts/BenchView.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/atlases/bench-front.tres" id="Front"]
 [node name="Bench" type="Node2D" node_paths=PackedStringArray("SeatAnchor","StandAnchor")]
 script=ExtResource("1")
 Id="bench"
@@ -21,9 +22,12 @@ text="◇"
 mouse_filter=2
 
 [node name="SeatAnchor" type="Marker2D" parent="."]
-position=Vector2(0,-18)
+position=Vector2(0,-30)
 [node name="StandAnchor" type="Marker2D" parent="."]
 position=Vector2(0,0)
 [node name="BenchForeground" type="Sprite2D" parent="."]
 visible=false
 z_index=2
+position=Vector2(30,-27)
+scale=Vector2(0.07336,0.025)
+texture=ExtResource("Front")

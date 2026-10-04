@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "status": "vs01_editable_polished_ui_v2",
+  "status": "vs01_editable_ui_and_rest_resources_v2",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
     {
@@ -131,6 +131,34 @@
       ],
       "sha256": "E704D8C896E41C319890044775645E269B3A70604ECD1AD80B730795BF3566A8",
       "usage": "dialogue_nine_slice",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    },
+    {
+      "id": "player-rest",
+      "file": "assets/art/vs01-v2/player-rest.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "9ECA1B4DA18431CB7BE86DEE15281BC3211571D6A708806663A76CD1A147A2BB",
+      "usage": "16_individual_measured_pose_crops; sit4_seated1_smoke6_rise4",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    },
+    {
+      "id": "bench-foreground",
+      "file": "assets/art/vs01-v2/bench-foreground.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "7D0F661EF3D90296B2A5E831565AECC06BF26FB75D67AA84B65BE79382A78C61",
+      "usage": "thin_seat_front_occlusion_atlas",
       "source": "built-in image_gen",
       "generated_on": "2026-10-04",
       "license_status": "AI_generated_for_project; commercial_release_review_required",

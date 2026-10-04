@@ -3,6 +3,35 @@ using GeXingzhou.Domain;
 
 public partial class SmokeHarness
 {
+    private async Task RestChecks()
+    {
+        Require(ResourceLoader.Exists("res://assets/animations/player-rest-v2.tres"),"AnimationResources missing player rest frames");
+        var frames=GD.Load<SpriteFrames>("res://assets/animations/player-rest-v2.tres");
+        foreach(var (name,count) in new[]{("sit_down",3),("seated",1),("smoke",6),("stand_up",3)})
+        {
+            Require(frames.HasAnimation(name)&&frames.GetFrameCount(name)>=count,"Missing actual rest frames "+name);
+            Require(name=="seated"||!frames.GetAnimationLoop(name),"Rest action loops "+name);
+            var regions=new HashSet<Rect2>();
+            for(int i=0;i<frames.GetFrameCount(name);i++)
+            {
+                Require(frames.GetFrameTexture(name,i) is AtlasTexture,"Rest frame not raster");
+                var atlas=(AtlasTexture)frames.GetFrameTexture(name,i);regions.Add(atlas.Region);
+                Require(atlas.Atlas.ResourcePath.Contains("player-rest.png"),"Rest reuses another NPC");
+            }
+            Require(regions.Count>=count,"Rest uses duplicated poses "+name);
+        }
+        GD.Print("REST_PASS AnimationResources");
+        var main=await NewPolishMain();var bench=main.World.GetNode<BenchView>("Bench");var player=main.World.Player;
+        player.GlobalPosition=bench.StandAnchor.GlobalPosition;bench.GetNode<Sprite2D>("BenchForeground").Visible=true;
+        var original=player.Position;var art=player.GetNode<AnimatedSprite2D>("Artwork");
+        player.SetRestPose("seated",bench.SeatAnchor.GlobalPosition-player.GlobalPosition,false);await Frames(3);
+        Require(art.Animation=="seated"&&player.Position==original,"Seat pose altered collision position");await Capture("rest-seated");
+        var before=art.Position;bench.SeatAnchor.Position+=new Vector2(5,0);
+        player.SetRestPose("seated",bench.SeatAnchor.GlobalPosition-player.GlobalPosition,false);
+        Require(Math.Abs(art.Position.X-before.X-5)<.01,"Edited seat anchor not used");
+        player.ClearRestPose();Require(art.Animation=="idle","Walking pose not restored");main.Free();
+        await Frames();
+    }
     private async Task PolishedUiChecks()
     {
         foreach(var file in new[]{"phone-frame","dialogue-frame"})
