@@ -15,7 +15,10 @@ public partial class SmokeHarness : Node
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
                 var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate();AddChild(menu);await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);GD.Print("MENU_FIRST_DRAW_MS "+Godot.Time.GetTicksMsec());await Capture("menu");menu.Free();await Frames(2);
-                await MemoryPath(false,2,false);GD.Print("RENDER_FPS "+Engine.GetFramesPerSecond());GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Capture");GetTree().Quit();return;
+                await MemoryPath(false,2,false);
+                GetNode<GameSession>("/root/GameSession").SetOptions(new(){SubtitleSize=32,TextSpeed=0,ReducedMotion=true},false);
+                await ObservationVisualChecks();for(int food=0;food<3;food++)await MemoryPath(false,food,false);
+                GD.Print("RENDER_FPS "+Engine.GetFramesPerSecond());GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Capture");GetTree().Quit();return;
             }
             if(suite=="Accessibility")
             {
@@ -40,6 +43,14 @@ public partial class SmokeHarness : Node
             if(suite=="Recovery")
             {
                 await RecoveryChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Recovery");GetTree().Quit();return;
+            }
+            if(suite=="Narrative")
+            {
+                GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
+                var returnOnly=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--narrative-return-only="))?.Split('=')[1];
+                if(returnOnly!=null)await MemoryPath(false,int.Parse(returnOnly),false,false,true);
+                else {await ObservationChecks();for(int food=0;food<3;food++)await MemoryPath(false,food,true,true,true);}
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Narrative");GetTree().Quit();return;
             }
             if(suite is "Resume" or "ResumeSeed")
             {
@@ -162,15 +173,17 @@ public partial class SmokeHarness : Node
         if(s.Flow!=GeXingzhou.Domain.FlowState.Field||s.Snapshot.Stage!=stage)throw new Exception("Missing node locked or changed story");
         GD.Print("SOUP_PATH_PASS "+code);if(!keep){main.Free();await Frames();}return main;
     }
-    private async Task MemoryPath(bool answer,int food,bool exercise,bool resume=false)
+    private async Task MemoryPath(bool answer,int food,bool exercise,bool resume=false,bool narrative=false)
     {
         var main=await SoupPath("eat",0,true,answer,resume);var s=GetNode<GameSession>("/root/GameSession");
+        if(narrative)SeedNarrativeMarkers(s);
         var seat=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat");seat.TryInteract(s);await Choose(main,0);await Frames(50);
         await WaitUntil(()=>main.Memory!=null&&s.Flow==GeXingzhou.Domain.FlowState.Memory&&s.Snapshot.MemoryState!=null,"Memory entry");
         if(main.Memory==null||s.Flow!=GeXingzhou.Domain.FlowState.Memory)throw new Exception("Memory scene failed to enter");
         await Capture("memory");
         KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);var id=s.Snapshot.MemoryState!.InstanceId;
-        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(s.Snapshot.MemoryState!.PushedTotal!=2)throw new Exception("Saved coins missing after real scene restore");}
+        if(captureDirectory!=null)GD.Print($"COIN_STATE food={food} step=2 total={s.Snapshot.MemoryState.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
+        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(narrative)SeedNarrativeMarkers(s);if(s.Snapshot.MemoryState!.PushedTotal!=2)throw new Exception("Saved coins missing after real scene restore");}
         if(exercise)
         {
             KeyPress(Key.Escape);await Frames(50);
@@ -179,9 +192,12 @@ public partial class SmokeHarness : Node
             if(s.Snapshot.MemoryState!.InstanceId!=id||s.Snapshot.MemoryState.PushedTotal!=2)throw new Exception("Memory resume lost coins or instance");
         }
         KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);
-        if(s.Snapshot.MemoryState!.PushedTotal!=5)throw new Exception("Keyboard did not push all coins");
+        if(captureDirectory!=null)GD.Print($"COIN_STATE food={food} step=4 total={s.Snapshot.MemoryState!.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
+        if(s.Snapshot.MemoryState!.PushedTotal!=5)throw new Exception($"Keyboard did not push all coins: total={s.Snapshot.MemoryState.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
         for(int i=0;i<food;i++){KeyPress(Key.Right);await Frames(2);}KeyPress(Key.E);await Frames(50);await WaitUntil(()=>main.Memory==null&&s.Flow!=GeXingzhou.Domain.FlowState.Transition,"Memory return");
-        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);}
+        if(captureDirectory!=null){AssertDialogueFits(main);await Capture("return-"+food+"-font-"+s.Options.SubtitleSize);}
+        if(narrative)AssertReturnBranch(main,food);
+        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(narrative)SeedNarrativeMarkers(s);main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Frames(2);if(narrative)AssertReturnBranch(main,food);}
         await Finish(main);
         if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Snapshot.SceneId!="soup_shop")throw new Exception("Memory did not return and complete slice");
         if(!s.Snapshot.CompletedActions.Contains("soup.payment:soup-payment-1"))throw new Exception("Payment feedback missing");
@@ -201,6 +217,60 @@ public partial class SmokeHarness : Node
         var before=s.Snapshot;var result=await main.SceneFlow.TryEnter("missing_scene",new(1,1));
         if(result.Success||s.Snapshot.Stage!=before.Stage||s.Snapshot.SceneId!=before.SceneId||s.Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Failed transition changed state or locked input");
         GD.Print("MEMORY_PATH_PASS "+(answer?"answered":"ignored")+" food="+food);main.Free();await Frames();
+    }
+    private static string DialogueText(MainView main)=>main.Dialogue.GetChildren().OfType<PanelContainer>().Single().GetChildren().OfType<Label>().Single().Text;
+    private static void SeedNarrativeMarkers(GameSession s)
+    {
+        s.SetOptions(s.Options with {TextSpeed=0},false);
+        var nodes=new Dictionary<string,GeXingzhou.Domain.DialogueNode>(s.Catalog!.Dialogues);
+        foreach(var (id,marker) in new[]{("soup.return.take","RETURN_TAKE"),("soup.return.wait","RETURN_WAIT"),("soup.return.share","RETURN_SHARE"),("observation.community.quiet","OBS_QUIET"),("observation.community.answered","OBS_ANSWERED"),("observation.community.unanswered","OBS_UNANSWERED")})
+            nodes[id]=new("测试分支",new[]{marker});
+        s.Catalog.Dialogues=nodes;
+    }
+    private static void AssertReturnBranch(MainView main,int food)
+    {
+        var expected=new[]{"RETURN_TAKE","RETURN_WAIT","RETURN_SHARE"}[food];
+        if(!main.Dialogue.IsOpen||!DialogueText(main).Contains(expected))throw new Exception("Wrong visible return branch: expected="+expected+" actual="+DialogueText(main));
+        GD.Print("NARRATIVE_RETURN_PASS "+expected);
+    }
+    private async Task ObservationChecks()
+    {
+        foreach(var (scenario,expected,targetId) in new[]{("quiet","OBS_QUIET","old_sign"),("answered","OBS_ANSWERED","bench"),("unanswered","OBS_UNANSWERED","old_sign")})
+        {
+            var s=GetNode<GameSession>("/root/GameSession");s.NewGame();s.SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
+            if(scenario!="quiet")s.AdvanceClock(35);
+            if(scenario=="answered")s.TryDispatch(new("invitation.answer","answered","invitation-1"));
+            SeedNarrativeMarkers(s);
+            var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
+            var target=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id==targetId);var stage=s.Snapshot.Stage;var candy=s.Snapshot.CandyCount;
+            target.TryInteract(s);await Frames(2);
+            if(!DialogueText(main).Contains(expected)||!DialogueText(main).Contains(target.Description))throw new Exception("Wrong first observation branch: "+scenario);
+            KeyPress(Key.Escape);await Frames(2);
+            if(s.Snapshot.CompletedActions.Contains("observation.community.first"))throw new Exception("Cancelled observation consumed first hint");
+            target.TryInteract(s);await Frames(2);await Finish(main);
+            if(!s.Snapshot.CompletedActions.Contains("observation.community.first")||s.Snapshot.Stage!=stage||s.Snapshot.CandyCount!=candy)throw new Exception("Observation did not mark once or advanced quest");
+            main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");SeedNarrativeMarkers(s);
+            target=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id==targetId);target.TryInteract(s);await Frames(2);
+            if(!DialogueText(main).Contains(target.Description)||DialogueText(main).Contains("OBS_"))throw new Exception("Restored observation repeated first hint or lost location description");
+            await Finish(main);GD.Print("NARRATIVE_OBSERVATION_PASS "+scenario);main.Free();await Frames(2);
+        }
+    }
+    private static void AssertDialogueFits(MainView main)
+    {
+        var panel=main.Dialogue.GetChildren().OfType<PanelContainer>().Single();
+        if(panel.GetGlobalRect().End.Y>720.1f)throw new Exception("Narrative dialogue overflows logical screen");
+    }
+    private async Task ObservationVisualChecks()
+    {
+        foreach(var scenario in new[]{"quiet","answered","unanswered"})
+        {
+            var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
+            if(scenario!="quiet")s.AdvanceClock(35);
+            if(scenario=="answered")s.TryDispatch(new("invitation.answer","answered","invitation-1"));
+            var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
+            main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="old_sign").TryInteract(s);await Frames(3);AssertDialogueFits(main);
+            await Capture("observation-"+scenario);await Finish(main);main.Free();await Frames(2);
+        }
     }
     private async Task<MainView> Restart(MainView main)
     {

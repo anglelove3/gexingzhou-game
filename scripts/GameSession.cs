@@ -58,6 +58,12 @@ public partial class GameSession : Node
     }
     public void SaveCheckpoint(){var r=Saves.Save(Snapshot);SaveMessage=r.Success?"":r.Message;}
     public void SaveManual(){var r=ManualSaves.Save(Snapshot);SaveMessage=r.Message;}
+    public void MarkFirstCommunityObservation()
+    {
+        if(Snapshot.CompletedActions.Contains("observation.community.first"))return;
+        Snapshot=Snapshot with {CompletedActions=new HashSet<string>(Snapshot.CompletedActions){"observation.community.first"}};
+        SaveCheckpoint();
+    }
     public void AdvanceClock(double delta)
     {
         if(!double.IsFinite(delta)||delta<0)return;

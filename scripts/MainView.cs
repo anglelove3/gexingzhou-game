@@ -65,11 +65,18 @@ public partial class MainView : Control
             if(s.Snapshot.Stage==SliceStage.SoupMeet)
             {if(s.Snapshot.ChoiceCodes.ContainsKey("soup-response-1"))ShowMemoryEntry();else ShowDialogue("soup.start",OfferSoup);}
             else if(s.Snapshot.Stage==SliceStage.MemoryActive)ShowMemoryEntry();
-            else if(s.Snapshot.Stage==SliceStage.MemoryReturned)ShowDialogue("soup.return",FinishSlice);
+            else if(s.Snapshot.Stage==SliceStage.MemoryReturned)ShowSoupReturn("soup.return");
             else if(s.Snapshot.Stage==SliceStage.SliceComplete)ShowMemoryEntry(true);
             else ShowNotice("桌边","先把张大炮托你的喜糖交给Hey哥。");
         }
         else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else _=SceneFlow.TryEnter(id,new(120,280));}
+        else if(target.ActionId=="observe"&&World.SceneId=="community_gate"&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
+        {
+            var id=s.Snapshot.InvitationState.Resolution==InvitationResolution.Answered?"observation.community.answered":s.Snapshot.InvitationState.VoiceReceived?"observation.community.unanswered":"observation.community.quiet";
+            if(s.Catalog!.Dialogues.TryGetValue(id,out var node)&&node is not null)
+                Dialogue.ShowText(target.Caption,target.Description+"\n"+string.Join("\n",node.Lines),s.MarkFirstCommunityObservation);
+            else ShowNotice(target.Caption,target.Description);
+        }
         else ShowNotice(target.Caption,target.Description);
     }
     private void OfferHey()=>Choices.Open("糖已经收好。接下来你怎么做？",new (string,Action)[]{("收起手机，站一会儿",()=>ShowDialogue("hey.stay")),("看一眼手机",()=>ShowDialogue("hey.phone")),("转身去汤店",()=>ShowDialogue("hey.leave"))});
@@ -99,7 +106,16 @@ public partial class MainView : Control
         if(Memory!=null){Memory.Free();Memory=null;}World.Visible=true;
         s.RecordMemoryReturned();
         s.SaveCheckpoint();
-        if(complete&&s.Snapshot.MemoryState is {} m){s.TryDispatch(new("memory.return","return",m.InstanceId));if(!m.Replay)ShowDialogue(context.DialogueNodeId,FinishSlice);else ShowNotice("回忆结束","过去没有被改写。你仍坐在现实的汤店里。");}
+        if(complete&&s.Snapshot.MemoryState is {} m){s.TryDispatch(new("memory.return","return",m.InstanceId));if(!m.Replay)ShowSoupReturn(context.DialogueNodeId);else ShowNotice("回忆结束","过去没有被改写。你仍坐在现实的汤店里。");}
+    }
+    private void ShowSoupReturn(string fallbackId)
+    {
+        var memory=GetNode<GameSession>("/root/GameSession").Snapshot.MemoryState;
+        var id=fallbackId=="soup.return"&&memory is {Completed:true,Replay:false}?memory.FoodChoice switch
+        {
+            FoodChoice.Take=>"soup.return.take",FoodChoice.Wait=>"soup.return.wait",FoodChoice.Share=>"soup.return.share",_=>fallbackId
+        }:fallbackId;
+        ShowDialogue(id,FinishSlice);
     }
     private void FinishSlice()
     {

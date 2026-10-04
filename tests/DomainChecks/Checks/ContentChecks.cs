@@ -4,6 +4,15 @@ public static class ContentChecks
 {
     public static void Register(List<(string,string,Action)> tests)
     {
+        foreach(var missing in new[]{"soup.return.take","soup.return.wait","soup.return.share","observation.community.quiet","observation.community.answered","observation.community.unanswered"})
+        tests.Add(("Content","RequiresBranch_"+missing,()=>{
+            var dialogues=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText("content/vs01/dialogues.json"))!.AsObject();
+            foreach(var id in new[]{"soup.return.take","soup.return.wait","soup.return.share","observation.community.quiet","observation.community.answered","observation.community.unanswered"})
+                dialogues[id]=System.Text.Json.JsonSerializer.SerializeToNode(new DialogueNode("测试",new[]{"分支内容"}));
+            dialogues.Remove(missing);
+            var result=ContentCatalog.LoadText(name=>name=="dialogues.json"?dialogues.ToJsonString():File.ReadAllText(Path.Combine("content/vs01",name)));
+            Check.True(!result.Success);Check.True(result.Errors.Any(e=>e.Contains(missing)));
+        }));
         tests.Add(("Content","RejectsNullOrMissingDialogue",()=>{
             foreach(var bad in new[]{"{\"soup.start\":null}","{}"}) {
                 var result=ContentCatalog.LoadText(name=>name=="dialogues.json"?bad:File.ReadAllText(Path.Combine("content/vs01",name)));
