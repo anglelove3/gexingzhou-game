@@ -4,9 +4,11 @@ public partial class BootMenu : Control
 {
     public override void _Ready()
     {
+        AddChild(ArtAssets.Picture(ArtAssets.Texture("community-v1.png"),Vector2.Zero,new Vector2(1280,720)));
+        AddChild(new ColorRect{Size=new Vector2(1280,720),Color=new Color(0.03f,.06f,.08f,.52f),MouseFilter=MouseFilterEnum.Ignore});
         var box=new VBoxContainer{Position=new Vector2(320,80),Size=new Vector2(640,540)}; AddChild(box);
-        box.AddChild(new Label{Text="葛行舟",HorizontalAlignment=HorizontalAlignment.Center});
-        box.AddChild(new Label{Text="首段试玩 · 原型美术",HorizontalAlignment=HorizontalAlignment.Center});
+        var title=new Label{Text="葛行舟",HorizontalAlignment=HorizontalAlignment.Center};title.AddThemeFontSizeOverride("font_size",52);box.AddChild(title);
+        box.AddChild(new Label{Text="首段试玩 · 故乡与一碗热汤",HorizontalAlignment=HorizontalAlignment.Center});
         var start=new Button{Text="回到故乡",CustomMinimumSize=new Vector2(480,54)}; box.AddChild(start);
         var session=GetNode<GameSession>("/root/GameSession");var loaded=session.Saves.Load();var manual=session.ManualSaves.Load();
         Theme=session.CreateUiTheme();var preferences=new SettingsController();AddChild(preferences);

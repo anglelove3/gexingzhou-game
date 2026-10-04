@@ -8,6 +8,9 @@ public partial class WorldView : Node2D
     public override void _Ready()
     {
         Width=SceneId=="soup_shop"?960:SceneId=="convenience_street"?1280:1600;
+        var texture=ArtAssets.Texture(SceneId=="soup_shop"?"soup-v1.png":SceneId=="convenience_street"?"street-v1.png":"community-v1.png");
+        float scale=Math.Max(Width/(float)texture.GetWidth(),360f/texture.GetHeight());
+        AddChild(new Sprite2D{Name="Backdrop",Texture=texture,Centered=false,Scale=Vector2.One*scale,Position=new Vector2(0,280-texture.GetHeight()*scale*.78f),ZIndex=-10,TextureFilter=TextureFilterEnum.Linear});
         Player=GD.Load<PackedScene>("res://scenes/Player.tscn").Instantiate<PlayerController>();Player.Position=new Vector2(320,280);AddChild(Player);
         Player.GetNode<Camera2D>("Camera2D").LimitRight=Width;
         Floor(new Vector2(Width/2f,288),new Vector2(Width,16));Floor(new Vector2(-8,180),new Vector2(16,360));Floor(new Vector2(Width+8,180),new Vector2(16,360));
@@ -25,6 +28,8 @@ public partial class WorldView : Node2D
             AddTarget("sign",200,"旧招牌","店换了地方，招牌搬了过来。边角的油烟擦不掉。","observe");
             AddTarget("menu",700,"看看菜单","鸭血粉丝汤。记忆里便宜，现在也够吃顿热乎的。","observe");
             AddTarget("counter",800,"收银台","吃完再结账。老板摆摆手：先坐。","observe");
+            var owner=ArtAssets.Grounded(ArtAssets.Npc(2),new Vector2(850,280),68,"Shopkeeper");owner.FlipH=true;AddChild(owner);
+            AddChild(ArtAssets.Grounded(ArtAssets.Prop(2),new Vector2(415,214),15,"SoupBowl"));
         }
         else
         {
@@ -39,17 +44,4 @@ public partial class WorldView : Node2D
         var target=new Interactable{Id=id,Position=new Vector2(x,280),Caption=caption,Description=body,ActionId=action};AddChild(target);return target;
     }
     private void Floor(Vector2 p,Vector2 size){var body=new StaticBody2D{Position=p,CollisionLayer=1};body.AddChild(new CollisionShape2D{Shape=new RectangleShape2D{Size=size}});AddChild(body);}
-    public override void _Draw()
-    {
-        if(SceneId=="soup_shop")
-        {
-            DrawRect(new Rect2(0,0,Width,280),new Color("9d8869"));DrawRect(new Rect2(0,40,Width,110),new Color("735c4c"));
-            for(int x=220;x<Width;x+=280){DrawRect(new Rect2(x,220,130,16),new Color("473932"));DrawRect(new Rect2(x+8,236,8,44),new Color("3b302c"));DrawRect(new Rect2(x+114,236,8,44),new Color("3b302c"));DrawRect(new Rect2(x+45,209,34,10),new Color("d3c3a4"));}
-            DrawRect(new Rect2(0,280,Width,80),new Color("62554a"));for(int x=0;x<Width;x+=64)DrawLine(new Vector2(x,280),new Vector2(x+40,360),new Color("51463e"),1);return;
-        }
-        DrawRect(new Rect2(0,0,Width,360),new Color("a0adb3"));
-        for(int x=40;x<Width;x+=220){DrawRect(new Rect2(x,34,172,218),new Color("697c88"));for(int row=0;row<5;row++)for(int col=0;col<5;col++)DrawRect(new Rect2(x+12+col*30,48+row*37,14,22),new Color("bbbdac"));}
-        DrawRect(new Rect2(0,252,Width,28),new Color("657c6d"));DrawRect(new Rect2(0,280,Width,80),new Color("494f56"));
-        DrawLine(new Vector2(0,308),new Vector2(Width,308),new Color("aba48a"),2);
-    }
 }

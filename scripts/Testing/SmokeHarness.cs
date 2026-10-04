@@ -7,6 +7,10 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="Art")
+            {
+                await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
+            }
             if(suite=="Capture")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
@@ -15,6 +19,7 @@ public partial class SmokeHarness : Node
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
                 var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate();AddChild(menu);await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);GD.Print("MENU_FIRST_DRAW_MS "+Godot.Time.GetTicksMsec());await Capture("menu");menu.Free();await Frames(2);
+                await ArtChecks();
                 await MemoryPath(false,2,false);
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){SubtitleSize=32,TextSpeed=0,ReducedMotion=true},false);
                 await ObservationVisualChecks();for(int food=0;food<3;food++)await MemoryPath(false,food,false);
@@ -112,6 +117,69 @@ public partial class SmokeHarness : Node
         catch(Exception ex){GD.PrintErr("GODOT_CHECKS_FAIL "+ex.Message);GetTree().Quit(1);}
     }
     private async Task Frames(int count=1){for(int i=0;i<count;i++)await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);}
+    // Catches missing runtime art, wrong frame/foot alignment, or cosmetics leaking into movement.
+    private async Task ArtChecks()
+    {
+        // Dynamic GD.Load assets are not scene dependencies: the real export preset must explicitly include them.
+        using(var preset=new ConfigFile())
+        {
+            if(preset.Load("res://export_presets.cfg")!=Error.Ok)throw new Exception("Cannot read production export preset");
+            var patterns=preset.GetValue("preset.0","include_filter","").AsString().Split(',');
+            foreach(var file in new[]{"community-v1.png","street-v1.png","soup-v1.png","player-v1.png","npcs-v1.png","props-v1.png","memory-v1.png"})
+                if(!patterns.Any(pattern=>("assets/art/vs01-v1/"+file).Match(pattern.Trim())))throw new Exception("Dynamic artwork excluded from export preset: "+file);
+        }
+        var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
+        var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
+        foreach(var scene in new[]{"community_gate","convenience_street","soup_shop"})
+        {
+            main.ChangeWorld(scene,new(320,280));await Frames(3);
+            var bg=main.World.GetNodeOrNull<Sprite2D>("Backdrop");
+            if(bg?.Texture==null)throw new Exception("Art background missing: "+scene);
+            if(bg.Texture.GetWidth()<960||bg.Texture.GetHeight()<360)throw new Exception("Background is not a production raster: "+scene);
+            var sprite=main.World.Player.GetNodeOrNull<AnimatedSprite2D>("Artwork");
+            if(sprite?.SpriteFrames==null||sprite.SpriteFrames.GetFrameCount("walk")<4)throw new Exception("Actual player walk frames missing");
+            var start=main.World.Player.Position;
+            Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});
+            for(int i=0;i<12;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
+            if(sprite.Animation!="walk"||main.World.Player.Position.X<=start.X)throw new Exception("Art does not follow real movement");
+            Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});
+            for(int i=0;i<18;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
+            if(sprite.Animation!="idle")throw new Exception("Walking did not return to idle");
+            Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.A,Pressed=true});
+            for(int i=0;i<4;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
+            if(!sprite.FlipH)throw new Exception("Character art faces away from leftward movement");
+            main.World.Player.SetInputLocked(true);var locked=main.World.Player.Position;
+            for(int i=0;i<4;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
+            if(main.World.Player.Position!=locked||sprite.Animation!="idle")throw new Exception("Artwork broke input locking");
+            Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.A,Pressed=false});main.World.Player.SetInputLocked(false);
+            foreach(var animation in new[]{"idle","walk"})for(int frame=0;frame<sprite.SpriteFrames.GetFrameCount(animation);frame++)
+            {
+                sprite.Stop();sprite.Animation=animation;sprite.Frame=frame;
+                var texture=sprite.SpriteFrames.GetFrameTexture(animation,frame);var image=texture.GetImage();
+                if(image==null||image.GetPixel(0,0).A>.02f)throw new Exception("Sprite frame lacks transparent padding");
+                var used=image.GetUsedRect();var bottom=sprite.Position.Y+(used.End.Y-image.GetHeight()/2f)*sprite.Scale.Y;
+                if(used.Size.X<=0||used.Size.Y<=0)throw new Exception("Character frame is empty");
+                if(Math.Abs(bottom)>1.5f)throw new Exception("Character feet jump away from collision baseline");
+                if(captureDirectory!=null&&scene=="community_gate"&&animation=="walk")
+                {
+                    main.World.Player.SetPhysicsProcess(false);await Capture("art-walk-"+frame);main.World.Player.SetPhysicsProcess(true);
+                }
+            }
+            sprite.Play("idle");
+            if(scene=="convenience_street"&&main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="hey").GetNodeOrNull<Sprite2D>("Artwork")?.Texture==null)throw new Exception("Hey is still a placeholder");
+            if(scene=="soup_shop"&&main.World.GetNodeOrNull<Sprite2D>("Shopkeeper")?.Texture==null)throw new Exception("Soup shop owner raster missing");
+            if(scene=="community_gate"){s.AdvanceClock(65);await Frames(2);if(main.World.GetNodeOrNull<Interactable>("Cannon")?.GetNodeOrNull<Sprite2D>("Artwork")?.Texture==null)throw new Exception("Arriving friend is still a placeholder");}
+            if(scene=="soup_shop")main.World.Player.Position=new Vector2(720,280);
+            await Capture("art-"+scene);
+        }
+        main.Free();await Frames(2);
+        var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate<Control>();AddChild(menu);await Frames(2);
+        if(menu.GetNodeOrNull<TextureRect>("Artwork")?.Texture==null)throw new Exception("Boot screen still has placeholder art");menu.Free();
+        var memory=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn").Instantiate<SoupMemoryController>();AddChild(memory);await Frames(2);
+        if(memory.GetNodeOrNull<TextureRect>("Artwork")?.Texture==null)throw new Exception("Memory table art missing");
+        if(memory.GetNode<TextureRect>("Artwork").Size!=new Vector2(1280,720)||memory.GetNode<TextureRect>("SoupBowl").Size.X>180.1f||memory.GetNode<TextureRect>("SoupBowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
+        if(memory.FindChildren("*","Button",true,false).OfType<Button>().Count(b=>b.Icon!=null)<4)throw new Exception("Playable coin controls have no actual art");memory.Free();
+    }
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
     private async Task Finish(MainView main)
     {
@@ -181,6 +249,7 @@ public partial class SmokeHarness : Node
         await WaitUntil(()=>main.Memory!=null&&s.Flow==GeXingzhou.Domain.FlowState.Memory&&s.Snapshot.MemoryState!=null,"Memory entry");
         if(main.Memory==null||s.Flow!=GeXingzhou.Domain.FlowState.Memory)throw new Exception("Memory scene failed to enter");
         await Capture("memory");
+        if(captureDirectory!=null&&s.Options.SubtitleSize==32)await Capture("memory-font-32");
         KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);var id=s.Snapshot.MemoryState!.InstanceId;
         if(captureDirectory!=null)GD.Print($"COIN_STATE food={food} step=2 total={s.Snapshot.MemoryState.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(narrative)SeedNarrativeMarkers(s);if(s.Snapshot.MemoryState!.PushedTotal!=2)throw new Exception("Saved coins missing after real scene restore");}

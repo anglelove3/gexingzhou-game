@@ -38,10 +38,10 @@ public partial class MainView : Control
     {
         var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);prompt.Text=World.Interactions.Prompt+" · Tab 手机";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
-        if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色目标按E";
+        if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
         prompt.Visible=s.Flow==FlowState.Field;
         var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
-        status.Text="原型美术 / 葛行舟首段试玩 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
+        status.Text="葛行舟 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
         if(s.Snapshot.InvitationState.CarArrived&&s.Snapshot.Stage<=SliceStage.InvitationResolved&&World.SceneId=="community_gate"&&World.GetNodeOrNull("Cannon")==null)
         {var t=World.AddTarget("cannon",400,"张大炮 · 见面","","invitation.meeting_complete");t.Name="Cannon";}
     }

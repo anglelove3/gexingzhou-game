@@ -1,13 +1,118 @@
 {
-  "version": 1,
-  "status": "prototype",
+  "version": 2,
+  "status": "vs01_integrated_raster_art_v1",
+  "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
-    {"id":"graybox_geometry","source":"original_code","usage":"world_and_characters","license":"project_original","note":"几何灰盒，不是正式角色动画"},
-    {"id":"system_cjk_font","source":"installed_system_fonts","usage":"runtime_font_lookup_only","license":"not_redistributed","note":"没有复制或打包系统字体文件"}
+    {
+      "id": "community",
+      "file": "assets/art/vs01-v1/community-v1.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "EF65AB98E1D4B8C4522D90284E93C10A55A212D0719EB3696ACBB0DD8BB46779",
+      "usage": "community_level_and_boot_menu",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "street",
+      "file": "assets/art/vs01-v1/street-v1.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "CA975C0EF1DF09BAC99ADDEF36F3463C394F9500569EC27B804F3CA28B8B24CD",
+      "usage": "convenience_street_level",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "soup",
+      "file": "assets/art/vs01-v1/soup-v1.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "9A73996F3503FD320DB94DF5C90040497C17A57A73407CA4D292C49E6ACD4049",
+      "usage": "soup_shop_level",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "player",
+      "file": "assets/art/vs01-v1/player-v1.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "9027BA0969FC013D36720FA203863865124A92377357C4CCCEBEBB8166D31102",
+      "usage": "idle_4_frames_walk_4_frames_measured_atlas_crops",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "npcs",
+      "file": "assets/art/vs01-v1/npcs-v1.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "sha256": "30F3B85339743DADB25B33A278183E81CB39625945A709AD48DC8F2DF64610CF",
+      "usage": "zhang_standing_and_seated_hey_standing_shopkeeper_standing; two_other_poses_available_not_currently_used",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "props",
+      "file": "assets/art/vs01-v1/props-v1.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "sha256": "FD7555E5A1A202A262AA76A73C17E62A8EDF143008EBB7A4C7B552D1C58129D2",
+      "usage": "playable_coin_icons_and_soup_bowls; candy_phone_chopsticks_available_not_currently_used",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "memory",
+      "file": "assets/art/vs01-v1/memory-v1.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "AE4A603BFC2A58605118D2F9742DEE888AFCEA7A8BAF07D05D16F7C405E57233",
+      "usage": "memory_soup_table_background",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01.md"
+    },
+    {
+      "id": "system_cjk_font",
+      "source": "installed_system_fonts",
+      "usage": "runtime_font_lookup_only",
+      "license": "not_redistributed",
+      "note": "没有复制或打包系统字体文件"
+    }
   ],
   "concept_images_exported": false,
   "private_documents_exported": false,
   "third_party_art_imported": false,
-  "generated_new_images": false,
-  "audio_included": false
+  "generated_new_images": true,
+  "audio_included": false,
+  "export_note": "PNG paths explicitly included by preset; actual Windows export and packed-game launch remain unverified."
 }
