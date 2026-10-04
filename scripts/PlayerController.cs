@@ -16,12 +16,33 @@ public partial class PlayerController : CharacterBody2D
             artwork=SceneBindings.Require<AnimatedSprite2D>(this,"Artwork");
             if(artwork.SpriteFrames==null||!artwork.SpriteFrames.HasAnimation("idle")||!artwork.SpriteFrames.HasAnimation("walk"))
                 throw new InvalidOperationException("主角缺少待机/行走动画资源。");
+            ValidateRestFrames(RestFrames,"休息");ValidateRestFrames(ReducedRestFrames,"减少动效休息");
+            if(!float.IsFinite(RestStandingPixels)||RestStandingPixels<=0)
+                throw new InvalidOperationException("休息动作站立基准必须大于零。");
             artwork.FrameChanged+=AnchorArtwork;artwork.AnimationChanged+=AnchorArtwork;
             walkingFrames=artwork.SpriteFrames;artwork.Play("idle");AnchorArtwork();
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
     public void SetInputLocked(bool value) {locked=value;if(value)Velocity=Vector2.Zero;}
+    private static void ValidateRestFrames(SpriteFrames? frames,string label)
+    {
+        foreach(var (name,count) in new[]{("sit_down",3),("seated",1),("smoke",6),("stand_up",3)})
+        {
+            if(frames==null||!frames.HasAnimation(name)||frames.GetFrameCount(name)<count||
+               (name!="seated"&&frames.GetAnimationLoopMode(name)!=SpriteFrames.LoopMode.None)||
+               !double.IsFinite(frames.GetAnimationSpeed(name))||frames.GetAnimationSpeed(name)<=0)
+                throw new InvalidOperationException($"主角{label}资源缺失或动作无效：{name}。");
+            for(int i=0;i<frames.GetFrameCount(name);i++)
+            {
+                if(frames.GetFrameTexture(name,i) is not AtlasTexture atlas||atlas.Atlas==null||
+                   !atlas.HasMeta("seat_pivot")||!atlas.HasMeta("stand_pivot")||
+                   atlas.GetMeta("seat_pivot").VariantType!=Variant.Type.Vector2||atlas.GetMeta("stand_pivot").VariantType!=Variant.Type.Vector2||
+                   !atlas.GetMeta("seat_pivot").AsVector2().IsFinite()||!atlas.GetMeta("stand_pivot").AsVector2().IsFinite())
+                    throw new InvalidOperationException($"主角{label}动作缺少有效图像或坐姿基准：{name}/{i}。");
+            }
+        }
+    }
     public void SetRestPose(string animation,Vector2 visualOffset,bool paused)
     {
         restActive=true;seatOffset=visualOffset;Velocity=Vector2.Zero;artwork.FlipH=false;

@@ -19,7 +19,7 @@ public partial class RestController : Node
     }
     public bool Begin(BenchView value)
     {
-        if(HasMeta("binding_error")||main.World.HasMeta("binding_error")||!value.IsActive||
+        if(HasMeta("binding_error")||main.World.HasMeta("binding_error")||value.HasMeta("binding_error")||value.GetParent()!=main.World||!value.IsActive||
            GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field||!state.TrySit())return false;
         bench=value;player=main.World.Player;player.GlobalPosition=value.StandAnchor.GlobalPosition;
         art=player.GetNode<AnimatedSprite2D>("Artwork");int current=++generation;
@@ -70,7 +70,7 @@ public partial class RestController : Node
         if(art!=null&&GodotObject.IsInstanceValid(art)&&finished!=null)art.AnimationFinished-=finished;
         finished=null;
         if(player!=null&&GodotObject.IsInstanceValid(player))player.ClearRestPose();
-        if(bench!=null&&GodotObject.IsInstanceValid(bench))bench.GetNode<Sprite2D>("BenchForeground").Visible=false;
+        if(bench!=null&&GodotObject.IsInstanceValid(bench)&&bench.GetNodeOrNull<Sprite2D>("BenchForeground") is {} foreground)foreground.Visible=false;
         if(menu!=null&&GodotObject.IsInstanceValid(menu))menu.Close();
         art=null;player=null;bench=null;
     }

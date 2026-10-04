@@ -4,6 +4,8 @@ public partial class DialogueController : Control
 {
     private readonly DialogueSession dialogue=new();
     private Label text=null!,nameLabel=null!;
+    private PanelContainer panel=null!;private StyleBox authoredStyle=null!;
+    [Export(PropertyHint.Range,"0.5,1.0,0.01")] public float MonologueOpacity {get;set;}=.82f;
     private double elapsed;private Action? finish;
     private FlowState source;private Control? previousFocus;
     public bool IsOpen {get;private set;}
@@ -11,6 +13,7 @@ public partial class DialogueController : Control
     {
         try
         {
+            panel=SceneBindings.Require<PanelContainer>(this,"Panel");authoredStyle=panel.GetThemeStylebox("panel");
             nameLabel=SceneBindings.Require<Label>(this,"Panel/Content/NameLabel");
             text=SceneBindings.Require<Label>(this,"Panel/Content/Body/Text");
             SceneBindings.Require<Label>(this,"Panel/Content/ContinueHint");Visible=false;
@@ -36,6 +39,13 @@ public partial class DialogueController : Control
         if(!IsOpen){source=s.Flow;previousFocus=GetViewport().GuiGetFocusOwner();}
         IsOpen=true;Visible=true;elapsed=0;finish=callback;s.Flow=FlowState.Dialogue;
         nameLabel.Text=dialogue.Speaker;text.Text=dialogue.Text;
+        if(dialogue.Speaker=="葛行舟"&&authoredStyle is StyleBoxTexture raster)
+        {
+            var lighter=(StyleBoxTexture)raster.Duplicate();var tint=lighter.ModulateColor;
+            tint.A*=Math.Clamp(MonologueOpacity,.5f,1f);lighter.ModulateColor=tint;
+            panel.AddThemeStyleboxOverride("panel",lighter);
+        }
+        else panel.AddThemeStyleboxOverride("panel",authoredStyle);
         GetNode<ScrollContainer>("Panel/Content/Body").ScrollVertical=0;
     }
     public override void _Process(double delta)

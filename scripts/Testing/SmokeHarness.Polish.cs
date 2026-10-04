@@ -21,7 +21,7 @@ public partial class SmokeHarness
         foreach(var (name,count) in new[]{("sit_down",3),("seated",1),("smoke",6),("stand_up",3)})
         {
             Require(frames.HasAnimation(name)&&frames.GetFrameCount(name)>=count,"Missing actual rest frames "+name);
-            Require(name=="seated"||!frames.GetAnimationLoop(name),"Rest action loops "+name);
+            Require(name=="seated"||frames.GetAnimationLoopMode(name)==SpriteFrames.LoopMode.None,"Rest action loops "+name);
             var regions=new HashSet<Rect2>();
             for(int i=0;i<frames.GetFrameCount(name);i++)
             {
@@ -65,11 +65,13 @@ public partial class SmokeHarness
         var stage=s.Snapshot.Stage;var candy=s.Snapshot.CandyCount;await Capture("rest-options");
         main.Rest.HandleKey(Key.Escape);Require(main.Rest.Phase==RestPhase.Seated&&!menu.IsOpen,"First Escape stood up");
         await Capture("rest-seated");KeyPress(Key.E);await Frames(2);
-        // Both keyboard focus activation and the same saved button Pressed signal used by mouse.
+        // Send one deterministic local click; do not interleave off-screen OS mouse updates between down/up.
         var clickPosition=smoke.GetGlobalRect().GetCenter();
-        main.GetViewport().PushInput(new InputEventMouseMotion{Position=clickPosition,GlobalPosition=clickPosition},true);await Frames();
-        main.GetViewport().PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=true},true);await Frames();
-        main.GetViewport().PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=false},true);await Frames(2);
+        var inputViewport=main.GetViewport();
+        inputViewport.PushInput(new InputEventMouseMotion{Position=clickPosition,GlobalPosition=clickPosition},true);
+        Require(inputViewport.GuiGetHoveredControl()==smoke,"Mouse smoke hover missed saved button");
+        inputViewport.PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=true},true);
+        inputViewport.PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=false},true);await Frames(2);
         Require(main.Rest.Phase==RestPhase.Smoking,"Mouse smoke option ignored");
         for(int i=0;i<90&&art.Frame<4;i++)await Frames();
         await Capture("rest-smoke");await WaitForPhase(main,RestPhase.Seated);
@@ -130,6 +132,8 @@ public partial class SmokeHarness
             var scroll=main.Dialogue.GetNode<ScrollContainer>("Panel/Content/Body");scroll.ScrollVertical=10000;
             Require(main.GetGlobalRect().Encloses(main.Dialogue.GetNode<Label>("Panel/Content/ContinueHint").GetGlobalRect()),"Continue hint clipped");
             Require(main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel") is StyleBoxTexture,"Dialogue has no raster frame");
+            var monologueStyle=(StyleBoxTexture)main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel");
+            Require(monologueStyle.ModulateColor.A<1,"Monologue does not use lighter presentation");
             await Capture("polish-dialogue-"+font);
             main.Phone.Open("messages");await Frames(3);
             var answer=main.Phone.GetNode<Button>("Frame/Content/AnswerButton");var close=main.Phone.GetNode<Button>("Frame/Content/CloseButton");
@@ -140,6 +144,9 @@ public partial class SmokeHarness
             main.Phone.Close();await Frames(2);
             Require(main.Dialogue.IsOpen&&main.Dialogue.Visible,"PhoneOverDialogueRestoration lost dialogue");
             main.Dialogue.HandleKey(Key.Escape);main.Free();await Frames(2);
+            var spoken=await NewPolishMain();spoken.Dialogue.ShowText("张大炮",expected);await Frames(2);
+            Require(((StyleBoxTexture)spoken.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel")).ModulateColor.A==1,"Monologue tint leaked into spoken dialogue");
+            spoken.Dialogue.HandleKey(Key.Escape);spoken.Free();await Frames(2);
         }
         GD.Print("POLISHED_UI_PASS FrameArtwork FontAndFocus PhoneOverDialogueRestoration");
     }
@@ -177,6 +184,8 @@ public partial class SmokeHarness
     }
     private async Task EditableUiChecks()
     {
+        foreach(var path in new[]{"scenes/ui/RestOptions.tscn","scenes/world/Bench.tscn","assets/ui/vs01-v2/phone.tres","assets/ui/vs01-v2/dialogue.tres","assets/animations/player-rest-v2.tres","assets/animations/player-rest-reduced-v2.tres","assets/art/vs01-v2/phone-frame.png","assets/art/vs01-v2/dialogue-frame.png","assets/art/vs01-v2/player-rest.png","assets/art/vs01-v2/bench-foreground.png"})
+            Require(ResourceLoader.Exists("res://"+path)&&ResourceLoader.Load("res://"+path)!=null,"BundleDependencies "+path);
         var saved=new (string File,string[] Paths)[]{
             ("Boot",new[]{"Background","Menu/Title","Menu/StartButton","Menu/AutoResumeButton","Menu/ManualResumeButton","Menu/RecoveryButton","Menu/SettingsButton","Menu/QuitButton","StartupError","Choices","Settings"}),
             ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
@@ -252,13 +261,26 @@ public partial class SmokeHarness
             finally {world.Free();await Frames(2);}
         }
         // Remove real required nodes from an instantiated authored world; no fake controller.
-        foreach(var invalid in new[]{"missing_artwork","duplicate_id"})
+        foreach(var invalid in new[]{"missing_artwork","duplicate_id","missing_rest","missing_reduced_rest","invalid_rest_frames","missing_rest_pivot","missing_bench_foreground"})
         {
             var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
             var host=new Control();var error=new Label{Name="StartupError",Visible=false};host.AddChild(error);AddChild(host);
             var bad=GD.Load<PackedScene>("res://scenes/world/CommunityGate.tscn").Instantiate<WorldView>();
             if(invalid=="missing_artwork")bad.GetNode("Player/Artwork").Free();
-            else bad.GetNode<Interactable>("StreetExit").Id="old_sign";
+            else if(invalid=="duplicate_id")bad.GetNode<Interactable>("StreetExit").Id="old_sign";
+            else if(invalid=="missing_bench_foreground")bad.GetNode("Bench/BenchForeground").Free();
+            else
+            {
+                var player=bad.GetNode<PlayerController>("Player");
+                if(invalid=="missing_rest")player.RestFrames=null!;
+                else if(invalid=="missing_reduced_rest")player.ReducedRestFrames=null!;
+                else if(invalid=="invalid_rest_frames")player.RestFrames=new SpriteFrames();
+                else
+                {
+                    player.RestFrames=(SpriteFrames)player.RestFrames.Duplicate(true);
+                    player.RestFrames.GetFrameTexture("smoke",0).RemoveMeta("seat_pivot");
+                }
+            }
             host.AddChild(bad);await Frames(2);
             Require(error.Visible&&error.Text.Length>0,"MissingBindingStopsInteraction: no readable error "+invalid);
             Require(bad.HasMeta("binding_error"),"MissingBindingStopsInteraction: world still initialized "+invalid);

@@ -9,5 +9,7 @@ public partial class BenchView : Interactable
         base._Ready();
         if(SeatAnchor==null||StandAnchor==null)
             SceneBindings.ReportFailure(this,"长椅缺少SeatAnchor或StandAnchor引用。");
+        if(GetNodeOrNull<Sprite2D>("BenchForeground")?.Texture==null)
+            SceneBindings.ReportFailure(this,"长椅缺少BenchForeground节点或前景图像。");
     }
 }

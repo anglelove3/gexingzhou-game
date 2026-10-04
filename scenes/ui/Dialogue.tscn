@@ -12,6 +12,7 @@ grow_vertical=2
 mouse_filter=2
 z_index=40
 script=ExtResource("Script")
+MonologueOpacity=0.82
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode=1
 anchor_left=0.045
