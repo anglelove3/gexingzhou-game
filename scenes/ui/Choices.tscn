@@ -1,0 +1,56 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/ChoiceController.cs" id="Script"]
+[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
+[node name="Choices" type="Control"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=45
+script=ExtResource("Script")
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0,0,0,0.58)
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode=0
+offset_left=230.0
+offset_top=145.0
+offset_right=1050.0
+offset_bottom=610.0
+theme_override_styles/panel=ExtResource("PanelStyle")
+[node name="Content" type="VBoxContainer" parent="Panel"]
+layout_mode=2
+theme_override_constants/separation=12
+[node name="Title" type="Label" parent="Panel/Content"]
+layout_mode=2
+text="接下来，你想怎么做？"
+autowrap_mode=3
+custom_minimum_size=Vector2(0,90)
+[node name="Options" type="VBoxContainer" parent="Panel/Content"]
+layout_mode=2
+theme_override_constants/separation=10
+[node name="PreviewOption" type="Button" parent="Panel/Content/Options"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="选择示例（运行时由剧情替换）"
+[node name="ReturnHint" type="Label" parent="Panel/Content"]
+layout_mode=2
+text="↑↓ 选择 · Enter / E 确认 · Esc 返回"
+autowrap_mode=3
+[node name="StartupError" type="Label" parent="."]
+visible=false
+z_index=110
+offset_left=40.0
+offset_top=40.0
+offset_right=1240.0
+offset_bottom=180.0
+autowrap_mode=3
+text="场景引用错误"

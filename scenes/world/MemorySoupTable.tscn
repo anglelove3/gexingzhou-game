@@ -1,4 +1,125 @@
-[gd_scene load_steps=2 format=3]
-[ext_resource type="Script" path="res://scripts/SoupMemoryController.cs" id="1"]
+[gd_scene load_steps=7 format=3]
+[ext_resource type="Script" path="res://scripts/SoupMemoryController.cs" id="Script"]
+[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/memory-v1.png" id="Image"]
+[ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
+[ext_resource type="Texture2D" path="res://assets/atlases/coin-1.tres" id="Coin1"]
+[ext_resource type="Texture2D" path="res://assets/atlases/coin-2.tres" id="Coin2"]
 [node name="MemorySoupTable" type="Control"]
-script = ExtResource("1")
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=0
+script=ExtResource("Script")
+[node name="Background" type="TextureRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+texture=ExtResource("Image")
+expand_mode=1
+stretch_mode=6
+mouse_filter=2
+[node name="SoupBowl" type="TextureRect" parent="."]
+offset_left=970.0
+offset_top=34.0
+offset_right=1150.0
+offset_bottom=174.0
+texture=ExtResource("Bowl")
+expand_mode=1
+stretch_mode=5
+mouse_filter=2
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode=0
+offset_left=120.0
+offset_top=140.0
+offset_right=1160.0
+offset_bottom=650.0
+theme_override_styles/panel=ExtResource("PanelStyle")
+[node name="Content" type="VBoxContainer" parent="Panel"]
+layout_mode=2
+theme_override_constants/separation=12
+[node name="Title" type="Label" parent="Panel/Content"]
+layout_mode=2
+text="那年清晨 · 网吧包夜之后\n回忆不会改写过去"
+autowrap_mode=3
+[node name="Status" type="Label" parent="Panel/Content"]
+layout_mode=2
+text="推过：0 / 5"
+autowrap_mode=3
+[node name="Coins" type="HBoxContainer" parent="Panel/Content"]
+layout_mode=2
+theme_override_constants/separation=8
+[node name="Coin1" type="Button" parent="Panel/Content/Coins"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(0,94)
+text="1"
+icon=ExtResource("Coin1")
+expand_icon=true
+theme_override_constants/icon_max_width=64
+[node name="Coin2" type="Button" parent="Panel/Content/Coins"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(0,94)
+text="1"
+icon=ExtResource("Coin1")
+expand_icon=true
+theme_override_constants/icon_max_width=64
+[node name="Coin3" type="Button" parent="Panel/Content/Coins"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(0,94)
+text="1"
+icon=ExtResource("Coin1")
+expand_icon=true
+theme_override_constants/icon_max_width=64
+[node name="Coin4" type="Button" parent="Panel/Content/Coins"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(0,94)
+text="2"
+icon=ExtResource("Coin2")
+expand_icon=true
+theme_override_constants/icon_max_width=64
+[node name="CoinHint" type="Label" parent="Panel/Content"]
+layout_mode=2
+text="把四枚硬币推到桌子那边，凑足五个单位。"
+autowrap_mode=3
+[node name="Foods" type="HBoxContainer" parent="Panel/Content"]
+layout_mode=2
+theme_override_constants/separation=8
+[node name="Take" type="Button" parent="Panel/Content/Foods"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="接过汤"
+size_flags_horizontal=3
+[node name="Wait" type="Button" parent="Panel/Content/Foods"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="让他先吃（明确等待）"
+size_flags_horizontal=3
+[node name="Share" type="Button" parent="Panel/Content/Foods"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="一起分着吃"
+size_flags_horizontal=3
+[node name="Hint" type="Label" parent="Panel/Content"]
+layout_mode=2
+text="← → / A D 选择 · E 推币/确认 · 鼠标点选或拖币\nEsc 回现实，下次继续；五个单位为叙事，不代表现实价格。"
+autowrap_mode=3
+[node name="StartupError" type="Label" parent="."]
+visible=false
+z_index=110
+offset_left=40.0
+offset_top=40.0
+offset_right=1240.0
+offset_bottom=180.0
+autowrap_mode=3
+text="场景引用错误"

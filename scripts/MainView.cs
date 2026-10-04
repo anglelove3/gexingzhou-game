@@ -13,27 +13,34 @@ public partial class MainView : Control
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
     public override void _Ready()
     {
-        var container=new SubViewportContainer{Size=new Vector2(1280,720),Stretch=true,StretchShrink=2}; AddChild(container);
-        viewport=new SubViewport{Size=new Vector2I(640,360),RenderTargetUpdateMode=SubViewport.UpdateMode.Always}; container.AddChild(viewport);
-        var s=GetNode<GameSession>("/root/GameSession");var candidate=s.PendingRestore??s.Snapshot;
-        var worldScene=candidate.SceneId=="memory_soup_table"?"soup_shop":candidate.SceneId;
-        var resource=ScenePath(worldScene);if(resource==null)throw new InvalidOperationException("Unknown saved scene");
-        World=GD.Load<PackedScene>("res://scenes/world/"+resource+".tscn").Instantiate<WorldView>();viewport.AddChild(World);
-        if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return;}
-        World.Player.Position=candidate.SceneId=="memory_soup_table"?new Vector2(candidate.ReturnContext!.Position.X,candidate.ReturnContext.Position.Y):new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y);
-        AddChild(new ColorRect{Size=new Vector2(1280,148),Color=new Color(0,0,0,.76f),MouseFilter=MouseFilterEnum.Ignore});
-        AddChild(new ColorRect{Position=new Vector2(0,640),Size=new Vector2(1280,80),Color=new Color(0,0,0,.76f),MouseFilter=MouseFilterEnum.Ignore});
-        status=new Label{Position=new Vector2(30,16),CustomMinimumSize=new Vector2(1220,88),AutowrapMode=TextServer.AutowrapMode.WordSmart};AddChild(status);
-        prompt=new Label{Position=new Vector2(30,658)};AddChild(prompt);
-        Dialogue=new DialogueController();AddChild(Dialogue);Choices=new ChoiceController();AddChild(Choices);Phone=new PhoneController();AddChild(Phone);
-        SceneFlow=new SceneFlow{Main=this};AddChild(SceneFlow);
-        Settings=new SettingsController();AddChild(Settings);Theme=s.CreateUiTheme();lastFont=s.Options.SubtitleSize;
-        if(s.PendingRestore!=null)
+        try
         {
-            if(candidate.SceneId=="memory_soup_table"&&!EnterMemoryView()){ShowNotice("继续失败","回忆场景无法加载，原档保留。请返回菜单重试。");return;}
-            if(!s.Restore(candidate).Success){ShowNotice("继续失败","存档内容无效，原档保留。");return;}
-            if(candidate.SceneId=="memory_soup_table"&&candidate.MemoryState!.Completed)_=ReturnMemory(true);
+            viewport=SceneBindings.Require<SubViewport>(this,"WorldDisplay/WorldViewport");
+            Dialogue=SceneBindings.Require<DialogueController>(this,"Dialogue");
+            Phone=SceneBindings.Require<PhoneController>(this,"Phone");
+            Choices=SceneBindings.Require<ChoiceController>(this,"Choices");
+            Settings=SceneBindings.Require<SettingsController>(this,"Settings");
+            SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
+            status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
+            prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
+            if(FindChildren("*","",true,false).Any(n=>n.HasMeta("binding_error")))
+                throw new InvalidOperationException("界面或世界引用不完整，请查看场景错误提示。");
+            var s=GetNode<GameSession>("/root/GameSession");var candidate=s.PendingRestore??s.Snapshot;
+            var worldScene=candidate.SceneId=="memory_soup_table"?"soup_shop":candidate.SceneId;
+            World=viewport.GetChildren().OfType<WorldView>().Single();
+            if(World.SceneId!=worldScene&&!ChangeWorld(worldScene,new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y)))
+                throw new InvalidOperationException("无法加载存档中的场景。");
+            if(World.HasMeta("binding_error"))throw new InvalidOperationException(World.GetMeta("binding_error").AsString());
+            if(s.PendingRestore!=null)
+            {
+                World.Player.Position=candidate.SceneId=="memory_soup_table"?new Vector2(candidate.ReturnContext!.Position.X,candidate.ReturnContext.Position.Y):new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y);
+                if(candidate.SceneId=="memory_soup_table"&&!EnterMemoryView()){ShowNotice("继续失败","回忆场景无法加载，原档保留。请返回菜单重试。");return;}
+                if(!s.Restore(candidate).Success){ShowNotice("继续失败","存档内容无效，原档保留。");return;}
+                if(candidate.SceneId=="memory_soup_table"&&candidate.MemoryState!.Completed)_=ReturnMemory(true);
+            }
+            Theme=s.CreateUiTheme();lastFont=s.Options.SubtitleSize;
         }
+        catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
     public override void _Process(double delta)
     {

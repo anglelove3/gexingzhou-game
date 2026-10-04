@@ -11,6 +11,10 @@ public partial class SmokeHarness : Node
             {
                 await EditableWorldChecks();GD.Print("GODOT_CHECKS_PASS EditableWorld");GetTree().Quit();return;
             }
+            if(suite=="EditableUi")
+            {
+                await EditableUiChecks();GD.Print("GODOT_CHECKS_PASS EditableUi");GetTree().Quit();return;
+            }
             if(suite=="Art")
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
@@ -178,10 +182,10 @@ public partial class SmokeHarness : Node
         }
         main.Free();await Frames(2);
         var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate<Control>();AddChild(menu);await Frames(2);
-        if(menu.GetNodeOrNull<TextureRect>("Artwork")?.Texture==null)throw new Exception("Boot screen still has placeholder art");menu.Free();
+        if(menu.GetNodeOrNull<TextureRect>("Background")?.Texture==null)throw new Exception("Boot screen still has placeholder art");menu.Free();
         var memory=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn").Instantiate<SoupMemoryController>();AddChild(memory);await Frames(2);
-        if(memory.GetNodeOrNull<TextureRect>("Artwork")?.Texture==null)throw new Exception("Memory table art missing");
-        if(memory.GetNode<TextureRect>("Artwork").Size!=new Vector2(1280,720)||memory.GetNode<TextureRect>("SoupBowl").Size.X>180.1f||memory.GetNode<TextureRect>("SoupBowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
+        if(memory.GetNodeOrNull<TextureRect>("Background")?.Texture==null)throw new Exception("Memory table art missing");
+        if(memory.GetNode<TextureRect>("Background").Size!=new Vector2(1280,720)||memory.GetNode<TextureRect>("SoupBowl").Size.X>180.1f||memory.GetNode<TextureRect>("SoupBowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
         if(memory.FindChildren("*","Button",true,false).OfType<Button>().Count(b=>b.Icon!=null)<4)throw new Exception("Playable coin controls have no actual art");memory.Free();
     }
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
@@ -291,7 +295,7 @@ public partial class SmokeHarness : Node
         if(result.Success||s.Snapshot.Stage!=before.Stage||s.Snapshot.SceneId!=before.SceneId||s.Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Failed transition changed state or locked input");
         GD.Print("MEMORY_PATH_PASS "+(answer?"answered":"ignored")+" food="+food);main.Free();await Frames();
     }
-    private static string DialogueText(MainView main)=>main.Dialogue.GetChildren().OfType<PanelContainer>().Single().GetChildren().OfType<Label>().Single().Text;
+    private static string DialogueText(MainView main)=>main.Dialogue.GetNode<Label>("Panel/Content/Body/Text").Text;
     private static void SeedNarrativeMarkers(GameSession s)
     {
         s.SetOptions(s.Options with {TextSpeed=0},false);

@@ -49,7 +49,7 @@ public partial class GameSession : Node
     {
         var template=GD.Load<Theme>("res://assets/theme.tres");var font=template.DefaultFont;
         FontWarning=font.HasChar('中')?"":"缺少中文字体，请安装支持中文的系统字体；未改成英文。";
-        return new Theme{DefaultFont=font,DefaultFontSize=Options.SubtitleSize};
+        var theme=(Theme)template.Duplicate();theme.DefaultFontSize=Options.SubtitleSize;return theme;
     }
     public void RecordMemoryReturned(){if(Snapshot.MemoryState is {} m)Record("soup.memory.return","returned",m.InstanceId+":visit-"+Snapshot.MemoryVisitOrdinal);}
     private void Record(string id,string choice,string opportunity)

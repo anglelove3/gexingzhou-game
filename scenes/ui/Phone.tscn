@@ -1,4 +1,63 @@
-[gd_scene load_steps=2 format=3]
-[ext_resource type="Script" path="res://scripts/PhoneController.cs" id="1"]
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/PhoneController.cs" id="Script"]
+[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
 [node name="Phone" type="Control"]
-script = ExtResource("1")
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=30
+script=ExtResource("Script")
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0,0,0,0.58)
+[node name="Frame" type="PanelContainer" parent="."]
+layout_mode=0
+offset_left=230.0
+offset_top=50.0
+offset_right=1050.0
+offset_bottom=670.0
+theme_override_styles/panel=ExtResource("PanelStyle")
+[node name="Content" type="VBoxContainer" parent="Frame"]
+layout_mode=2
+theme_override_constants/separation=12
+[node name="Contact" type="Label" parent="Frame/Content"]
+layout_mode=2
+text="旧手机 · 消息与任务"
+autowrap_mode=3
+custom_minimum_size=Vector2(0,50)
+[node name="Messages" type="Label" parent="Frame/Content"]
+layout_mode=2
+text="张大炮：葛大爷，别装死，我要结婚了！等会儿来找你。"
+autowrap_mode=3
+custom_minimum_size=Vector2(0,140)
+[node name="Task" type="Label" parent="Frame/Content"]
+layout_mode=2
+text="当前任务：回到故乡，先走走看看。"
+autowrap_mode=3
+custom_minimum_size=Vector2(0,100)
+[node name="AnswerButton" type="Button" parent="Frame/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="接听张大炮的电话"
+[node name="CloseButton" type="Button" parent="Frame/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="收起手机（Tab / Esc）"
+[node name="StartupError" type="Label" parent="."]
+visible=false
+z_index=110
+offset_left=40.0
+offset_top=40.0
+offset_right=1240.0
+offset_bottom=180.0
+autowrap_mode=3
+text="场景引用错误"

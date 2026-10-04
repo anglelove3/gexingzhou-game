@@ -3,6 +3,37 @@ using GeXingzhou.Domain;
 
 public partial class SmokeHarness
 {
+    private async Task EditableUiChecks()
+    {
+        var saved=new (string File,string[] Paths)[]{
+            ("Boot",new[]{"Background","Menu/Title","Menu/StartButton","Menu/AutoResumeButton","Menu/ManualResumeButton","Menu/RecoveryButton","Menu/SettingsButton","Menu/QuitButton","StartupError","Choices","Settings"}),
+            ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
+            ("ui/Phone",new[]{"Frame/Content/Contact","Frame/Content/Messages","Frame/Content/Task","Frame/Content/AnswerButton","Frame/Content/CloseButton"}),
+            ("ui/Dialogue",new[]{"Panel/Content/NameLabel","Panel/Content/Body","Panel/Content/ContinueHint","Portrait"}),
+            ("ui/Choices",new[]{"Panel/Content/Title","Panel/Content/Options","Panel/Content/ReturnHint"}),
+            ("ui/Settings",new[]{"Panel/Scroll/Content/FontSize","Panel/Scroll/Content/TextSpeed","Panel/Scroll/Content/Assistance","Panel/Scroll/Content/ReducedMotion","Panel/Scroll/Content/RecordEvents","Panel/Scroll/Content/ClearButton","Panel/Scroll/Content/ExportButton","Panel/Scroll/Content/CloseButton"}),
+            ("world/MemorySoupTable",new[]{"Background","SoupBowl","Panel/Content/Status","Panel/Content/Coins/Coin1","Panel/Content/Coins/Coin4","Panel/Content/Foods/Take","Panel/Content/Foods/Wait","Panel/Content/Foods/Share","Panel/Content/Hint"})};
+        foreach(var (file,paths) in saved)
+        {
+            Require(ResourceLoader.Exists($"res://scenes/{file}.tscn"),"OfflineUiTree missing scene "+file);
+            var node=GD.Load<PackedScene>($"res://scenes/{file}.tscn").Instantiate();
+            try{foreach(var path in paths)Require(node.GetNodeOrNull(path)!=null,"OfflineUiTree missing "+file+"/"+path);}
+            finally{node.Free();}
+        }
+        var session=GetNode<GameSession>("/root/GameSession");session.NewGame();session.SetOptions(new(){TextSpeed=0},false);
+        var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();
+        var nameLabel=main.GetNode<Label>("Dialogue/Panel/Content/NameLabel");
+        var panel=main.GetNode<PanelContainer>("Dialogue/Panel");
+        var style=new StyleBoxFlat{BgColor=new Color(.23f,.17f,.14f,1)};panel.AddThemeStyleboxOverride("panel",style);
+        var editedOffset=panel.OffsetLeft+11;panel.OffsetLeft=editedOffset;
+        AddChild(main);await Frames(3);main.Dialogue.ShowText("张大炮","测试正文");await Frames(3);
+        Require(ReferenceEquals(nameLabel,main.Dialogue.GetNode<Label>("Panel/Content/NameLabel")),"NoDuplicateUiOnOpen label replaced");
+        Require(nameLabel.Text=="张大炮","Speaker not separately bound");
+        Require(ReferenceEquals(panel.GetThemeStylebox("panel"),style)&&Math.Abs(panel.OffsetLeft-editedOffset)<0.1,"SavedStylesSurviveReady overwritten");
+        main.Dialogue.HandleKey(Key.Escape);main.Phone.Open("messages");main.Phone.Close();main.Phone.Open("messages");
+        Require(main.FindChildren("Phone","",true,false).Count==1,"NoDuplicateUiOnOpen phone duplicated");main.Phone.Close();main.Free();await Frames(2);
+        GD.Print("EDITABLE_UI_PASS OfflineUiTree NoDuplicateUiOnOpen SavedStylesSurviveReady");
+    }
     private static void Require(bool value,string message)
     { if(!value)throw new InvalidOperationException(message); }
 

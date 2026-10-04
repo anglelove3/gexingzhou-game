@@ -1,4 +1,96 @@
-[gd_scene load_steps=2 format=3]
-[ext_resource type="Script" path="res://scripts/SettingsController.cs" id="1"]
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/SettingsController.cs" id="Script"]
+[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
 [node name="Settings" type="Control"]
-script = ExtResource("1")
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=60
+script=ExtResource("Script")
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0,0,0,0.58)
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode=0
+offset_left=100.0
+offset_top=70.0
+offset_right=1180.0
+offset_bottom=650.0
+theme_override_styles/panel=ExtResource("PanelStyle")
+[node name="Scroll" type="ScrollContainer" parent="Panel"]
+layout_mode=2
+horizontal_scroll_mode=0
+follow_focus=true
+[node name="Content" type="VBoxContainer" parent="Panel/Scroll"]
+layout_mode=2
+theme_override_constants/separation=12
+size_flags_horizontal=3
+[node name="Title" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="设置 · Esc 返回 · ↑↓ / Tab切换 · Enter确认"
+autowrap_mode=3
+[node name="FontLabel" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="字体大小（20—32）"
+autowrap_mode=3
+[node name="FontSize" type="SpinBox" parent="Panel/Scroll/Content"]
+layout_mode=2
+min_value=20.0
+max_value=32.0
+value=24.0
+[node name="TextSpeed" type="OptionButton" parent="Panel/Scroll/Content"]
+layout_mode=2
+item_count=5
+popup/item_0/text="字幕：立即显示"
+popup/item_0/id=0
+popup/item_1/text="字幕：每秒15字"
+popup/item_1/id=15
+popup/item_2/text="字幕：每秒30字"
+popup/item_2/id=30
+popup/item_3/text="字幕：每秒45字"
+popup/item_3/id=45
+popup/item_4/text="字幕：每秒60字"
+popup/item_4/id=60
+[node name="Assistance" type="CheckButton" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="操作辅助：增加文字提示（不改变选择）"
+[node name="ReducedMotion" type="CheckButton" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="减少动效（转场0.15秒）"
+[node name="RecordEvents" type="CheckButton" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="本地匿名行为记录（默认关闭，不上传）"
+[node name="Message" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+[node name="ClearButton" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="清空本地行为记录（不删除存档）"
+[node name="ExportButton" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="导出允许的事件字段到本机"
+[node name="CloseButton" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="保存设置并返回"
+[node name="StartupError" type="Label" parent="."]
+visible=false
+z_index=110
+offset_left=40.0
+offset_top=40.0
+offset_right=1240.0
+offset_bottom=180.0
+autowrap_mode=3
+text="场景引用错误"
