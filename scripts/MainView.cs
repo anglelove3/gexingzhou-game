@@ -11,11 +11,13 @@ public partial class MainView : Control
     public SettingsController Settings {get;private set;}=null!;private int lastFont;
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
+    private WorldDisplayController display=null!;
     public override void _Ready()
     {
         try
         {
             viewport=SceneBindings.Require<SubViewport>(this,"WorldDisplay/WorldViewport");
+            display=SceneBindings.Require<WorldDisplayController>(this,"WorldDisplay");
             Dialogue=SceneBindings.Require<DialogueController>(this,"Dialogue");
             Phone=SceneBindings.Require<PhoneController>(this,"Phone");
             Choices=SceneBindings.Require<ChoiceController>(this,"Choices");
@@ -39,6 +41,7 @@ public partial class MainView : Control
                 if(candidate.SceneId=="memory_soup_table"&&candidate.MemoryState!.Completed)_=ReturnMemory(true);
             }
             Theme=s.CreateUiTheme();lastFont=s.Options.SubtitleSize;
+            display.Configure(World);
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
@@ -141,7 +144,9 @@ public partial class MainView : Control
     {
         var path=ScenePath(sceneId);if(path==null)return false;
         var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return false;
-        var next=packed.Instantiate<WorldView>();World.Free();World=next;viewport.AddChild(World);World.Player.Position=new(position.X,position.Y);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);return true;
+        var next=packed.Instantiate<WorldView>();World.Free();World=next;viewport.AddChild(World);
+        if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return false;}
+        World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);return true;
     }
     private static string? ScenePath(string id)=>id switch{"convenience_street"=>"ConvenienceStreet","community_gate"=>"CommunityGate","soup_shop"=>"SoupShop",_=>null};
     public override void _Input(InputEvent ev)

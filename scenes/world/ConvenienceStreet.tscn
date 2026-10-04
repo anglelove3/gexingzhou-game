@@ -18,6 +18,7 @@ size=Vector2(16,360)
 script=ExtResource("1")
 SceneId="convenience_street"
 Width=1280
+ViewBounds=Rect2(0,0,1280,360)
 [node name="Backdrop" type="Sprite2D" parent="."]
 texture_filter=2
 z_index=-10

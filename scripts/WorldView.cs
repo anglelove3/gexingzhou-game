@@ -5,6 +5,7 @@ public partial class WorldView : Node2D
 {
     [Export] public string SceneId {get;set;}="community_gate";
     [Export] public int Width {get;set;}=1600;
+    [Export] public Rect2 ViewBounds {get;set;}=new(0,0,1600,360);
     public PlayerController Player {get;private set;}=null!;
     public InteractionController Interactions {get;private set;}=null!;
     public override void _Ready()

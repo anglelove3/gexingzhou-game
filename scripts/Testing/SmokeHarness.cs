@@ -15,6 +15,10 @@ public partial class SmokeHarness : Node
             {
                 await EditableUiChecks();GD.Print("GODOT_CHECKS_PASS EditableUi");GetTree().Quit();return;
             }
+            if(suite=="ResponsiveUi")
+            {
+                await ResponsiveUiChecks();GD.Print("GODOT_CHECKS_PASS ResponsiveUi");GetTree().Quit();return;
+            }
             if(suite=="Art")
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
@@ -185,13 +189,13 @@ public partial class SmokeHarness : Node
         if(menu.GetNodeOrNull<TextureRect>("Background")?.Texture==null)throw new Exception("Boot screen still has placeholder art");menu.Free();
         var memory=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn").Instantiate<SoupMemoryController>();AddChild(memory);await Frames(2);
         if(memory.GetNodeOrNull<TextureRect>("Background")?.Texture==null)throw new Exception("Memory table art missing");
-        if(memory.GetNode<TextureRect>("Background").Size!=new Vector2(1280,720)||memory.GetNode<TextureRect>("SoupBowl").Size.X>180.1f||memory.GetNode<TextureRect>("SoupBowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
+        if(!memory.GetNode<TextureRect>("Background").GetGlobalRect().IsEqualApprox(memory.GetGlobalRect())||memory.GetNode<TextureRect>("SoupBowl").Size.X>180.1f||memory.GetNode<TextureRect>("SoupBowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
         if(memory.FindChildren("*","Button",true,false).OfType<Button>().Count(b=>b.Icon!=null)<4)throw new Exception("Playable coin controls have no actual art");memory.Free();
     }
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
     private async Task Finish(MainView main)
     {
-        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await GameTime(.18);if(!main.Dialogue.IsOpen)break;KeyPress(Key.E);await Frames(2);if(main.Dialogue.IsOpen){var panel=main.Dialogue.GetChildren().OfType<PanelContainer>().Single();if(panel.GetGlobalRect().End.Y>720.1f)throw new Exception("Dialogue overflows logical screen");}}
+        for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await GameTime(.18);if(!main.Dialogue.IsOpen)break;KeyPress(Key.E);await Frames(2);if(main.Dialogue.IsOpen){var panel=main.Dialogue.GetChildren().OfType<PanelContainer>().Single();if(!main.GetGlobalRect().Grow(.1f).Encloses(panel.GetGlobalRect()))throw new Exception("Dialogue overflows logical screen");}}
         if(main.Dialogue.IsOpen)throw new Exception("Dialogue never finished with keyboard");
     }
     private async Task StoryPath(bool answer,string suite,bool resume=false)
@@ -335,7 +339,7 @@ public partial class SmokeHarness : Node
     private static void AssertDialogueFits(MainView main)
     {
         var panel=main.Dialogue.GetChildren().OfType<PanelContainer>().Single();
-        if(panel.GetGlobalRect().End.Y>720.1f)throw new Exception("Narrative dialogue overflows logical screen");
+        if(!main.GetGlobalRect().Grow(.1f).Encloses(panel.GetGlobalRect()))throw new Exception("Narrative dialogue overflows logical screen");
     }
     private async Task ObservationVisualChecks()
     {

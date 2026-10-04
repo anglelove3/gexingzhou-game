@@ -3,6 +3,38 @@ using GeXingzhou.Domain;
 
 public partial class SmokeHarness
 {
+    private async Task ResponsiveUiChecks()
+    {
+        var window=GetWindow();var oldSize=window.Size;var oldMode=window.ContentScaleMode;
+        window.ContentScaleMode=Window.ContentScaleModeEnum.Disabled;
+        foreach(var size in new[]{new Vector2I(1280,720),new Vector2I(1920,1080),new Vector2I(1440,1080)})
+        {
+            window.Size=size;await Frames(3);var main=await NewPolishMain();
+            foreach(var id in new[]{"community_gate","convenience_street","soup_shop"})
+            {
+                if(main.World.SceneId!=id)Require(main.ChangeWorld(id,new(320,280)),"Map change failed");await Frames(3);
+                var display=main.GetNode<SubViewportContainer>("WorldDisplay");
+                Require(display.GetGlobalRect().IsEqualApprox(main.GetGlobalRect()),"WindowCoverage: display leaves game margins "+size);
+                Require(main.GetNode<PanelContainer>("HUD/TaskCard").Size.X<main.Size.X*.65f,"Full-width task bar remains");
+                Require(main.GetGlobalRect().Encloses(main.GetNode<Label>("HUD/InteractionHint").GetGlobalRect()),"Hint clipped");
+                var viewProperty=display.GetType().GetProperty("VisibleWorldRect");
+                var boundsProperty=main.World.GetType().GetProperty("ViewBounds");
+                Require(viewProperty!=null&&boundsProperty!=null,"Non169WorldView missing view geometry");
+                var view=(Rect2)viewProperty!.GetValue(display)!;var bounds=(Rect2)boundsProperty!.GetValue(main.World)!;
+                Require(bounds.Grow(.02f).Encloses(view),"Camera outside artwork");
+                var backdrop=main.World.GetNode<Sprite2D>("Backdrop");
+                var artBounds=new Rect2(backdrop.Position,backdrop.Texture.GetSize()*backdrop.Scale);
+                Require(artBounds.Grow(.02f).Encloses(view),"ViewBounds not within actual backdrop");
+                var camera=main.World.Player.GetNode<Camera2D>("Camera2D");
+                Require(Math.Abs(camera.Zoom.X-camera.Zoom.Y)<.001,"World stretched");
+                Require(Math.Abs(view.Size.X/view.Size.Y-main.Size.X/main.Size.Y)<.01,"View aspect differs from display");
+                Require(display.GetNode<SubViewport>("WorldViewport").Size==new Vector2I((int)display.Size.X/2,(int)display.Size.Y/2),"Viewport resolution mismatch");
+            }
+            main.Free();await Frames(2);
+        }
+        window.Size=oldSize;window.ContentScaleMode=oldMode;
+        GD.Print("RESPONSIVE_UI_PASS WindowCoverage Non169WorldView");
+    }
     private async Task EditableUiChecks()
     {
         var saved=new (string File,string[] Paths)[]{

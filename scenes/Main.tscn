@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 [ext_resource type="Script" path="res://scripts/MainView.cs" id="Script"]
 [ext_resource type="PackedScene" path="res://scenes/world/CommunityGate.tscn" id="World"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Phone.tscn" id="Phone"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/Settings.tscn" id="Settings"]
 [ext_resource type="Script" path="res://scripts/SceneFlow.cs" id="Flow"]
 [ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
+[ext_resource type="Script" path="res://scripts/WorldDisplayController.cs" id="Display"]
 [node name="Main" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -18,8 +19,13 @@ mouse_filter=2
 z_index=0
 script=ExtResource("Script")
 [node name="WorldDisplay" type="SubViewportContainer" parent="."]
-offset_right=1280.0
-offset_bottom=720.0
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+script=ExtResource("Display")
 stretch=true
 stretch_shrink=2
 [node name="WorldViewport" type="SubViewport" parent="WorldDisplay"]
@@ -35,8 +41,10 @@ grow_horizontal=2
 grow_vertical=2
 mouse_filter=2
 [node name="TaskCard" type="PanelContainer" parent="HUD"]
-offset_right=1280.0
-offset_bottom=148.0
+offset_left=24.0
+offset_top=20.0
+offset_right=570.0
+offset_bottom=116.0
 mouse_filter=2
 theme_override_styles/panel=ExtResource("PanelStyle")
 [node name="TaskText" type="Label" parent="HUD/TaskCard"]
@@ -45,10 +53,16 @@ text="葛行舟 · 安置小区\n走走，看看搬迁后的故乡"
 autowrap_mode=3
 mouse_filter=2
 [node name="InteractionHint" type="Label" parent="HUD"]
+layout_mode=1
+anchor_top=1.0
+anchor_right=1.0
+anchor_bottom=1.0
 offset_left=30.0
-offset_top=658.0
-offset_right=1250.0
-offset_bottom=710.0
+offset_top=-68.0
+offset_right=-30.0
+offset_bottom=-20.0
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,0.95)
+theme_override_constants/outline_size=6
 text="A/D 移动 · Shift 加快 · E 互动 · Tab 手机"
 mouse_filter=2
 [node name="Phone" parent="." instance=ExtResource("Phone")]
