@@ -7,6 +7,10 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="EditableWorld")
+            {
+                await EditableWorldChecks();GD.Print("GODOT_CHECKS_PASS EditableWorld");GetTree().Quit();return;
+            }
             if(suite=="Art")
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;

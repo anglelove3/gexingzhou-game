@@ -1,5 +1,112 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=14 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
-[node name="World" type="Node2D"]
-script = ExtResource("1")
-SceneId = "convenience_street"
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/street-v1.png" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="4"]
+[ext_resource type="Script" path="res://scripts/Interactable.cs" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/world/Bench.tscn" id="6"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="Npc0"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Npc1"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Npc2"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="Npc3"]
+[ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
+[sub_resource type="RectangleShape2D" id="Ground"]
+size=Vector2(1280,16)
+[sub_resource type="RectangleShape2D" id="Side"]
+size=Vector2(16,360)
+[node name="ConvenienceStreet" type="Node2D"]
+script=ExtResource("1")
+SceneId="convenience_street"
+Width=1280
+[node name="Backdrop" type="Sprite2D" parent="."]
+texture_filter=2
+z_index=-10
+position=Vector2(0,-52.80000000000001)
+scale=Vector2(0.5893186003683242,0.5893186003683242)
+texture=ExtResource("2")
+centered=false
+[node name="Player" parent="." instance=ExtResource("3")]
+position=Vector2(320,280)
+[node name="Interactions" type="Node" parent="."]
+script=ExtResource("4")
+[node name="Floor" type="StaticBody2D" parent="."]
+position=Vector2(640,288)
+collision_layer=1
+collision_mask=0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape=SubResource("Ground")
+[node name="LeftBoundary" type="StaticBody2D" parent="."]
+position=Vector2(-8,180)
+collision_layer=1
+collision_mask=0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
+shape=SubResource("Side")
+[node name="RightBoundary" type="StaticBody2D" parent="."]
+position=Vector2(1288,180)
+collision_layer=1
+collision_mask=0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightBoundary"]
+shape=SubResource("Side")
+[node name="CommunityExit" type="Node2D" parent="."]
+position=Vector2(80,280)
+script=ExtResource("5")
+Id="community"
+Caption="回安置小区"
+Description=""
+ActionId="scene:community_gate"
+IsActive=true
+[node name="Marker" type="Label" parent="CommunityExit"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="›"
+mouse_filter=2
+[node name="Hey" type="Node2D" parent="."]
+position=Vector2(600,280)
+script=ExtResource("5")
+Id="hey"
+Caption="Hey哥 · 递喜糖 / 聊两句"
+Description=""
+ActionId="candy.hey.delivered"
+IsActive=true
+[node name="Marker" type="Label" parent="Hey"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="Artwork" type="Sprite2D" parent="Hey"]
+texture_filter=2
+position=Vector2(0,-34)
+scale=Vector2(0.13793103448275862,0.13793103448275862)
+texture=ExtResource("Npc1")
+flip_h=true
+[node name="SoupExit" type="Node2D" parent="."]
+position=Vector2(1120,280)
+script=ExtResource("5")
+Id="soup"
+Caption="去鸭血粉丝汤店"
+Description=""
+ActionId="scene:soup_shop"
+IsActive=true
+[node name="Marker" type="Label" parent="SoupExit"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="›"
+mouse_filter=2

@@ -19,6 +19,7 @@ public partial class MainView : Control
         var worldScene=candidate.SceneId=="memory_soup_table"?"soup_shop":candidate.SceneId;
         var resource=ScenePath(worldScene);if(resource==null)throw new InvalidOperationException("Unknown saved scene");
         World=GD.Load<PackedScene>("res://scenes/world/"+resource+".tscn").Instantiate<WorldView>();viewport.AddChild(World);
+        if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return;}
         World.Player.Position=candidate.SceneId=="memory_soup_table"?new Vector2(candidate.ReturnContext!.Position.X,candidate.ReturnContext.Position.Y):new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y);
         AddChild(new ColorRect{Size=new Vector2(1280,148),Color=new Color(0,0,0,.76f),MouseFilter=MouseFilterEnum.Ignore});
         AddChild(new ColorRect{Position=new Vector2(0,640),Size=new Vector2(1280,80),Color=new Color(0,0,0,.76f),MouseFilter=MouseFilterEnum.Ignore});
@@ -42,8 +43,7 @@ public partial class MainView : Control
         prompt.Visible=s.Flow==FlowState.Field;
         var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
         status.Text="葛行舟 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
-        if(s.Snapshot.InvitationState.CarArrived&&s.Snapshot.Stage<=SliceStage.InvitationResolved&&World.SceneId=="community_gate"&&World.GetNodeOrNull("Cannon")==null)
-        {var t=World.AddTarget("cannon",400,"张大炮 · 见面","","invitation.meeting_complete");t.Name="Cannon";}
+        World.RefreshQuestActors(s.Snapshot);
     }
     public void ShowNotice(string title,string body)
     {

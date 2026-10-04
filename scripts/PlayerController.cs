@@ -5,17 +5,17 @@ public partial class PlayerController : CharacterBody2D
     private bool locked; private AnimatedSprite2D artwork=null!;
     public override void _Ready()
     {
-        CollisionLayer=2;CollisionMask=1;
-        AddChild(new CollisionShape2D{Position=new Vector2(0,-28),Shape=new RectangleShape2D{Size=new Vector2(16,56)}});
-        AddChild(new Camera2D{Name="Camera2D",Position=new Vector2(0,-100),PositionSmoothingEnabled=false,LimitLeft=0,LimitTop=0,LimitBottom=360});
-        var frames=new SpriteFrames();frames.RemoveAnimation("default");
-        foreach(var animation in new[]{"idle","walk"})
+        try
         {
-            frames.AddAnimation(animation);frames.SetAnimationLoopMode(animation,SpriteFrames.LoopMode.Linear);frames.SetAnimationSpeed(animation,animation=="idle"?3:8);
-            for(int i=0;i<4;i++)frames.AddFrame(animation,ArtAssets.Player(i+(animation=="walk"?4:0)));
+            SceneBindings.Require<CollisionShape2D>(this,"CollisionShape2D");
+            SceneBindings.Require<Camera2D>(this,"Camera2D");
+            artwork=SceneBindings.Require<AnimatedSprite2D>(this,"Artwork");
+            if(artwork.SpriteFrames==null||!artwork.SpriteFrames.HasAnimation("idle")||!artwork.SpriteFrames.HasAnimation("walk"))
+                throw new InvalidOperationException("主角缺少待机/行走动画资源。");
+            artwork.FrameChanged+=AnchorArtwork;artwork.AnimationChanged+=AnchorArtwork;
+            artwork.Play("idle");AnchorArtwork();
         }
-        artwork=new AnimatedSprite2D{Name="Artwork",SpriteFrames=frames,TextureFilter=TextureFilterEnum.Linear};AddChild(artwork);
-        artwork.FrameChanged+=AnchorArtwork;artwork.AnimationChanged+=AnchorArtwork;artwork.Play("idle");AnchorArtwork();
+        catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
     public void SetInputLocked(bool value) {locked=value;if(value)Velocity=Vector2.Zero;}
     public override void _PhysicsProcess(double delta)

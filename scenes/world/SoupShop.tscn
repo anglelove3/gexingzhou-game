@@ -1,5 +1,161 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=14 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
-[node name="World" type="Node2D"]
-script = ExtResource("1")
-SceneId = "soup_shop"
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/soup-v1.png" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="4"]
+[ext_resource type="Script" path="res://scripts/Interactable.cs" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/world/Bench.tscn" id="6"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="Npc0"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Npc1"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Npc2"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="Npc3"]
+[ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
+[sub_resource type="RectangleShape2D" id="Ground"]
+size=Vector2(960,16)
+[sub_resource type="RectangleShape2D" id="Side"]
+size=Vector2(16,360)
+[node name="SoupShop" type="Node2D"]
+script=ExtResource("1")
+SceneId="soup_shop"
+Width=960
+[node name="Backdrop" type="Sprite2D" parent="."]
+texture_filter=2
+z_index=-10
+position=Vector2(0,-0.8000000000000114)
+scale=Vector2(0.4972375690607735,0.4972375690607735)
+texture=ExtResource("2")
+centered=false
+[node name="Player" parent="." instance=ExtResource("3")]
+position=Vector2(320,280)
+[node name="Interactions" type="Node" parent="."]
+script=ExtResource("4")
+[node name="Floor" type="StaticBody2D" parent="."]
+position=Vector2(480,288)
+collision_layer=1
+collision_mask=0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape=SubResource("Ground")
+[node name="LeftBoundary" type="StaticBody2D" parent="."]
+position=Vector2(-8,180)
+collision_layer=1
+collision_mask=0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
+shape=SubResource("Side")
+[node name="RightBoundary" type="StaticBody2D" parent="."]
+position=Vector2(968,180)
+collision_layer=1
+collision_mask=0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightBoundary"]
+shape=SubResource("Side")
+[node name="StreetExit" type="Node2D" parent="."]
+position=Vector2(80,280)
+script=ExtResource("5")
+Id="street"
+Caption="回便利店街"
+Description=""
+ActionId="scene:convenience_street"
+IsActive=true
+[node name="Marker" type="Label" parent="StreetExit"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="›"
+mouse_filter=2
+[node name="Seat" type="Node2D" parent="."]
+position=Vector2(440,280)
+script=ExtResource("5")
+Id="seat"
+Caption="张大炮 · 桌边坐下"
+Description=""
+ActionId="soup.meet"
+IsActive=true
+[node name="Marker" type="Label" parent="Seat"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="Artwork" type="Sprite2D" parent="Seat"]
+texture_filter=2
+position=Vector2(30,-28)
+scale=Vector2(0.13793103448275862,0.13793103448275862)
+texture=ExtResource("Npc3")
+flip_h=true
+[node name="Sign" type="Node2D" parent="."]
+position=Vector2(200,280)
+script=ExtResource("5")
+Id="sign"
+Caption="旧招牌"
+Description="店换了地方，招牌搬了过来。边角的油烟擦不掉。"
+ActionId="observe"
+IsActive=true
+[node name="Marker" type="Label" parent="Sign"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="Menu" type="Node2D" parent="."]
+position=Vector2(700,280)
+script=ExtResource("5")
+Id="menu"
+Caption="看看菜单"
+Description="鸭血粉丝汤。记忆里便宜，现在也够吃顿热乎的。"
+ActionId="observe"
+IsActive=true
+[node name="Marker" type="Label" parent="Menu"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="Counter" type="Node2D" parent="."]
+position=Vector2(800,280)
+script=ExtResource("5")
+Id="counter"
+Caption="收银台"
+Description="吃完再结账。老板摆摆手：先坐。"
+ActionId="observe"
+IsActive=true
+[node name="Marker" type="Label" parent="Counter"]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="Shopkeeper" type="Sprite2D" parent="."]
+texture_filter=2
+position=Vector2(850,246)
+scale=Vector2(0.13709677419354838,0.13709677419354838)
+texture=ExtResource("Npc2")
+flip_h=true
+[node name="SoupBowl" type="Sprite2D" parent="."]
+texture_filter=2
+position=Vector2(415,206.5)
+scale=Vector2(0.04054054054054054,0.04054054054054054)
+texture=ExtResource("Bowl")

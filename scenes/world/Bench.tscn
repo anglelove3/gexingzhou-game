@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/BenchView.cs" id="1"]
+[node name="Bench" type="Node2D" node_paths=PackedStringArray("SeatAnchor","StandAnchor")]
+script=ExtResource("1")
+Id="bench"
+Caption="坐一会儿"
+Description="统一搬来的楼，一排一排。人也整齐了，记忆没那么听话。"
+ActionId="observe"
+SeatAnchor=NodePath("SeatAnchor")
+StandAnchor=NodePath("StandAnchor")
+[node name="Marker" type="Label" parent="."]
+offset_left=-8.0
+offset_top=-88.0
+offset_right=20.0
+offset_bottom=-60.0
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+
+[node name="SeatAnchor" type="Marker2D" parent="."]
+position=Vector2(0,-18)
+[node name="StandAnchor" type="Marker2D" parent="."]
+position=Vector2(0,0)
+[node name="BenchForeground" type="Sprite2D" parent="."]
+visible=false
+z_index=2
