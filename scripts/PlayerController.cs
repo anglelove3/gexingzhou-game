@@ -43,7 +43,11 @@ public partial class PlayerController : CharacterBody2D
         var p=session.Catalog!.Parameters;
         float vx=MovementModel.Step(Velocity.X,axis,Input.IsPhysicalKeyPressed(Key.Shift),locked||restActive||(session.Flow!=FlowState.Field), (float)delta,(float)p["move.walk_speed"],(float)p["move.run_speed"],(float)p["move.acceleration"],(float)p["move.deceleration"]);
         Velocity=new Vector2(vx,0);MoveAndSlide();
-        if(restActive){session.UpdatePosition(new(Position.X,Position.Y));return;}
+        if(restActive)
+        {
+            MainView? main=null;for(Node? pnode=GetParent();pnode!=null;pnode=pnode.GetParent())if(pnode is MainView m){main=m;break;}
+            session.UpdatePosition(main?.Rest.IsActive==true?main.Rest.SavePosition:new(Position.X,Position.Y));return;
+        }
         if(axis!=0&&!locked&&session.Flow==FlowState.Field)artwork.FlipH=axis<0;
         bool walking=Math.Abs(Velocity.X)>1&&!locked&&session.Flow==FlowState.Field;
         artwork.SpeedScale=walking?Math.Clamp(Math.Abs(Velocity.X)/120f,.6f,1.6f):1;

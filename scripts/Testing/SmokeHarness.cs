@@ -331,14 +331,14 @@ public partial class SmokeHarness : Node
             SeedNarrativeMarkers(s);
             var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
             var target=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id==targetId);var stage=s.Snapshot.Stage;var candy=s.Snapshot.CandyCount;
-            target.TryInteract(s);await Frames(2);
+            await OpenObservation(main,target);
             if(!DialogueText(main).Contains(expected)||!DialogueText(main).Contains(target.Description))throw new Exception("Wrong first observation branch: "+scenario);
             KeyPress(Key.Escape);await Frames(2);
             if(s.Snapshot.CompletedActions.Contains("observation.community.first"))throw new Exception("Cancelled observation consumed first hint");
-            target.TryInteract(s);await Frames(2);await Finish(main);
+            await OpenObservation(main,target);await Finish(main);
             if(!s.Snapshot.CompletedActions.Contains("observation.community.first")||s.Snapshot.Stage!=stage||s.Snapshot.CandyCount!=candy)throw new Exception("Observation did not mark once or advanced quest");
             main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");SeedNarrativeMarkers(s);
-            target=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id==targetId);target.TryInteract(s);await Frames(2);
+            target=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id==targetId);await OpenObservation(main,target);
             if(!DialogueText(main).Contains(target.Description)||DialogueText(main).Contains("OBS_"))throw new Exception("Restored observation repeated first hint or lost location description");
             await Finish(main);GD.Print("NARRATIVE_OBSERVATION_PASS "+scenario);main.Free();await Frames(2);
         }

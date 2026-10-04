@@ -9,6 +9,7 @@ public partial class MainView : Control
     public SceneFlow SceneFlow {get;private set;}=null!;
     public SoupMemoryController? Memory {get;private set;}
     public SettingsController Settings {get;private set;}=null!;private int lastFont;
+    public RestController Rest {get;private set;}=null!;
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
     private WorldDisplayController display=null!;
@@ -22,6 +23,7 @@ public partial class MainView : Control
             Phone=SceneBindings.Require<PhoneController>(this,"Phone");
             Choices=SceneBindings.Require<ChoiceController>(this,"Choices");
             Settings=SceneBindings.Require<SettingsController>(this,"Settings");
+            Rest=SceneBindings.Require<RestController>(this,"Rest");
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
             prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
@@ -47,7 +49,8 @@ public partial class MainView : Control
     }
     public override void _Process(double delta)
     {
-        var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);prompt.Text=World.Interactions.Prompt+" · Tab 手机";
+        var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);
+        prompt.Text=(Rest.IsActive?(GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身"):World.Interactions.Prompt)+" · Tab 手机";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
         if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
         prompt.Visible=s.Flow==FlowState.Field;
@@ -63,6 +66,7 @@ public partial class MainView : Control
     public void HandleInteraction(Interactable target)
     {
         var s=GetNode<GameSession>("/root/GameSession");
+        if(target is BenchView bench&&target.ActionId=="rest.bench"){Rest.Begin(bench);return;}
         if(target.ActionId=="invitation.meeting_complete")ShowDialogue("invitation.meeting",()=>s.TryDispatch(new(target.ActionId,"meeting","invitation-1")));
         else if(target.ActionId=="candy.hey.delivered")
         {
@@ -80,7 +84,13 @@ public partial class MainView : Control
             else ShowNotice("桌边","先把张大炮托你的喜糖交给Hey哥。");
         }
         else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else _=SceneFlow.TryEnter(id,new(120,280));}
-        else if(target.ActionId=="observe"&&World.SceneId=="community_gate"&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
+        else if(target.ActionId=="observe")ShowObservation(target);
+        else ShowNotice(target.Caption,target.Description);
+    }
+    public void ShowObservation(Interactable target)
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        if(World.SceneId=="community_gate"&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
         {
             var id=s.Snapshot.InvitationState.Resolution==InvitationResolution.Answered?"observation.community.answered":s.Snapshot.InvitationState.VoiceReceived?"observation.community.unanswered":"observation.community.quiet";
             if(s.Catalog!.Dialogues.TryGetValue(id,out var node)&&node is not null)
@@ -144,6 +154,7 @@ public partial class MainView : Control
     {
         var path=ScenePath(sceneId);if(path==null)return false;
         var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return false;
+        Rest?.Cancel();
         var next=packed.Instantiate<WorldView>();World.Free();World=next;viewport.AddChild(World);
         if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return false;}
         World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);return true;
@@ -154,13 +165,14 @@ public partial class MainView : Control
         if(ev is not InputEventKey{Pressed:true,Echo:false} key)return;
         if(GetNode<GameSession>("/root/GameSession").Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
         if(Settings.IsOpen){if(key.PhysicalKeycode==Key.Escape)Settings.Close();else return;}
-        else if(key.PhysicalKeycode==Key.F5)GetNode<GameSession>("/root/GameSession").SaveManual();
-        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
+        else if(key.PhysicalKeycode==Key.F5){var s=GetNode<GameSession>("/root/GameSession");if(Rest.IsActive)s.UpdatePosition(Rest.SavePosition);s.SaveManual();}
+        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();Rest.Cancel();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
         else if(Phone.IsOpen){if(key.PhysicalKeycode==Key.Tab||key.PhysicalKeycode==Key.Escape)Phone.Close();else return;}
         else if(key.PhysicalKeycode==Key.Tab&&!Choices.IsOpen)Phone.Open("messages");
         else if(Choices.IsOpen){if(key.PhysicalKeycode is Key.Escape or Key.E)Choices.HandleKey(key.PhysicalKeycode);else return;}
         else if(Dialogue.IsOpen)Dialogue.HandleKey(key.PhysicalKeycode);
         else if(Memory!=null)Memory.HandleKey(key.PhysicalKeycode);
+        else if(Rest.HandleKey(key.PhysicalKeycode)){}
         else if(key.PhysicalKeycode==Key.Escape)Settings.Open();
         else return;
         GetViewport().SetInputAsHandled();

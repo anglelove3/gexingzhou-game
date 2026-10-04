@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/RestOptionsController.cs" id="Script"]
+[ext_resource type="StyleBox" path="res://assets/ui/vs01-v2/dialogue.tres" id="Style"]
+[node name="RestOptions" type="Control"]
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=25
+script=ExtResource("Script")
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode=1
+anchor_left=1.0
+anchor_right=1.0
+anchor_top=1.0
+anchor_bottom=1.0
+offset_left=-450.0
+offset_top=-470.0
+offset_right=-30.0
+offset_bottom=-100.0
+theme_override_styles/panel=ExtResource("Style")
+[node name="Options" type="VBoxContainer" parent="Panel"]
+layout_mode=2
+theme_override_constants/separation=12
+[node name="Title" type="Label" parent="Panel/Options"]
+layout_mode=2
+text="长椅 · 歇一会儿"
+autowrap_mode=3
+theme_override_colors/font_color=Color(0.94,0.82,0.58,1)
+[node name="Rest" type="Button" parent="Panel/Options"]
+layout_mode=2
+custom_minimum_size=Vector2(0,60)
+text="坐一会儿"
+focus_neighbor_top=NodePath("../Rise")
+focus_neighbor_bottom=NodePath("../Smoke")
+[node name="Smoke" type="Button" parent="Panel/Options"]
+layout_mode=2
+custom_minimum_size=Vector2(0,60)
+text="来一根"
+focus_neighbor_top=NodePath("../Rest")
+focus_neighbor_bottom=NodePath("../Rise")
+[node name="Rise" type="Button" parent="Panel/Options"]
+layout_mode=2
+custom_minimum_size=Vector2(0,60)
+text="起身"
+focus_neighbor_top=NodePath("../Smoke")
+focus_neighbor_bottom=NodePath("../Rest")
+[node name="Hint" type="Label" parent="Panel/Options"]
+layout_mode=2
+text="↑↓ 选择 · E 确认\nEsc 收起选项"
+autowrap_mode=3

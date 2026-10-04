@@ -27,6 +27,7 @@ public partial class PhoneController : Control
         if(source==FlowState.Transition)return;
         previousFocus=GetViewport().GuiGetFocusOwner();
         var main=FindMain();if(main?.Dialogue.IsOpen==true)main.Dialogue.Visible=false;
+        main?.Rest.Suspend();
         IsOpen=true;Visible=true;s.Flow=FlowState.Phone;
         var inv=s.Snapshot.InvitationState;
         contact.Text=inv.PhoneRinging?"张大炮 · 来电":"旧手机 · 消息与任务";
@@ -45,6 +46,7 @@ public partial class PhoneController : Control
         if(!IsOpen)return;IsOpen=false;Visible=false;
         GetNode<GameSession>("/root/GameSession").Flow=source;
         var main=FindMain();if(main?.Dialogue.IsOpen==true)main.Dialogue.Visible=true;
+        if(source==FlowState.Field)main?.Rest.Resume();
         if(GodotObject.IsInstanceValid(previousFocus)&&previousFocus!.IsVisibleInTree())previousFocus.GrabFocus();
         previousFocus=null;
     }

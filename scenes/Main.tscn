@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 [ext_resource type="Script" path="res://scripts/MainView.cs" id="Script"]
 [ext_resource type="PackedScene" path="res://scenes/world/CommunityGate.tscn" id="World"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Phone.tscn" id="Phone"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/SceneFlow.cs" id="Flow"]
 [ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
 [ext_resource type="Script" path="res://scripts/WorldDisplayController.cs" id="Display"]
+[ext_resource type="Script" path="res://scripts/RestController.cs" id="Rest"]
+[ext_resource type="PackedScene" path="res://scenes/ui/RestOptions.tscn" id="RestOptions"]
 [node name="Main" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -67,6 +69,10 @@ text="A/D 移动 · Shift 加快 · E 互动 · Tab 手机"
 mouse_filter=2
 [node name="Phone" parent="." instance=ExtResource("Phone")]
 visible=false
+[node name="RestOptions" parent="." instance=ExtResource("RestOptions")]
+visible=false
+[node name="Rest" type="Node" parent="."]
+script=ExtResource("Rest")
 [node name="Dialogue" parent="." instance=ExtResource("Dialogue")]
 visible=false
 [node name="Choices" parent="." instance=ExtResource("Choices")]

@@ -7,6 +7,7 @@ public partial class SceneFlow : Node
     public async Task<SceneChangeResult> TryEnter(string sceneId,Position2 position)
     {
         if(busy)return new(false,"busy");
+        Main.Rest.Cancel();
         var s=GetNode<GameSession>("/root/GameSession");var source=s.Flow;busy=true;s.Flow=FlowState.Transition;
         var fade=Main.GetNode<ColorRect>("TransitionOverlay");fade.Color=new Color(0,0,0,0);fade.Visible=true;
         bool success=false;

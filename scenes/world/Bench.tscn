@@ -6,7 +6,7 @@ script=ExtResource("1")
 Id="bench"
 Caption="坐一会儿"
 Description="统一搬来的楼，一排一排。人也整齐了，记忆没那么听话。"
-ActionId="observe"
+ActionId="rest.bench"
 SeatAnchor=NodePath("SeatAnchor")
 StandAnchor=NodePath("StandAnchor")
 [node name="Marker" type="Label" parent="."]

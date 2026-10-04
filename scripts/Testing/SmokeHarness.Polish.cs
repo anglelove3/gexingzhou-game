@@ -3,6 +3,17 @@ using GeXingzhou.Domain;
 
 public partial class SmokeHarness
 {
+    private async Task OpenObservation(MainView main,Interactable target)
+    {
+        target.TryInteract(GetNode<GameSession>("/root/GameSession"));await Frames(2);
+        if(target is BenchView)
+        {
+            await WaitForPhase(main,RestPhase.Seated);
+            var menu=main.GetNode<RestOptionsController>("RestOptions");
+            if(!menu.IsOpen)main.Rest.HandleKey(Key.E);
+            menu.GetNode<Button>("Panel/Options/Rest").EmitSignal(Button.SignalName.Pressed);await Frames(2);
+        }
+    }
     private async Task RestChecks()
     {
         Require(ResourceLoader.Exists("res://assets/animations/player-rest-v2.tres"),"AnimationResources missing player rest frames");
@@ -25,12 +36,77 @@ public partial class SmokeHarness
         player.GlobalPosition=bench.StandAnchor.GlobalPosition;bench.GetNode<Sprite2D>("BenchForeground").Visible=true;
         var original=player.Position;var art=player.GetNode<AnimatedSprite2D>("Artwork");
         player.SetRestPose("seated",bench.SeatAnchor.GlobalPosition-player.GlobalPosition,false);await Frames(3);
-        Require(art.Animation=="seated"&&player.Position==original,"Seat pose altered collision position");await Capture("rest-seated");
+        Require(art.Animation=="seated"&&player.Position==original,"Seat pose altered collision position");
         var before=art.Position;bench.SeatAnchor.Position+=new Vector2(5,0);
         player.SetRestPose("seated",bench.SeatAnchor.GlobalPosition-player.GlobalPosition,false);
         Require(Math.Abs(art.Position.X-before.X-5)<.01,"Edited seat anchor not used");
         player.ClearRestPose();Require(art.Animation=="idle","Walking pose not restored");main.Free();
+        var integrated=await NewPolishMain();
+        Require(integrated.GetNodeOrNull("Rest")!=null&&integrated.GetNodeOrNull("RestOptions")!=null,"ActualSeatAndNoAutoplay: rest integration missing");
+        integrated.Free();
+        await RestIntegrationChecks();
         await Frames();
+    }
+    private async Task WaitForPhase(MainView main,RestPhase phase)
+    {
+        for(int i=0;i<300&&main.Rest.Phase!=phase;i++)await Frames();
+        Require(main.Rest.Phase==phase,"Timed out rest phase "+phase+" actual="+main.Rest.Phase);
+        await Frames(2);
+    }
+    private async Task RestIntegrationChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(new(){SubtitleSize=32,TextSpeed=0,ReducedMotion=false},false);
+        var main=await NewPolishMain();var bench=main.World.GetNode<BenchView>("Bench");main.World.Player.Position=bench.StandAnchor.Position+bench.Position;
+        await Frames(3);KeyPress(Key.E);await WaitForPhase(main,RestPhase.Seated);
+        var menu=main.GetNode<RestOptionsController>("RestOptions");var art=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");
+        var rest=menu.GetNode<Button>("Panel/Options/Rest");var smoke=menu.GetNode<Button>("Panel/Options/Smoke");var rise=menu.GetNode<Button>("Panel/Options/Rise");
+        Require(menu.IsOpen&&art.Animation=="seated"&&rest.HasFocus(),"ActualSeatAndNoAutoplay no default seated rest");
+        foreach(var button in new[]{rest,smoke,rise})Require(main.GetGlobalRect().Encloses(button.GetGlobalRect()),"Rest menu font32 clipped");
+        var stage=s.Snapshot.Stage;var candy=s.Snapshot.CandyCount;await Capture("rest-options");
+        main.Rest.HandleKey(Key.Escape);Require(main.Rest.Phase==RestPhase.Seated&&!menu.IsOpen,"First Escape stood up");
+        await Capture("rest-seated");KeyPress(Key.E);await Frames(2);
+        // Both keyboard focus activation and the same saved button Pressed signal used by mouse.
+        var clickPosition=smoke.GetGlobalRect().GetCenter();
+        main.GetViewport().PushInput(new InputEventMouseMotion{Position=clickPosition,GlobalPosition=clickPosition},true);await Frames();
+        main.GetViewport().PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=true},true);await Frames();
+        main.GetViewport().PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=false},true);await Frames(2);
+        Require(main.Rest.Phase==RestPhase.Smoking,"Mouse smoke option ignored");
+        for(int i=0;i<90&&art.Frame<4;i++)await Frames();
+        await Capture("rest-smoke");await WaitForPhase(main,RestPhase.Seated);
+        Require(!menu.IsOpen&&art.Animation=="seated","Smoking autolooped or reopened menu");
+        Require(s.Snapshot.Stage==stage&&s.Snapshot.CandyCount==candy,"Rest changed quest/reward");
+        KeyPress(Key.E);await Frames(2);main.Phone.Open("messages");
+        Require(!menu.IsOpen,"Phone blocked by rest menu");main.Phone.Close();
+        Require(main.Rest.Phase==RestPhase.Seated,"Phone lost seat state");
+        KeyPress(Key.E);await Frames(2);for(int i=0;i<20;i++)KeyPress(Key.E);await Frames(2);
+        Require(main.FindChildren("RestOptions","",true,false).Count==1,"Repeated E duplicated menu");
+        if(main.Dialogue.IsOpen){KeyPress(Key.Escape);await Frames(2);}
+        Require(!s.Snapshot.CompletedActions.Contains("observation.community.first"),"Cancelled observation consumed marker");
+        KeyPress(Key.E);await Frames(2);rest.EmitSignal(Button.SignalName.Pressed);await Frames(2);await Finish(main);await Frames(2);
+        Require(s.Snapshot.CompletedActions.Contains("observation.community.first"),"Confirmed rest did not mark observation");
+        KeyPress(Key.E);await Frames(2);rest.EmitSignal(Button.SignalName.Pressed);await Frames(2);await Finish(main);
+        Require(s.Snapshot.Stage==stage&&s.Snapshot.CandyCount==candy,"Repeated observation changed quest/reward");
+        s.AdvanceClock(35);await Frames(2);Require(s.Snapshot.InvitationState.PhoneRinging,"Invitation clock blocked by rest");
+        KeyPress(Key.Tab);await Frames(2);Require(main.Phone.IsOpen&&!menu.IsOpen,"CallWhileSeated phone blocked");
+        KeyPress(Key.Enter);await Frames(2);Require(main.Dialogue.IsOpen,"CallWhileSeated answer failed");await Finish(main);await Frames(2);
+        Require(main.Rest.Phase==RestPhase.Seated,"Call did not return to seated");
+        KeyPress(Key.F5);await Frames(2);var loaded=s.ManualSaves.Load();
+        Require(loaded.Status==LoadStatus.Loaded&&loaded.Snapshot!.PlayerPosition==main.Rest.SavePosition,"Seated save is not standing-safe");
+        // Keep the harness alive while exercising the real F9 scene replacement.
+        GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(5);
+        var reloaded=GetTree().CurrentScene as MainView;Require(reloaded!=null&&reloaded!=main&&reloaded.Rest.Phase==RestPhase.Standing,"F9 did not rebuild standing instance");
+        main.Free();main=reloaded!;await Frames(2);bench=main.World.GetNode<BenchView>("Bench");
+        Require(main.Rest.Begin(bench),"Reloaded bench rejected");await WaitForPhase(main,RestPhase.Seated);
+        main.Rest.HandleKey(Key.Escape);main.Rest.HandleKey(Key.Escape);await WaitForPhase(main,RestPhase.Standing);
+        var x=main.World.Player.Position.X;Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});await Frames(30);
+        Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});Require(main.World.Player.Position.X>x+5,"Rise left movement locked");
+        await Capture("rest-risen");Require(main.Rest.Begin(bench),"Repeated bench rejected");await WaitForPhase(main,RestPhase.Seated);
+        main.Rest.HandleKey(Key.Escape);KeyPress(Key.E);await Frames(2);smoke=main.GetNode<Button>("RestOptions/Panel/Options/Smoke");smoke.EmitSignal(Button.SignalName.Pressed);await Frames(2);
+        var oldArt=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");var transition=main.SceneFlow.TryEnter("convenience_street",new(120,280));
+        oldArt.EmitSignal(AnimatedSprite2D.SignalName.AnimationFinished);var result=await transition;await Frames(2);
+        Require(result.Success&&main.Rest.Phase==RestPhase.Standing&&!main.GetNode<RestOptionsController>("RestOptions").IsOpen,"Transition allowed old animation callback");
+        GetTree().CurrentScene=null;main.Free();await Frames(2);
+        GD.Print("REST_PASS ActualSeatAndNoAutoplay MenuKeyboardAndButtonSignal RepeatedKeysUnlock CallWhileSeated SaveLoadStanding TransitionCancelsCallbacks ObservationExactlyOnce");
     }
     private async Task PolishedUiChecks()
     {
