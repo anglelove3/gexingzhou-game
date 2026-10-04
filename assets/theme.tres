@@ -1,8 +1,55 @@
-[gd_resource type="Theme" load_steps=2 format=3]
+[gd_resource type="Theme" load_steps=5 format=3]
 
 [sub_resource type="SystemFont" id="Font"]
 font_names=PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "SimHei")
 
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color=Color(0.12,0.19,0.23,0.96)
+border_color=Color(0.56,0.48,0.33,0.85)
+border_width_left=1
+border_width_top=1
+border_width_right=1
+border_width_bottom=1
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
+content_margin_left=18.0
+content_margin_right=18.0
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color=Color(0.22,0.29,0.31,1)
+border_color=Color(0.85,0.70,0.44,1)
+border_width_left=2
+border_width_top=2
+border_width_right=2
+border_width_bottom=2
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
+content_margin_left=18.0
+content_margin_right=18.0
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color=Color(0,0,0,0)
+border_color=Color(0.97,0.81,0.52,1)
+border_width_left=3
+border_width_top=3
+border_width_right=3
+border_width_bottom=3
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
+
 [resource]
 default_font=SubResource("Font")
 default_font_size=24
+Button/styles/normal=SubResource("ButtonNormal")
+Button/styles/hover=SubResource("ButtonHover")
+Button/styles/pressed=SubResource("ButtonHover")
+Button/styles/focus=SubResource("Focus")
+Button/colors/font_color=Color(0.93,0.91,0.86,1)

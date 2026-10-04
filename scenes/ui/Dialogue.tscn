@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3]
 [ext_resource type="Script" path="res://scripts/DialogueController.cs" id="Script"]
-[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
+[ext_resource type="StyleBox" path="res://assets/ui/vs01-v2/dialogue.tres" id="PanelStyle"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="PortraitTexture"]
 [node name="Dialogue" type="Control"]
 layout_mode=1

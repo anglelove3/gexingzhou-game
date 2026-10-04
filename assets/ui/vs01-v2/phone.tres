@@ -1,0 +1,16 @@
+[gd_resource type="StyleBoxTexture" load_steps=3 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v2/phone-frame.png" id="Art"]
+[sub_resource type="AtlasTexture" id="Frame"]
+atlas=ExtResource("Art")
+region=Rect2(136,26,752,1488)
+filter_clip=true
+[resource]
+texture=SubResource("Frame")
+texture_margin_left=96.0
+texture_margin_right=96.0
+texture_margin_top=180.0
+texture_margin_bottom=150.0
+content_margin_left=48.0
+content_margin_right=48.0
+content_margin_top=134.0
+content_margin_bottom=38.0

@@ -83,3 +83,7 @@ Use case: stylized-concept
 Asset type: final alpha-transparent six-object prop sprite atlas,3columns2rows in6equal SQUARE cells, wide3:2canvas.
 Primary request: six finished game objects with distinct useful silhouettes for an ordinary Chinese hometown narrative game. Matching crisp hand-painted pixel-inspired shading with muted colors and warm highlights, each fully contained and centered in own cell with generous transparent padding, fixed camera perspective consistent within objects. Top row left a single worn silver coin seen nearly face-on with subtle abstract relief but NO denomination or words; top middle single subtly warm brass coin same scale and view with different simple abstract relief, NO words; top right ceramic white-blue bowl full of steaming duck-blood vermicelli soup with noodles, dark red duck-blood cubes and scallion garnish, three-quarter tabletop view. Bottom left small red tied wedding-candy gift pouch; bottom middle old unbranded black smartphone straight-on with blank deep-blue screen, wear around edge; bottom right paired wooden chopsticks resting on a small white ceramic rest. No people, background, floor cast shadows, halo, labels, numbers, text, logos, gridlines or mockup. Real alpha transparency, not painted checkerboard. EXACTLY6objects in regular3x2grid.
 ```
+# V2 场景润色资源（2026-10-04）
+
+新增旧手机和对白图框来自内置 image_gen，未使用私人照片、品牌Logo或外部素材。PNG及九宫格裁切保存于本项目 assets/art/vs01-v2 和 assets/ui/vs01-v2。完整提示、来源及SHA256见 docs/project/2026-10-04_场景润色资源记录.json。工具未披露具体模型版本；不把模型版本或独占版权作为保证。商用发行前仍需审核内容、标识和平台要求，系统字体不再分发。
+

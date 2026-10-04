@@ -3,6 +3,41 @@ using GeXingzhou.Domain;
 
 public partial class SmokeHarness
 {
+    private async Task PolishedUiChecks()
+    {
+        foreach(var file in new[]{"phone-frame","dialogue-frame"})
+        {
+            var path=$"res://assets/art/vs01-v2/{file}.png";
+            Require(ResourceLoader.Exists(path),"FrameArtwork missing "+file);
+            using var image=Image.LoadFromFile(ProjectSettings.GlobalizePath(path));
+            Require(image.GetWidth()>=256&&image.GetHeight()>=128,"FrameArtwork too small");
+            Require(image.GetPixel(0,0).A<.01f,"FrameArtwork exterior is not transparent");
+        }
+        var s=GetNode<GameSession>("/root/GameSession");
+        foreach(var font in new[]{20,24,32})
+        {
+            s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
+            var main=await NewPolishMain();s.AdvanceClock(65);
+            var expected=string.Join("\n",s.Catalog!.Dialogues.Values.OrderByDescending(n=>string.Join("",n.Lines).Length).First().Lines);
+            main.Dialogue.ShowText("葛行舟",expected);await Frames(3);
+            var body=main.Dialogue.GetNode<Label>("Panel/Content/Body/Text");
+            Require(body.Text==expected,"Story truncated to fit artwork");
+            var scroll=main.Dialogue.GetNode<ScrollContainer>("Panel/Content/Body");scroll.ScrollVertical=10000;
+            Require(main.GetGlobalRect().Encloses(main.Dialogue.GetNode<Label>("Panel/Content/ContinueHint").GetGlobalRect()),"Continue hint clipped");
+            Require(main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel") is StyleBoxTexture,"Dialogue has no raster frame");
+            await Capture("polish-dialogue-"+font);
+            main.Phone.Open("messages");await Frames(3);
+            var answer=main.Phone.GetNode<Button>("Frame/Content/AnswerButton");var close=main.Phone.GetNode<Button>("Frame/Content/CloseButton");
+            Require(answer.IsVisibleInTree()&&answer.FocusMode==Control.FocusModeEnum.All,"Answer unreachable");
+            Require(close.IsVisibleInTree()&&main.GetGlobalRect().Encloses(close.GetGlobalRect()),"Close clipped");
+            Require(main.Phone.GetNode<PanelContainer>("Frame").GetThemeStylebox("panel") is StyleBoxTexture,"Phone has no raster frame");
+            await Capture("polish-phone-"+font);
+            main.Phone.Close();await Frames(2);
+            Require(main.Dialogue.IsOpen&&main.Dialogue.Visible,"PhoneOverDialogueRestoration lost dialogue");
+            main.Dialogue.HandleKey(Key.Escape);main.Free();await Frames(2);
+        }
+        GD.Print("POLISHED_UI_PASS FrameArtwork FontAndFocus PhoneOverDialogueRestoration");
+    }
     private async Task ResponsiveUiChecks()
     {
         var window=GetWindow();var oldSize=window.Size;var oldMode=window.ContentScaleMode;
@@ -40,7 +75,7 @@ public partial class SmokeHarness
         var saved=new (string File,string[] Paths)[]{
             ("Boot",new[]{"Background","Menu/Title","Menu/StartButton","Menu/AutoResumeButton","Menu/ManualResumeButton","Menu/RecoveryButton","Menu/SettingsButton","Menu/QuitButton","StartupError","Choices","Settings"}),
             ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
-            ("ui/Phone",new[]{"Frame/Content/Contact","Frame/Content/Messages","Frame/Content/Task","Frame/Content/AnswerButton","Frame/Content/CloseButton"}),
+            ("ui/Phone",new[]{"Frame/Content/Contact","Frame/Content/MessageScroll/Messages","Frame/Content/Task","Frame/Content/AnswerButton","Frame/Content/CloseButton"}),
             ("ui/Dialogue",new[]{"Panel/Content/NameLabel","Panel/Content/Body","Panel/Content/ContinueHint","Portrait"}),
             ("ui/Choices",new[]{"Panel/Content/Title","Panel/Content/Options","Panel/Content/ReturnHint"}),
             ("ui/Settings",new[]{"Panel/Scroll/Content/FontSize","Panel/Scroll/Content/TextSpeed","Panel/Scroll/Content/Assistance","Panel/Scroll/Content/ReducedMotion","Panel/Scroll/Content/RecordEvents","Panel/Scroll/Content/ClearButton","Panel/Scroll/Content/ExportButton","Panel/Scroll/Content/CloseButton"}),

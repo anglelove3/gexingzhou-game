@@ -12,7 +12,7 @@ public partial class PhoneController : Control
         try
         {
             contact=SceneBindings.Require<Label>(this,"Frame/Content/Contact");
-            messages=SceneBindings.Require<Label>(this,"Frame/Content/Messages");
+            messages=SceneBindings.Require<Label>(this,"Frame/Content/MessageScroll/Messages");
             task=SceneBindings.Require<Label>(this,"Frame/Content/Task");
             answer=SceneBindings.Require<Button>(this,"Frame/Content/AnswerButton");
             close=SceneBindings.Require<Button>(this,"Frame/Content/CloseButton");

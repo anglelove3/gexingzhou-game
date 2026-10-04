@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 [ext_resource type="Script" path="res://scripts/PhoneController.cs" id="Script"]
-[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
+[ext_resource type="StyleBox" path="res://assets/ui/vs01-v2/phone.tres" id="PanelStyle"]
 [node name="Phone" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -20,11 +20,15 @@ grow_horizontal=2
 grow_vertical=2
 color=Color(0,0,0,0.58)
 [node name="Frame" type="PanelContainer" parent="."]
-layout_mode=0
-offset_left=230.0
-offset_top=50.0
-offset_right=1050.0
-offset_bottom=670.0
+layout_mode=1
+anchor_left=0.5
+anchor_right=0.5
+anchor_top=0.05
+anchor_bottom=0.95
+offset_left=-300.0
+offset_right=300.0
+grow_horizontal=2
+grow_vertical=2
 theme_override_styles/panel=ExtResource("PanelStyle")
 [node name="Content" type="VBoxContainer" parent="Frame"]
 layout_mode=2
@@ -34,16 +38,22 @@ layout_mode=2
 text="旧手机 · 消息与任务"
 autowrap_mode=3
 custom_minimum_size=Vector2(0,50)
-[node name="Messages" type="Label" parent="Frame/Content"]
+[node name="MessageScroll" type="ScrollContainer" parent="Frame/Content"]
+layout_mode=2
+size_flags_vertical=3
+custom_minimum_size=Vector2(0,96)
+horizontal_scroll_mode=0
+follow_focus=true
+[node name="Messages" type="Label" parent="Frame/Content/MessageScroll"]
 layout_mode=2
 text="张大炮：葛大爷，别装死，我要结婚了！等会儿来找你。"
 autowrap_mode=3
-custom_minimum_size=Vector2(0,140)
+size_flags_horizontal=3
 [node name="Task" type="Label" parent="Frame/Content"]
 layout_mode=2
 text="当前任务：回到故乡，先走走看看。"
 autowrap_mode=3
-custom_minimum_size=Vector2(0,100)
+custom_minimum_size=Vector2(0,80)
 [node name="AnswerButton" type="Button" parent="Frame/Content"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)

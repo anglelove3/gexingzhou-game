@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-04",
+  "tool": "built-in image_gen",
+  "model": "tool-managed; version not exposed",
+  "references": [
+    "assets/art/vs01-v1/community-v1.png"
+  ],
+  "private_photos_used": false,
+  "assets": [
+    {
+      "id": "phone-frame",
+      "file": "assets/art/vs01-v2/phone-frame.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "sha256": "50EEC1F9C9133BF92000B9008683BABBD9E30BAE58DD5763CE2A3A2D185C3150",
+      "usage": "old_phone_nine_slice",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    },
+    {
+      "id": "dialogue-frame",
+      "file": "assets/art/vs01-v2/dialogue-frame.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "E704D8C896E41C319890044775645E269B3A70604ECD1AD80B730795BF3566A8",
+      "usage": "dialogue_nine_slice",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-04",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    }
+  ],
+  "prompts": {
+    "phone-frame": "Use case: stylized-concept. Asset type: production game UI texture, one old smartphone frame for a Chinese narrative adventure. Image 1 is STYLE REFERENCE ONLY, do not include the street scene. Front-on flat orthographic phone, dark worn blue-gray metal and rubber case, discreet amber reflected edges, small speaker slit and tiny camera dot at top, no logos. Landscape game use but phone itself vertical, portrait 2:3 shape centered and filling canvas with a small genuinely transparent margin. Entire inner screen is solid near-black blue-gray (#111d27), blank calm area for separate live text/buttons. Exterior outside rounded phone silhouette fully transparent. Fine hand-painted pixel-inspired texture matching reference, subtle scuffs at edges only, restrained everyday realism, no sci-fi, no text/letters/numbers/interface/icons, no hands, no perspective, no background or shadows outside silhouette. Uniform straight border edges suitable for nine-slice resizing; keep decorative top/bottom details close to corners, interior unadorned. Deliver a single isolated full phone texture, not a mockup.",
+    "dialogue-frame": "Use case: stylized-concept. Asset type: single production 2D narrative game dialogue panel texture for nine-slice stretching. Image 1 is palette/texture style reference only. Very wide landscape rectangular panel, 3:1 silhouette, filling canvas with only tiny transparent outer margin. Front-on flat dark desaturated blue-gray painted surface, gently rounded corners, delicate aged amber metal thin outline, muted warm edge highlights and subtle understated grain, quiet ordinary Jiangsu town feeling, literary melancholy, not fantasy or sci-fi. Entire inside almost uniform opaque very dark blue gray for readable live Chinese text, no interior divisions, no imagery, no text, no icons, no logos, no watermark. Exterior outside rounded panel genuinely transparent, no exterior glow or shadow. Nine-slice-ready straight edges; all decoration restrained along small borders; one panel only, not a UI screenshot or multiple components. Match reference art with modest worn texture."
+  },
+  "alpha_checks": {
+    "phone_corner": 0,
+    "phone_edge": 0
+  },
+  "note": "原始PNG不改写，裁切仅用Godot AtlasTexture；项目引用只指向E目录副本。商用前仍需审核素材与整体内容。"
+}
