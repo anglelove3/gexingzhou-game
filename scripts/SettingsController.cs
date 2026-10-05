@@ -7,6 +7,7 @@ public partial class SettingsController : Control
     private SpinBox font=null!;private OptionButton speed=null!;
     private CheckButton assistance=null!,motion=null!,records=null!;
     private Label message=null!;
+    private HSlider[] volumes=Array.Empty<HSlider>();
     private const string Prefix="Panel/Scroll/Content/";
     public override void _Ready()
     {
@@ -16,6 +17,8 @@ public partial class SettingsController : Control
             assistance=SceneBindings.Require<CheckButton>(this,Prefix+"Assistance");motion=SceneBindings.Require<CheckButton>(this,Prefix+"ReducedMotion");
             records=SceneBindings.Require<CheckButton>(this,Prefix+"RecordEvents");message=SceneBindings.Require<Label>(this,Prefix+"Message");
             var s=GetNode<GameSession>("/root/GameSession");
+            volumes=new[]{"MasterVolume","MusicVolume","EffectsVolume","EnvironmentVolume"}.Select(id=>SceneBindings.Require<HSlider>(this,Prefix+id)).ToArray();
+            for(int i=0;i<4;i++){var index=i;volumes[i].ValueChanged+=v=>{if(IsOpen)s.SetOptions(index switch{0=>s.Options with {MasterVolume=v},1=>s.Options with {MusicVolume=v},2=>s.Options with {EffectsVolume=v},_=>s.Options with {EnvironmentVolume=v}},false);};}
             font.ValueChanged+=v=>{if(IsOpen)s.SetOptions(s.Options with {SubtitleSize=(int)v},false);};
             speed.ItemSelected+=i=>{if(IsOpen)s.SetOptions(s.Options with {TextSpeed=speed.GetItemId((int)i)},false);};
             assistance.Toggled+=v=>{if(IsOpen)s.SetOptions(s.Options with {Assistance=v},false);};
@@ -36,6 +39,8 @@ public partial class SettingsController : Control
         font.Value=s.Options.SubtitleSize;
         speed.Select(s.Options.TextSpeed==0?0:s.Options.TextSpeed<=15?1:s.Options.TextSpeed<=30?2:s.Options.TextSpeed<=45?3:4);
         assistance.SetPressedNoSignal(s.Options.Assistance);motion.SetPressedNoSignal(s.Options.ReducedMotion);records.SetPressedNoSignal(s.Options.RecordEventsEnabled);
+        var gains=new[]{s.Options.MasterVolume,s.Options.MusicVolume,s.Options.EffectsVolume,s.Options.EnvironmentVolume};
+        for(int i=0;i<4;i++)volumes[i].SetValueNoSignal(gains[i]);
         IsOpen=true;Visible=true;GetNode<ScrollContainer>("Panel/Scroll").ScrollVertical=0;font.GetLineEdit().GrabFocus();
     }
     public void Close()

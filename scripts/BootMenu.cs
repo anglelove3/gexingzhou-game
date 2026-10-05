@@ -2,10 +2,12 @@ using Godot;
 using GeXingzhou.Domain;
 public partial class BootMenu : Control
 {
+    public AudioDirector Audio {get;private set;}=null!;
     public override void _Ready()
     {
         try
         {
+            Audio=SceneBindings.Require<AudioDirector>(this,"Audio");
             var start=SceneBindings.Require<Button>(this,"Menu/StartButton");
             var resume=SceneBindings.Require<Button>(this,"Menu/AutoResumeButton");
             var manualResume=SceneBindings.Require<Button>(this,"Menu/ManualResumeButton");

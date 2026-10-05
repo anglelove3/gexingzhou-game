@@ -69,6 +69,42 @@ text="减少动效（转场0.15秒）"
 [node name="RecordEvents" type="CheckButton" parent="Panel/Scroll/Content"]
 layout_mode=2
 text="本地匿名行为记录（默认关闭，不上传）"
+[node name="MasterVolumeLabel" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="总音量"
+[node name="MasterVolume" type="HSlider" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,32)
+max_value=1.0
+step=0.01
+value=0.8
+[node name="MusicVolumeLabel" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="音乐"
+[node name="MusicVolume" type="HSlider" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,32)
+max_value=1.0
+step=0.01
+value=0.4
+[node name="EffectsVolumeLabel" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="音效"
+[node name="EffectsVolume" type="HSlider" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,32)
+max_value=1.0
+step=0.01
+value=0.7
+[node name="EnvironmentVolumeLabel" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+text="环境"
+[node name="EnvironmentVolume" type="HSlider" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,32)
+max_value=1.0
+step=0.01
+value=0.35
 [node name="Message" type="Label" parent="Panel/Scroll/Content"]
 layout_mode=2
 text=""

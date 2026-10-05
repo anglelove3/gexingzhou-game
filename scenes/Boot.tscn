@@ -1,4 +1,5 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
+[ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Audio"]
 [ext_resource type="Script" path="res://scripts/BootMenu.cs" id="Script"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v1/community-v1.png" id="Image"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Settings.tscn" id="Settings"]
@@ -13,6 +14,7 @@ grow_vertical=2
 mouse_filter=2
 z_index=0
 script=ExtResource("Script")
+[node name="Audio" parent="." instance=ExtResource("Audio")]
 [node name="Background" type="TextureRect" parent="."]
 layout_mode=1
 anchors_preset=15

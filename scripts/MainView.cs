@@ -12,6 +12,7 @@ public partial class MainView : Control
     public RestController Rest {get;private set;}=null!;
     public GuidanceController Guidance {get;private set;}=null!;
     public SoupSeatController SoupSeat {get;private set;}=null!;
+    public AudioDirector Audio {get;private set;}=null!;
     public Position2 SafeSavePosition=>SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
@@ -20,6 +21,7 @@ public partial class MainView : Control
     {
         try
         {
+            Audio=SceneBindings.Require<AudioDirector>(this,"Audio");
             viewport=SceneBindings.Require<SubViewport>(this,"WorldDisplay/WorldViewport");
             display=SceneBindings.Require<WorldDisplayController>(this,"WorldDisplay");
             Dialogue=SceneBindings.Require<DialogueController>(this,"Dialogue");

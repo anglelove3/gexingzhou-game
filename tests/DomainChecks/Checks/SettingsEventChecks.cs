@@ -7,10 +7,34 @@ public static class SettingsEventChecks
     private static BehaviorEvent Event(string id="slice.complete",string opportunity="slice-1",string code="completed")=>new(){EventId=id,OpportunityId=opportunity,ChoiceCode=code,PlaythroughId="test-run"};
     public static void Register(List<(string,string,Action)> tests)
     {
+        tests.Add(("Settings","AudioDefaultsLegacy",()=>{
+            var settings=JsonSerializer.Deserialize<GameSettings>("{}")!;
+            foreach(var pair in new[]{("MasterVolume",.8),("MusicVolume",.4),("EffectsVolume",.7),("EnvironmentVolume",.35)})
+            {
+                var property=typeof(GameSettings).GetProperty(pair.Item1);
+                Check.True(property!=null);Check.Equal(pair.Item2,(double)property!.GetValue(settings)!);
+            }
+        }));
+        tests.Add(("Settings","AudioNormalize",()=>{
+            var baseline=new GameSettings();
+            foreach(var pair in new[]{("MasterVolume",.8),("MusicVolume",.4),("EffectsVolume",.7),("EnvironmentVolume",.35)})
+            {
+                var property=typeof(GameSettings).GetProperty(pair.Item1);Check.True(property!=null);
+                foreach(var value in new[]{-1d,2d,double.NaN,double.PositiveInfinity,double.NegativeInfinity})
+                {
+                    var settings=baseline with {};property!.SetValue(settings,value);
+                    Check.Equal(double.IsFinite(value)?Math.Clamp(value,0,1):pair.Item2,(double)property.GetValue(settings.Normalize())!);
+                }
+            }
+        }));
         tests.Add(("Settings","ReadableBoundsAndZeroSpeed",()=>{
             Check.Equal(20,new GameSettings{SubtitleSize=1}.Normalize().SubtitleSize);Check.Equal(32,new GameSettings{SubtitleSize=99}.Normalize().SubtitleSize);
             Check.Equal(0,new GameSettings{TextSpeed=0}.Normalize().TextSpeed);Check.Equal(15,new GameSettings{TextSpeed=1}.Normalize().TextSpeed);Check.Equal(60,new GameSettings{TextSpeed=99}.Normalize().TextSpeed);
             Check.Equal(.15,new GameSettings{ReducedMotion=true}.FadeDuration);
+        }));
+        tests.Add(("Settings","AudioRepositoryRoundTrip",()=>{
+            var settings=new GameSettings{MasterVolume=.2,MusicVolume=.3,EffectsVolume=.4,EnvironmentVolume=.5};
+            var repo=new SettingsRepository(Temp());Check.True(repo.Save(settings).Success);Check.Equal(settings,repo.Load());
         }));
         tests.Add(("Events","DisabledCreatesNothing",()=>{
             var dir=Temp();var r=new LocalEventRecorder(dir);r.TryAppend(Event());Check.True(!Directory.Exists(dir));
