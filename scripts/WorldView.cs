@@ -40,6 +40,13 @@ public partial class WorldView : Node2D
         var tween=CreateTween();tween.TweenProperty(candy,"position",new Vector2(-2,-35),GetNode<GameSession>("/root/GameSession").Options.ReducedMotion?.2:.65);
         tween.TweenInterval(.35);tween.TweenProperty(candy,"modulate:a",0f,.2);tween.TweenCallback(Callable.From(()=>candy.Visible=false));
     }
+    public void ShowPayment()
+    {
+        if(GetNodeOrNull<Sprite2D>("PaymentCoin") is not {} coin)return;
+        coin.Visible=true;coin.Position=new(390,224);coin.Modulate=Colors.White;
+        var tween=CreateTween();tween.TweenProperty(coin,"position",new Vector2(418,216),GetNode<GameSession>("/root/GameSession").Options.FadeDuration);
+        tween.TweenInterval(.6);tween.TweenProperty(coin,"modulate:a",0f,.2);tween.TweenCallback(Callable.From(()=>coin.Visible=false));
+    }
     public Interactable AddTarget(string id,float x,string caption,string body,string action)
     {
         var target=GD.Load<PackedScene>("res://scenes/world/Interactable.tscn").Instantiate<Interactable>();

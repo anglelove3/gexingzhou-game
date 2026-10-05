@@ -8,12 +8,14 @@ public partial class PlayerController : CharacterBody2D
     [Export] public SpriteFrames SoupFrames {get;set;}=null!;
     [Export] public SpriteFrames ReducedSoupFrames {get;set;}=null!;
     private bool soupActive;
+    private MainView? owner;private float stepDistance;
     [Export] public float RestStandingPixels {get;set;}=307;
     private SpriteFrames walkingFrames=null!;private bool restActive;private Vector2 seatOffset;
     public override void _Ready()
     {
         try
         {
+            for(Node? parent=GetParent();parent!=null;parent=parent.GetParent())if(parent is MainView main){owner=main;break;}
             SceneBindings.Require<CollisionShape2D>(this,"CollisionShape2D");
             SceneBindings.Require<Camera2D>(this,"Camera2D");
             artwork=SceneBindings.Require<AnimatedSprite2D>(this,"Artwork");
@@ -95,7 +97,12 @@ public partial class PlayerController : CharacterBody2D
         float axis=(Input.IsPhysicalKeyPressed(Key.D)||Input.IsPhysicalKeyPressed(Key.Right)?1:0)-(Input.IsPhysicalKeyPressed(Key.A)||Input.IsPhysicalKeyPressed(Key.Left)?1:0);
         var p=session.Catalog!.Parameters;
         float vx=MovementModel.Step(Velocity.X,axis,Input.IsPhysicalKeyPressed(Key.Shift),locked||restActive||(session.Flow!=FlowState.Field), (float)delta,(float)p["move.walk_speed"],(float)p["move.run_speed"],(float)p["move.acceleration"],(float)p["move.deceleration"]);
-        Velocity=new Vector2(vx,0);MoveAndSlide();
+        var before=Position;Velocity=new Vector2(vx,0);MoveAndSlide();
+        if(!locked&&!restActive&&session.Flow==FlowState.Field)
+        {
+            stepDistance+=Math.Abs(Position.X-before.X);
+            while(stepDistance>=32){stepDistance-=32;owner?.Audio?.PlayCue(AudioCue.Footstep);}
+        }
         if(restActive)
         {
             MainView? main=null;for(Node? pnode=GetParent();pnode!=null;pnode=pnode.GetParent())if(pnode is MainView m){main=m;break;}

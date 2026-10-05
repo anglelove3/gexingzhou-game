@@ -1,7 +1,27 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=12 format=3]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/guitar-theme.wav" id="MusicStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/ambience-outdoor.wav" id="OutdoorStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/ambience-indoor.wav" id="IndoorStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/footstep.wav" id="FootstepStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/phone-message.wav" id="PhoneMessageStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/phone-ring.wav" id="PhoneRingStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/bowl.wav" id="BowlStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/chopsticks.wav" id="ChopsticksStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/coin.wav" id="CoinStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs01/candy.wav" id="CandyStream"]
 [ext_resource type="Script" path="res://scripts/AudioDirector.cs" id="Script"]
 [node name="Audio" type="Node"]
 script=ExtResource("Script")
+MusicStream=ExtResource("MusicStream")
+OutdoorStream=ExtResource("OutdoorStream")
+IndoorStream=ExtResource("IndoorStream")
+FootstepStream=ExtResource("FootstepStream")
+PhoneMessageStream=ExtResource("PhoneMessageStream")
+PhoneRingStream=ExtResource("PhoneRingStream")
+BowlStream=ExtResource("BowlStream")
+ChopsticksStream=ExtResource("ChopsticksStream")
+CoinStream=ExtResource("CoinStream")
+CandyStream=ExtResource("CandyStream")
 [node name="Music" type="AudioStreamPlayer" parent="."]
 [node name="Ambience" type="AudioStreamPlayer" parent="."]
 [node name="Effects" type="Node" parent="."]

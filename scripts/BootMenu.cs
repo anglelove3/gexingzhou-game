@@ -18,7 +18,7 @@ public partial class BootMenu : Control
             var preferences=SceneBindings.Require<SettingsController>(this,"Settings");
             var choices=SceneBindings.Require<ChoiceController>(this,"Choices");
             var s=GetNode<GameSession>("/root/GameSession");var loaded=s.Saves.Load();var manual=s.ManualSaves.Load();
-            Theme=s.CreateUiTheme();
+            Theme=s.CreateUiTheme();Audio.SetScene("boot");
             void BeginNew()
             {
                 var a=s.Saves.PreserveForNewGame();var m=s.ManualSaves.PreserveForNewGame();

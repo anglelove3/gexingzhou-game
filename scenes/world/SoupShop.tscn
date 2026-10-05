@@ -1,4 +1,5 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
+[ext_resource type="Texture2D" path="res://assets/atlases/coin-1.tres" id="Payment"]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v1/soup-v1.png" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
@@ -201,6 +202,12 @@ position=Vector2(378,210.5)
 scale=Vector2(0.4972,0.4972)
 texture=SubResource("TableFront")
 centered=false
+[node name="PaymentCoin" type="Sprite2D" parent="."]
+visible=false
+z_index=4
+position=Vector2(390,224)
+scale=Vector2(0.055,0.055)
+texture=ExtResource("Payment")
 [node name="ActionProps" type="Node2D" parent="."]
 z_index=3
 [node name="BowlSteam" type="Line2D" parent="ActionProps"]

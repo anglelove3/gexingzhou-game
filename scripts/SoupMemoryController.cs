@@ -95,6 +95,7 @@ public partial class SoupMemoryController : Control
         if(index<0||index>=4||Session.Flow!=FlowState.Memory||Session.Snapshot.MemoryState is not {} state)return false;
         var id="c"+(index+1);
         if(!Session.TryDispatch(new("memory.coin.push",id,state.InstanceId+":"+id)).Applied)return false;
+        Main?.Audio.PlayCue(AudioCue.Coin);
         shown=Session.Snapshot.MemoryState!;SetStatus(shown);coins[index].Disabled=true;
         if(moves.Remove(index,out var old))old.Kill();
         var tween=CreateTween();moves[index]=tween;
@@ -104,7 +105,7 @@ public partial class SoupMemoryController : Control
         {
             foodReady=false;foreach(var item in foods)item.Disabled=true;
             bowlMove=CreateTween();bowlMove.TweenProperty(bowl,"position",SceneBindings.Require<Marker2D>(table,"BowlNear").Position,Session.Options.ReducedMotion?.15:.65);
-            bowlMove.Finished+=()=>{bowlMove=null;if(!IsInsideTree())return;foodReady=true;foreach(var item in foods)item.Disabled=false;selected=0;foods[0].GrabFocus();};
+            bowlMove.Finished+=()=>{bowlMove=null;if(!IsInsideTree())return;Main?.Audio.PlayCue(AudioCue.Bowl);foodReady=true;foreach(var item in foods)item.Disabled=false;selected=0;foods[0].GrabFocus();};
         }
         else FocusCoin(index);
         return true;

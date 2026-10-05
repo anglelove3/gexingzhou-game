@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "seed": 20261005,
+  "generated_on": "2026-10-05",
+  "provenance": "licenses/AUDIO_VS01.md",
+  "files": [
+    {
+      "file": "guitar-theme.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 16,
+      "sha256": "76ac0055fa1b3985961d66d66d058271df7cc437c4b23c2d29ac67f4f96c5648",
+      "source": "Original algorithmic Karplus-Strong plucked-string motif; not a guitar recording"
+    },
+    {
+      "file": "footstep.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 0.2,
+      "sha256": "4afdf6a4db077282dd27f7fcca8115c1e9439020c77f9e96f983518c0628d16e",
+      "source": "Original filtered-noise envelope; no field recording"
+    },
+    {
+      "file": "phone-message.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 0.55,
+      "sha256": "29ac3ddd024749eb97242da80f08998cd7871d7d982b44e6545395c8751ef188",
+      "source": "Original two-note soft pluck"
+    },
+    {
+      "file": "phone-ring.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 1.5,
+      "sha256": "c0cad47044058c4f79be754ba1348942017563e71673e93f8781ed8bc10b0bb7",
+      "source": "Original short plucked ringtone; no commercial melody"
+    },
+    {
+      "file": "bowl.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 0.65,
+      "sha256": "bb3056eca6ab19c9bcaf33a83be25dedabbfdc17966f419def151baaa2605ecb",
+      "source": "Original synthetic ceramic resonance"
+    },
+    {
+      "file": "chopsticks.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 0.23,
+      "sha256": "79532463c25b52f2ab7185cb3a583d7748aa4d7ab1d454b36bc54803593fcff5",
+      "source": "Original synthetic wood tap"
+    },
+    {
+      "file": "coin.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 0.38,
+      "sha256": "0c55c5f7d308fc3c1d13edf7ee99251da75dd2377eddcd40033885c43ad55792",
+      "source": "Original synthetic metallic resonance"
+    },
+    {
+      "file": "candy.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 0.55,
+      "sha256": "ce24b018ad216a3d4bd72e59227389456be158c1424a50c3a03ac8a6c77c586a",
+      "source": "Original shaped-noise wrapper rustle"
+    },
+    {
+      "file": "ambience-outdoor.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 8,
+      "sha256": "31616a96923bba081a17b0ac4e913759d2a4709e65877e79ddd86322ed87866b",
+      "source": "Original soft filtered-noise bed; not birds, voices or a field recording"
+    },
+    {
+      "file": "ambience-indoor.wav",
+      "script": "tools/audio/generate-vs01-audio.mjs",
+      "seed": 20261005,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 8,
+      "sha256": "1cab55a9536a755bc830a73ae772d8ea30da4695cfbd3c6c7cc4a72dbea17d03",
+      "source": "Original filtered-noise and low resonant bed; not a field recording"
+    }
+  ]
+}

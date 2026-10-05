@@ -16,7 +16,7 @@ public partial class MainView : Control
     public Position2 SafeSavePosition=>SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
-    private WorldDisplayController display=null!;
+    private WorldDisplayController display=null!;private bool heardVoice,heardRing;
     public override void _Ready()
     {
         try
@@ -52,12 +52,17 @@ public partial class MainView : Control
             }
             Theme=s.CreateUiTheme();lastFont=s.Options.SubtitleSize;
             display.Configure(World);
+            heardVoice=s.Snapshot.InvitationState.VoiceReceived;heardRing=s.Snapshot.InvitationState.PhoneRinging;Audio.SetScene(s.Snapshot.SceneId);
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
     public override void _Process(double delta)
     {
         var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);
+        var invitation=s.Snapshot.InvitationState;
+        if(invitation.VoiceReceived&&!heardVoice)Audio.PlayCue(AudioCue.PhoneMessage);
+        if(invitation.PhoneRinging&&!heardRing)Audio.PlayCue(AudioCue.PhoneRing);
+        heardVoice=invitation.VoiceReceived;heardRing=invitation.PhoneRinging;
         prompt.Text=(Rest.IsActive?(GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身"):World.Interactions.Prompt)+" · Tab 手机";
         if(SoupSeat.IsActive)prompt.Text=(SoupSeat.IsActing?"稍等一会儿":"E 桌边选项 · Esc 起身")+" · Tab 手机";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
@@ -80,7 +85,7 @@ public partial class MainView : Control
         if(target.ActionId=="invitation.meeting_complete")ShowDialogue("invitation.meeting",()=>s.TryDispatch(new(target.ActionId,"meeting","invitation-1")));
         else if(target.ActionId=="candy.hey.delivered")
         {
-            if(s.Snapshot.Stage==SliceStage.CandyHeyPending)ShowDialogue("hey.delivery",()=>{if(s.TryDispatch(new(target.ActionId,"delivered","hey-1")).Applied)World.ShowCandyHandover();OfferHey();});
+            if(s.Snapshot.Stage==SliceStage.CandyHeyPending)ShowDialogue("hey.delivery",()=>{if(s.TryDispatch(new(target.ActionId,"delivered","hey-1")).Applied){World.ShowCandyHandover();Audio.PlayCue(AudioCue.Candy);}OfferHey();});
             else if(s.Snapshot.Stage>=SliceStage.CandyHeyDelivered)OfferHey();else ShowNotice("Hey哥","先去小区门口找张大炮吧。");
         }
         else if(target.ActionId=="soup.meet")
@@ -132,7 +137,7 @@ public partial class MainView : Control
     public bool EnterMemoryView()
     {
         var packed=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn");if(packed==null)return false;
-        Memory=packed.Instantiate<SoupMemoryController>();Memory.Main=this;AddChild(Memory);World.Visible=false;return true;
+        Memory=packed.Instantiate<SoupMemoryController>();Memory.Main=this;AddChild(Memory);World.Visible=false;Audio.SetScene("memory_soup_table");return true;
     }
     public async Task ReturnMemory(bool complete)
     {
@@ -162,10 +167,9 @@ public partial class MainView : Control
         if(s.TryDispatch(new("soup.payment","zhang_pays","soup-payment-1")).Applied)
         {
             PaymentFeedbackCount++;
-            var feedback=new Label{Text="张大炮把钱压在碗边：这顿我来。",Position=new(560,220),MouseFilter=MouseFilterEnum.Ignore};AddChild(feedback);
-            var coin=new ColorRect{Color=Colors.Gold,Position=new(580,300),Size=new(18,18),MouseFilter=MouseFilterEnum.Ignore};AddChild(coin);
-            var tween=CreateTween();tween.TweenProperty(coin,"position",new Vector2(800,300),s.Options.FadeDuration);
-            tween.TweenInterval(.6);tween.TweenCallback(Callable.From(()=>{coin.QueueFree();feedback.QueueFree();}));
+            World.ShowPayment();Audio.PlayCue(AudioCue.Coin);
+            var feedback=GetNode<Label>("HUD/PaymentCaption");feedback.Visible=true;
+            var tween=CreateTween();tween.TweenInterval(s.Options.FadeDuration+.8);tween.TweenCallback(Callable.From(()=>feedback.Visible=false));
         }
         ShowDialogue("soup.tomorrow",()=>s.TryDispatch(new("slice.complete","completed","slice-1")));
     }
@@ -173,10 +177,10 @@ public partial class MainView : Control
     {
         var path=ScenePath(sceneId);if(path==null)return false;
         var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return false;
-        Rest?.Cancel();SoupSeat?.Cancel();
+        Rest?.Cancel();SoupSeat?.Cancel();Audio.StopTransient();
         var next=packed.Instantiate<WorldView>();World.Free();World=next;viewport.AddChild(World);
         if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return false;}
-        World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);return true;
+        World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);Audio.SetScene(sceneId);return true;
     }
     private static string? ScenePath(string id)=>id switch{"convenience_street"=>"ConvenienceStreet","community_gate"=>"CommunityGate","soup_shop"=>"SoupShop",_=>null};
     public override void _Input(InputEvent ev)
@@ -185,7 +189,7 @@ public partial class MainView : Control
         if(GetNode<GameSession>("/root/GameSession").Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
         if(Settings.IsOpen){if(key.PhysicalKeycode==Key.Escape)Settings.Close();else return;}
         else if(key.PhysicalKeycode==Key.F5){var s=GetNode<GameSession>("/root/GameSession");s.UpdatePosition(SafeSavePosition);s.SaveManual();}
-        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
+        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
         else if(Phone.IsOpen){if(key.PhysicalKeycode==Key.Tab||key.PhysicalKeycode==Key.Escape)Phone.Close();else return;}
         else if(key.PhysicalKeycode==Key.Tab&&!Choices.IsOpen)Phone.Open("messages");
         else if(Choices.IsOpen){if(key.PhysicalKeycode is Key.Escape or Key.E)Choices.HandleKey(key.PhysicalKeycode);else return;}

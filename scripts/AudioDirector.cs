@@ -47,7 +47,7 @@ public partial class AudioDirector : Node
         if(player.Stream==stream&&player.Playing)return;
         player.Stop();player.Stream=stream;
         if(stream==null){Missing(name);return;}
-        if(stream is AudioStreamWav wav)wav.LoopMode=AudioStreamWav.LoopModeEnum.Forward;
+        if(stream is AudioStreamWav wav){wav.LoopBegin=0;wav.LoopEnd=(int)Math.Round(wav.GetLength()*wav.MixRate);wav.LoopMode=AudioStreamWav.LoopModeEnum.Forward;}
         player.Play();
     }
     public void SetScene(string sceneId)

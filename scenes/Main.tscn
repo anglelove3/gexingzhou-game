@@ -46,6 +46,17 @@ anchor_bottom=1.0
 grow_horizontal=2
 grow_vertical=2
 mouse_filter=2
+[node name="PaymentCaption" type="Label" parent="HUD"]
+visible=false
+offset_left=600.0
+offset_top=225.0
+offset_right=1200.0
+offset_bottom=280.0
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,0.95)
+theme_override_constants/outline_size=6
+text="张大炮把钱压在碗边：这顿我来。"
+autowrap_mode=3
+mouse_filter=2
 [node name="TaskCard" type="PanelContainer" parent="HUD"]
 offset_left=24.0
 offset_top=20.0

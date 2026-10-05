@@ -7,31 +7,31 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
-            if(suite=="ExperienceAudio"){await ExperienceAudioChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceAudio");GetTree().Quit();return;}
-            if(suite=="ExperienceCoins"){await ExperienceCoinsChecks();GD.Print("GODOT_CHECKS_PASS ExperienceCoins");GetTree().Quit();return;}
-            if(suite=="ExperienceDialogue"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS ExperienceDialogue");GetTree().Quit();return;}
-            if(suite=="ExperienceGuidance"){await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceGuidance");GetTree().Quit();return;}
-            if(suite=="ExperienceSoupSeat"){await ExperienceSoupSeatChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceSoupSeat");GetTree().Quit();return;}
+            if(suite=="ExperienceAudio"){await ExperienceAudioChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceAudio");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="ExperienceCoins"){await ExperienceCoinsChecks();GD.Print("GODOT_CHECKS_PASS ExperienceCoins");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="ExperienceDialogue"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS ExperienceDialogue");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="ExperienceGuidance"){await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceGuidance");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="ExperienceSoupSeat"){await ExperienceSoupSeatChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceSoupSeat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="EditableWorld")
             {
-                await EditableWorldChecks();GD.Print("GODOT_CHECKS_PASS EditableWorld");GetTree().Quit();return;
+                await EditableWorldChecks();GD.Print("GODOT_CHECKS_PASS EditableWorld");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="EditableUi")
             {
-                await EditableUiChecks();GD.Print("GODOT_CHECKS_PASS EditableUi");GetTree().Quit();return;
+                await EditableUiChecks();GD.Print("GODOT_CHECKS_PASS EditableUi");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="ResponsiveUi")
             {
-                await ResponsiveUiChecks();GD.Print("GODOT_CHECKS_PASS ResponsiveUi");GetTree().Quit();return;
+                await ResponsiveUiChecks();GD.Print("GODOT_CHECKS_PASS ResponsiveUi");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="PolishedUi")
             {
-                await PolishedUiChecks();GD.Print("GODOT_CHECKS_PASS PolishedUi");GetTree().Quit();return;
+                await PolishedUiChecks();GD.Print("GODOT_CHECKS_PASS PolishedUi");await DrainAudio();GetTree().Quit();return;
             }
-            if(suite=="Rest"){await RestChecks();GD.Print("GODOT_CHECKS_PASS Rest");GetTree().Quit();return;}
+            if(suite=="Rest"){await RestChecks();GD.Print("GODOT_CHECKS_PASS Rest");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Art")
             {
-                await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
+                await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");await DrainAudio();GetTree().Quit();return;
             }
             if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins")
             {
@@ -40,20 +40,20 @@ public partial class SmokeHarness : Node
                 if(requested!=null){var dimensions=requested.Split('x');GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(dimensions[0]),int.Parse(dimensions[1]));await Frames(3);}
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
-                if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");GetTree().Quit();return;}
-                if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");GetTree().Quit();return;}
-                if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");GetTree().Quit();return;}
-                if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");GetTree().Quit();return;}
+                if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {
                     GetNode<GameSession>("/root/GameSession").SetOptions(new(){SubtitleSize=32,TextSpeed=0,ReducedMotion=true},false);
                     await ObservationVisualChecks();for(int food=0;food<3;food++)await MemoryPath(false,food,false);
-                    GD.Print("GODOT_CHECKS_PASS CaptureNarrative");GetTree().Quit();return;
+                    GD.Print("GODOT_CHECKS_PASS CaptureNarrative");await DrainAudio();GetTree().Quit();return;
                 }
                 var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate();AddChild(menu);await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);GD.Print("MENU_FIRST_DRAW_MS "+Godot.Time.GetTicksMsec());await Capture("menu");menu.Free();await Frames(2);
                 await ArtChecks();
                 await MemoryPath(false,2,false);
-                GD.Print("RENDER_FPS "+Engine.GetFramesPerSecond());GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Capture");GetTree().Quit();return;
+                GD.Print("RENDER_FPS "+Engine.GetFramesPerSecond());GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Capture");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="Accessibility")
             {
@@ -73,11 +73,11 @@ public partial class SmokeHarness : Node
                 var settingsMain=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(settingsMain);await Frames(3);KeyPress(Key.Escape);await Frames(2);
                 if(!settingsMain.Settings.IsOpen)throw new Exception("Settings not keyboard accessible");KeyPress(Key.Escape);await Frames(2);
                 if(settingsMain.Settings.IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Settings did not restore field flow");
-                settingsMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Accessibility");GetTree().Quit();return;
+                settingsMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Accessibility");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="Recovery")
             {
-                await RecoveryChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Recovery");GetTree().Quit();return;
+                await RecoveryChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Recovery");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="Narrative")
             {
@@ -85,35 +85,35 @@ public partial class SmokeHarness : Node
                 var returnOnly=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--narrative-return-only="))?.Split('=')[1];
                 if(returnOnly!=null)await MemoryPath(false,int.Parse(returnOnly),false,false,true);
                 else {await ObservationChecks();for(int food=0;food<3;food++)await MemoryPath(false,food,true,true,true);}
-                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Narrative");GetTree().Quit();return;
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Narrative");await DrainAudio();GetTree().Quit();return;
             }
             if(suite is "Resume" or "ResumeSeed")
             {
-                await MemoryPath(false,0,false,true);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
+                await MemoryPath(false,0,false,true);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="ResumeRead")
             {
                 var s=GetNode<GameSession>("/root/GameSession");var loaded=s.Saves.Load();if(loaded.Status!=GeXingzhou.Domain.LoadStatus.Loaded)throw new Exception("Cross-process save missing: "+loaded.Message);
                 s.PendingRestore=loaded.Snapshot;var readMain=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(readMain);await Frames(3);
                 if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Flow!=GeXingzhou.Domain.FlowState.Field||readMain.World.SceneId!="soup_shop")throw new Exception("Cross-process resume did not restore real world");
-                readMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ResumeRead");GetTree().Quit();return;
+                readMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ResumeRead");await DrainAudio();GetTree().Quit();return;
             }
             if(suite is "Memory" or "Slice")
             {
                 if(suite=="Memory")for(int food=0;food<3;food++)await MemoryPath(false,food,true);
                 else foreach(var answer in new[]{false,true})await MemoryPath(answer,0,false);
-                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS "+suite);await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="Soup")
             {
                 foreach(var (code,index) in new[]{("eat",0),("set_chopsticks",1),("check_phone",2)})await SoupPath(code,index);
-                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Soup");GetTree().Quit();return;
+                GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Soup");await DrainAudio();GetTree().Quit();return;
             }
             if(suite is "Invitation" or "Hey")
             {
                 foreach(var answer in new[]{false,true})await StoryPath(answer,suite);
                 GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
-                GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();return;
+                GD.Print("GODOT_CHECKS_PASS "+suite);await DrainAudio();GetTree().Quit();return;
             }
             if(suite!="Movement") {GD.PrintErr("UNKNOWN_SUITE "+suite);GetTree().Quit(2);return;}
             var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate(); AddChild(main);
@@ -142,11 +142,17 @@ public partial class SmokeHarness : Node
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.E,Pressed=false});
             await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);
             if(GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Dialogue)throw new Exception("Observation input did not open notice");
-            GD.Print("GODOT_CHECKS_PASS "+suite);GetTree().Quit();
+            GD.Print("GODOT_CHECKS_PASS "+suite);await DrainAudio();GetTree().Quit();
         }
         catch(Exception ex){GD.PrintErr("GODOT_CHECKS_FAIL "+ex.Message);GetTree().Quit(1);}
     }
     private async Task Frames(int count=1){for(int i=0;i<count;i++)await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);}
+    // Fixed-fps simulation outruns the real audio thread; drain only test-owned root scenes before shutdown.
+    private async Task DrainAudio()
+    {
+        foreach(var child in GetChildren().Where(n=>n is MainView or BootMenu).ToArray())child.Free();
+        await Task.Delay(150);await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
+    }
     // Catches missing runtime art, wrong frame/foot alignment, or cosmetics leaking into movement.
     private async Task ArtChecks()
     {
@@ -274,9 +280,10 @@ public partial class SmokeHarness : Node
         if(s.Flow!=GeXingzhou.Domain.FlowState.Field||s.Snapshot.Stage!=stage)throw new Exception("Missing node locked or changed story");
         GD.Print("SOUP_PATH_PASS "+code);if(!keep){main.Free();await Frames();}return main;
     }
-    private async Task MemoryPath(bool answer,int food,bool exercise,bool resume=false,bool narrative=false)
+    private async Task MemoryPath(bool answer,int food,bool exercise,bool resume=false,bool narrative=false,bool missingCoinAudio=false)
     {
         var main=await SoupPath("eat",0,true,answer,resume);var s=GetNode<GameSession>("/root/GameSession");
+        if(missingCoinAudio)main.Audio.CoinStream=null;
         if(narrative)SeedNarrativeMarkers(s);
         var seat=main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat");seat.TryInteract(s);await Choose(main,0);await Frames(50);
         await WaitUntil(()=>main.Memory!=null&&s.Flow==GeXingzhou.Domain.FlowState.Memory&&s.Snapshot.MemoryState!=null,"Memory entry");
