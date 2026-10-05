@@ -1,0 +1,92 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="Script" path="res://scripts/SliceEndController.cs" id="Script"]
+[ext_resource type="StyleBox" path="res://assets/ui/panel-v1.tres" id="PanelStyle"]
+[node name="SliceEnd" type="Control"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=56
+script=ExtResource("Script")
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+color=Color(0.02,0.025,0.03,0.65)
+[node name="Panel" type="Panel" parent="."]
+layout_mode=1
+anchor_left=0.5
+anchor_top=0.5
+anchor_right=0.5
+anchor_bottom=0.5
+offset_left=-400.0
+offset_top=-270.0
+offset_right=400.0
+offset_bottom=270.0
+theme_override_styles/panel=ExtResource("PanelStyle")
+[node name="Label" type="Label" parent="Panel"]
+layout_mode=1
+anchor_right=1.0
+offset_left=24.0
+offset_top=24.0
+offset_right=-24.0
+offset_bottom=68.0
+text="首段试玩"
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.84,0.72,0.49,1)
+[node name="Title" type="Label" parent="Panel"]
+layout_mode=1
+anchor_right=1.0
+offset_left=24.0
+offset_top=82.0
+offset_right=-24.0
+offset_bottom=146.0
+text="今天先到这里。明天见。"
+horizontal_alignment=1
+vertical_alignment=1
+autowrap_mode=3
+[node name="Scroll" type="ScrollContainer" parent="Panel"]
+layout_mode=1
+anchor_right=1.0
+anchor_bottom=1.0
+offset_left=24.0
+offset_top=166.0
+offset_right=-24.0
+offset_bottom=-64.0
+horizontal_scroll_mode=0
+follow_focus=true
+[node name="Content" type="VBoxContainer" parent="Panel/Scroll"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_constants/separation=12
+[node name="Message" type="Label" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,44)
+autowrap_mode=3
+[node name="Continue" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,58)
+text="继续走走"
+[node name="Menu" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,58)
+text="返回主菜单"
+[node name="Restart" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,58)
+text="重新开始"
+[node name="Hint" type="Label" parent="Panel"]
+layout_mode=1
+anchor_top=1.0
+anchor_right=1.0
+anchor_bottom=1.0
+offset_left=24.0
+offset_top=-54.0
+offset_right=-24.0
+offset_bottom=-12.0
+text="Esc 继续 · Tab 切换 · Enter 确认"
+autowrap_mode=3

@@ -1,12 +1,12 @@
 # GitHub 与跨设备继续开发
 
-更新：2026-10-05。独立仓库：`anglelove3/gexingzhou-game`，私有；原来的`anglelove3/fangguoge-game`不改动。此工程的开发分支沿用`feature/vs01`，不要用另一个游戏的目录或分支覆盖它。
+更新：2026-10-05。独立仓库：[anglelove3/gexingzhou-game](https://github.com/anglelove3/gexingzhou-game)，已按用户决定改为公开；原来的`anglelove3/fangguoge-game`不改动。此工程的开发分支沿用`feature/vs01`，不要用另一个游戏的目录或分支覆盖它。本轮R1—R6只有本地提交，获准push后另一台电脑才能取得本轮版本。
 
 ## 另一台 Windows 电脑首次准备
 
 需要 Git、Godot 4.7.2 **.NET 版**、.NET 8 SDK、VS Code。`global.json`要求8.0.425并允许同一8.0功能带的更新补丁；如果SDK无法匹配，先查看`dotnet --list-sdks`，安装匹配版本，不随意改工程基线。
 
-私有仓库需要登录拥有权限的GitHub账号。可以用Git Credential Manager的浏览器登录，或安装GitHub CLI后执行以下命令；不要将密码、令牌发给Codex或写进仓库。
+公开仓库通常无需登录即可浏览和克隆；推送修改仍需具有写入权限的GitHub账号认证。可以用Git Credential Manager的浏览器登录，或安装GitHub CLI后执行以下命令；不要将密码、令牌发给Codex或写进仓库。
 
 ```powershell
 gh auth login --hostname github.com --git-protocol https --web
@@ -58,6 +58,8 @@ GitHub同步工程代码、正式游戏素材和已提交的设计/开发文档�
 
 ## 不同步的内容
 
-原始故事Word、私人照片/人物参考归档、references、builds、.superpowers、.godot、bin/obj、test-output、日志、本机配置和运行存档不上传。游戏正式PNG、源码、测试和已提交文档会上传；部分设计文档包含故事设定，不要把私有仓库随意改为公开或授权给不需要的人。
+原始故事Word、私人照片/人物参考归档、references、builds、.superpowers、.godot、bin/obj、test-output、日志、本机配置和运行存档不上传。游戏正式PNG、原创音源及生成脚本、源码、测试和已提交文档可随批准的push上传；公开仓库的这些内容任何人都能查看，后续每次提交仍检查隐私和素材来源。历史日期文档中“曾私有”的事实不改写；公开源码不自动授予第三方素材商业使用权。
+
+当前主要节点在Godot本地场景可编辑，C#在VS Code维护状态与行为。请追加阅读`docs/reviews/2026-10-05_首段润色验收记录.md`和已批准的首段体验设计/五批计划。保留schema 1 / vs01-0.1、旧档保护及既有事件ID；不要因暂停、动画或声音新增存档姿势字段。原生键盘、真实试听、另一台实际设备及独立EXE仍待补验。
 
 因此另一台电脑不会自动有原始故事集、历史测试截图或试玩存档。需要文学原件时，由用户通过私密方式单独提供；不要删除本机原件。需要测试截图时重新运行捕获工具。需要独立EXE时仍须匹配导出模板，本仓库不是成品发行包。

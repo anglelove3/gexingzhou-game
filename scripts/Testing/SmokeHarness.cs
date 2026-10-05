@@ -7,6 +7,7 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="ExperienceEnd"){await ExperienceEndChecks();GD.Print("GODOT_CHECKS_PASS ExperienceEnd");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperiencePause"){await ExperiencePauseChecks();GD.Print("GODOT_CHECKS_PASS ExperiencePause");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceAudio"){await ExperienceAudioChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceAudio");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceCoins"){await ExperienceCoinsChecks();GD.Print("GODOT_CHECKS_PASS ExperienceCoins");await DrainAudio();GetTree().Quit();return;}
@@ -34,7 +35,7 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");await DrainAudio();GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
@@ -45,6 +46,7 @@ public partial class SmokeHarness : Node
                 if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePause"){await PauseVisualChecks();GD.Print("GODOT_CHECKS_PASS CapturePause");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CaptureEnd"){await EndVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureEnd");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {
@@ -101,7 +103,7 @@ public partial class SmokeHarness : Node
             {
                 var s=GetNode<GameSession>("/root/GameSession");var loaded=s.Saves.Load();if(loaded.Status!=GeXingzhou.Domain.LoadStatus.Loaded)throw new Exception("Cross-process save missing: "+loaded.Message);
                 s.PendingRestore=loaded.Snapshot;var readMain=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(readMain);await Frames(3);
-                if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Flow!=GeXingzhou.Domain.FlowState.Field||readMain.World.SceneId!="soup_shop")throw new Exception("Cross-process resume did not restore real world");
+                if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Flow!=GeXingzhou.Domain.FlowState.EndCard||!readMain.SliceEnd.IsOpen||readMain.World.SceneId!="soup_shop")throw new Exception("Cross-process resume did not restore real world and end card");
                 readMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ResumeRead");await DrainAudio();GetTree().Quit();return;
             }
             if(suite is "Memory" or "Slice")
@@ -318,8 +320,10 @@ public partial class SmokeHarness : Node
         await Finish(main);
         if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Snapshot.SceneId!="soup_shop")throw new Exception("Memory did not return and complete slice");
         if(!s.Snapshot.CompletedActions.Contains("soup.payment:soup-payment-1"))throw new Exception("Payment feedback missing");
+        Require(main.SliceEnd.IsOpen&&s.Flow==GeXingzhou.Domain.FlowState.EndCard,"Actual first completion did not show ending");
+        main.SliceEnd.Close();
         if((int)s.Snapshot.MemoryState!.FoodChoice!.Value!=food)throw new Exception("Wrong memory food choice");
-        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");}
+        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");main.SliceEnd.Close();}
         if(exercise)
         {
             main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Choose(main,0);await Frames(50);
@@ -396,7 +400,13 @@ public partial class SmokeHarness : Node
         main.Free();s.Free();await Frames(2);s=new GameSession{Name="GameSession"};GetTree().Root.AddChild(s);s.PendingRestore=saved.Snapshot;
         main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         if(s.Snapshot.Stage!=stage||s.Snapshot.CandyCount!=candy||s.PendingRestore!=null)throw new Exception("Checkpoint not restored");
-        if(s.Snapshot.SceneId!="memory_soup_table"&&(main.World.Player.Position.X!=expected.X||s.Flow!=GeXingzhou.Domain.FlowState.Field))throw new Exception("Restore position or input lock wrong");
+        if(s.Snapshot.SceneId!="memory_soup_table")
+        {
+            var ended=s.Snapshot.Stage==GeXingzhou.Domain.SliceStage.SliceComplete;
+            var expectedFlow=ended?GeXingzhou.Domain.FlowState.EndCard:GeXingzhou.Domain.FlowState.Field;
+            if(main.World.Player.Position.X!=expected.X||s.Flow!=expectedFlow||ended&&!main.SliceEnd.IsOpen)throw new Exception("Restore position or input lock wrong");
+            if(ended)main.SliceEnd.Close();
+        }
         GD.Print("CHECKPOINT_RESTART_PASS "+stage);return main;
     }
     private async Task Capture(string label)

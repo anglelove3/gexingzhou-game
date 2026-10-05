@@ -1,4 +1,5 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
+[ext_resource type="PackedScene" path="res://scenes/ui/SliceEnd.tscn" id="SliceEnd"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Pause.tscn" id="Pause"]
 [ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Audio"]
 [ext_resource type="Script" path="res://scripts/MainView.cs" id="Script"]
@@ -122,6 +123,8 @@ visible=false
 [node name="Choices" parent="." instance=ExtResource("Choices")]
 visible=false
 [node name="Pause" parent="." instance=ExtResource("Pause")]
+visible=false
+[node name="SliceEnd" parent="." instance=ExtResource("SliceEnd")]
 visible=false
 [node name="Settings" parent="." instance=ExtResource("Settings")]
 visible=false

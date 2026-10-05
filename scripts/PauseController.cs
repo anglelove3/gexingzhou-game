@@ -5,6 +5,7 @@ public partial class PauseController : Control
 {
     private MainView main=null!;private Label message=null!;private Control? previousFocus;
     public bool IsOpen {get;private set;}
+    public string NavigationMessage=>message.Text;
     private const string Prefix="Panel/Scroll/Content/";
     public void Configure(MainView owner)=>main=owner;
     public override void _Ready()
@@ -43,7 +44,7 @@ public partial class PauseController : Control
     }
     private bool SaveForNavigation()
     {
-        if(!IsOpen)return false;
+        if(!IsOpen&&!main.SliceEnd.IsOpen)return false;
         var session=GetNode<GameSession>("/root/GameSession");session.UpdatePosition(main.SafeSavePosition);
         var result=session.SaveCheckpoint();message.Text=result.Message;return result.Success;
     }

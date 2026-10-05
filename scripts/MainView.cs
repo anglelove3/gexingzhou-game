@@ -14,6 +14,7 @@ public partial class MainView : Control
     public SoupSeatController SoupSeat {get;private set;}=null!;
     public AudioDirector Audio {get;private set;}=null!;
     public PauseController Pause {get;private set;}=null!;
+    public SliceEndController SliceEnd {get;private set;}=null!;
     public bool CanPause=>World!=null&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!Rest.IsActive&&!SoupSeat.IsActive&&!Phone.IsOpen&&!Dialogue.IsOpen&&!Choices.IsOpen&&Memory==null;
     public Position2 SafeSavePosition=>SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
     public int PaymentFeedbackCount {get;private set;}
@@ -35,6 +36,7 @@ public partial class MainView : Control
             Guidance.Configure(this);
             SoupSeat=SceneBindings.Require<SoupSeatController>(this,"SoupSeat");SoupSeat.Configure(this);
             Pause=SceneBindings.Require<PauseController>(this,"Pause");Pause.Configure(this);
+            SliceEnd=SceneBindings.Require<SliceEndController>(this,"SliceEnd");SliceEnd.Configure(this);
             SceneBindings.Require<Button>(this,"HUD/PauseButton").Pressed+=()=>Pause.Open();
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
@@ -57,6 +59,7 @@ public partial class MainView : Control
             Theme=s.CreateUiTheme();lastFont=s.Options.SubtitleSize;
             display.Configure(World);
             heardVoice=s.Snapshot.InvitationState.VoiceReceived;heardRing=s.Snapshot.InvitationState.PhoneRinging;Audio.SetScene(s.Snapshot.SceneId);
+            if(s.Snapshot.Stage==SliceStage.SliceComplete)SliceEnd.ShowCompleted();
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
@@ -176,7 +179,7 @@ public partial class MainView : Control
             var feedback=GetNode<Label>("HUD/PaymentCaption");feedback.Visible=true;
             var tween=CreateTween();tween.TweenInterval(s.Options.FadeDuration+.8);tween.TweenCallback(Callable.From(()=>feedback.Visible=false));
         }
-        ShowDialogue("soup.tomorrow",()=>s.TryDispatch(new("slice.complete","completed","slice-1")));
+        ShowDialogue("soup.tomorrow",()=>{if(s.TryDispatch(new("slice.complete","completed","slice-1")).Applied)SliceEnd.ShowCompleted();});
     }
     public bool ChangeWorld(string sceneId,Position2 position)
     {
@@ -202,6 +205,7 @@ public partial class MainView : Control
         var code=key.PhysicalKeycode;var s=GetNode<GameSession>("/root/GameSession");
         if(s.Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
         if(Settings.IsOpen){if(code==Key.Escape)Settings.Close();else return;}
+        else if(SliceEnd.IsOpen){if(code==Key.Escape)SliceEnd.Close();else return;}
         else if(Pause.IsOpen)
         {
             if(code==Key.Escape)Pause.Close();

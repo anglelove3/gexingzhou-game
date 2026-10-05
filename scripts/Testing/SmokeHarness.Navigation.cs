@@ -3,10 +3,69 @@ using GeXingzhou.Domain;
 
 public partial class SmokeHarness
 {
+    private async Task ExperienceEndChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(new(){TextSpeed=0,ReducedMotion=true,RecordEventsEnabled=true},false);
+        await MemoryPath(false,0,false);
+        var log=System.IO.Path.Combine(s.SaveDirectory,"behavior","events.jsonl");var count=System.IO.File.ReadAllLines(log).Length;
+        var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
+        Require(main.SliceEnd.IsOpen&&s.Flow==FlowState.EndCard&&!main.CanPause,"Completed save has no end card");
+        Require(main.SliceEnd.GetNode<Label>("Panel/Title").Text=="今天先到这里。明天见。"&&main.SliceEnd.GetNode<Label>("Panel/Label").Text=="首段试玩","Wrong ending copy");
+        Require(main.SliceEnd.GetNode<Button>("Panel/Scroll/Content/Continue").HasFocus(),"Ending default focus missing");
+        foreach(var button in new[]{"Continue","Menu","Restart"})
+        {
+            var control=main.SliceEnd.GetNode<Button>("Panel/Scroll/Content/"+button);control.GrabFocus();await Frames(2);Require(control.HasFocus(),"Ending button inaccessible "+button);
+        }
+        Require(System.IO.File.ReadAllLines(log).Length==count,"Loading completed save re-recorded ending");
+        KeyPress(Key.Tab);await Frames(2);Require(!main.Phone.IsOpen&&main.SliceEnd.IsOpen,"Ending Tab opened phone");
+        var time=s.Snapshot.SceneActiveMilliseconds.GetValueOrDefault("soup_shop");s.AdvanceClock(30);
+        Require(time==s.Snapshot.SceneActiveMilliseconds.GetValueOrDefault("soup_shop"),"End card did not freeze clock");
+        Require(!s.TryDispatch(new("slice.complete","completed","slice-1")).Applied&&System.IO.File.ReadAllLines(log).Length==count,"Repeat completion appended event");
+        KeyPress(Key.Escape);await Frames(100);Require(!main.SliceEnd.IsOpen&&s.Flow==FlowState.Field&&!main.Pause.IsOpen,"Ending closed twice or reopened");
+        main.Free();await Frames(2);
+        var loaded=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(loaded);await Frames(3);
+        Require(loaded.SliceEnd.IsOpen&&System.IO.File.ReadAllLines(log).Length==count,"Reload ending duplicated event");
+        var path=TestAutoPath();var original=System.IO.File.ReadAllBytes(path);var play=s.Snapshot.PlaythroughId;
+        using(var locked=new System.IO.FileStream(path,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.None))
+        {
+            Require(!loaded.SliceEnd.TryRestart()&&s.Snapshot.PlaythroughId==play&&loaded.SliceEnd.IsOpen,"Restart ignored preservation failure");
+        }
+        Require(System.IO.File.ReadAllBytes(path).SequenceEqual(original),"Failed restart altered original save");
+        const string unknown="{\"schema_version\":999,\"content_version\":\"future\"}";
+        System.IO.File.WriteAllText(path,unknown);
+        Require(!loaded.SliceEnd.TryReturnToMenu()&&loaded.SliceEnd.IsOpen&&System.IO.File.ReadAllText(path)==unknown,"Ending menu bypassed unknown-version protection");
+        Require(loaded.SliceEnd.GetNode<Label>("Panel/Scroll/Content/Message").Text.Length>0,"Ending save failure invisible");
+        System.IO.File.WriteAllBytes(path,original);Require(s.ManualSaves.Save(s.Snapshot).Success,"Restart manual fixture");
+        GetTree().CurrentScene=null;Require(loaded.SliceEnd.TryRestart(),"Normal restart failed");await Frames(8);
+        var restarted=GetTree().CurrentScene as MainView;
+        Require(restarted!=null&&s.Snapshot.Stage==SliceStage.FreeArrival&&s.Snapshot.PlaythroughId!=play&&!restarted.SliceEnd.IsOpen,"Restart did not create fresh actual Main");
+        Require(System.IO.Directory.GetFiles(s.SaveDirectory,"preserved-*.json").Length>=2,"Both slots not preserved before restart");
+        GetTree().CurrentScene=null;loaded.Free();restarted!.Free();await Frames(2);
+    }
+    private async Task EndVisualChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        foreach(var font in new[]{20,24,32})
+        {
+            s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
+            var complete=new WorldSnapshot{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(440,280),MemoryOrdinal=1,
+                MemoryState=new(){PushedCoinIds=new(){"c1","c2","c3","c4"},PushedTotal=5,FoodChoice=FoodChoice.Take,Completed=true},
+                CompletedActions=new(){"slice.complete:slice-1"},ReturnContext=new("soup_shop",new(440,280),"soup.return",true)};
+            Require(s.Restore(complete).Success,"End visual snapshot invalid");
+            var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
+            Require(main.GetGlobalRect().Encloses(main.SliceEnd.GetNode<Control>("Panel").GetGlobalRect()),"End card clipped");
+            foreach(var button in main.SliceEnd.FindChildren("*","Button",true,false).OfType<Button>())Require(main.GetGlobalRect().Encloses(button.GetGlobalRect()),"End button clipped");
+            await Capture("end-"+font);var path=TestAutoPath();
+            System.IO.File.WriteAllText(path,"{\"schema_version\":999,\"content_version\":\"future\"}");
+            Require(!main.SliceEnd.TryReturnToMenu(),"End failure gallery navigated");await Frames(3);
+            await Capture("end-save-failed-"+font);System.IO.File.Delete(path);main.Free();await Frames(2);
+        }
+    }
     private string TestAutoPath()
     {
         var directory=GetNode<GameSession>("/root/GameSession").SaveDirectory;
         Require(directory.StartsWith(ProjectSettings.GlobalizePath("res://test-output/"),StringComparison.OrdinalIgnoreCase),"Fixture must not touch user saves");
+        System.IO.Directory.CreateDirectory(directory);
         return System.IO.Path.Combine(directory,"save.json");
     }
     private async Task PauseVisualChecks()
@@ -65,6 +124,10 @@ public partial class SmokeHarness
         KeyPress(Key.Escape);await WaitUntil(()=>!soup.SoupSeat.IsActive,"Pause soup stand");Require(!soup.Pause.IsOpen,"Soup Esc also paused");soup.Free();await Frames(2);
         var nav=await NewPolishMain();nav.World.Player.Position=new(900,280);nav.Pause.Open();KeyPress(Key.F5);await Frames(2);
         Require(s.ManualSaves.Load().Snapshot?.PlayerPosition.Y==280,"Paused F5 lost safe position");
+        GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(8);
+        var manual=GetTree().CurrentScene as MainView;
+        Require(manual!=null&&s.Flow==FlowState.Field&&manual.World.Player.Position.X==900,"Paused F9 did not restore actual Main");
+        nav.Free();nav=manual!;Require(nav.Pause.Open(),"Pause after manual restore failed");
         GetTree().CurrentScene=null;Require(nav.Pause.TryReturnToMenu(),"Normal menu navigation failed");await Frames(8);
         var boot=GetTree().CurrentScene as BootMenu;Require(boot!=null,"Navigation did not show actual Boot");nav.Free();
         GetTree().CurrentScene=null;boot!.GetNode<Button>("Menu/AutoResumeButton").EmitSignal(Button.SignalName.Pressed);await Frames(8);

@@ -44,6 +44,10 @@ try {
         $target=Join-Path $destination $path;$source=Join-Path $projectRoot $path
         if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "POLISH_PACKAGE_MISMATCH $path"}
     }
+    foreach($path in @('tools/audio/generate-vs01-audio.mjs','tools/audio/check-vs01-audio.mjs','docs/reviews/2026-10-05_首段润色验收记录.md','docs/superpowers/specs/2026-10-05-首段玩家体验润色-design.md','scenes/ui/Pause.tscn','scenes/ui/SliceEnd.tscn','assets/audio/vs01/manifest.json')){
+        $target=Join-Path $destination $path;$source=Join-Path $projectRoot $path
+        if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "EXPERIENCE_PACKAGE_MISMATCH $path"}
+    }
     if(Get-ChildItem -LiteralPath $destination -File -Recurse -Force | Where-Object {$_.FullName -match 'references|test-output|environment\.local\.json|\.docx$|\.zip$'}){throw 'PRIVATE_SOURCE_BUNDLE_CONTENT'}
     Write-Output 'PASS PolishDependencyWhitelist SourceBundleTeachingAndHashes'
 } catch {$failures++;Write-Output "FAIL PolishDependencyWhitelist $_"}
