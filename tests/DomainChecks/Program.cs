@@ -7,6 +7,7 @@ RestChecks.Register(tests);
 StoryChecks.Register(tests);
 SoupChecks.Register(tests);
 MemoryChecks.Register(tests);
+CoinDragChecks.Register(tests);
 SaveChecks.Register(tests);
 SettingsEventChecks.Register(tests);
 string? filter = null;

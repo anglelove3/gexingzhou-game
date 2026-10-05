@@ -193,7 +193,7 @@ public partial class SmokeHarness
             ("ui/Dialogue",new[]{"Panel/Content/NameLabel","Panel/Content/Body","Panel/Content/ContinueHint","Portrait"}),
             ("ui/Choices",new[]{"Panel/Content/Title","Panel/Content/Options","Panel/Content/ReturnHint"}),
             ("ui/Settings",new[]{"Panel/Scroll/Content/FontSize","Panel/Scroll/Content/TextSpeed","Panel/Scroll/Content/Assistance","Panel/Scroll/Content/ReducedMotion","Panel/Scroll/Content/RecordEvents","Panel/Scroll/Content/ClearButton","Panel/Scroll/Content/ExportButton","Panel/Scroll/Content/CloseButton"}),
-            ("world/MemorySoupTable",new[]{"Background","SoupBowl","Panel/Content/Status","Panel/Content/Coins/Coin1","Panel/Content/Coins/Coin4","Panel/Content/Foods/Take","Panel/Content/Foods/Wait","Panel/Content/Foods/Share","Panel/Content/Hint"})};
+            ("world/MemorySoupTable",new[]{"Background","Table/Bowl","Status","Table/Coin1","Table/Coin4","Table/Foods/Take","Table/Foods/Wait","Table/Foods/Share","Hint"})};
         foreach(var (file,paths) in saved)
         {
             Require(ResourceLoader.Exists($"res://scenes/{file}.tscn"),"OfflineUiTree missing scene "+file);

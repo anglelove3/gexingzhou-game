@@ -1,57 +1,135 @@
 using Godot;
 using GeXingzhou.Domain;
+
 public partial class SoupMemoryController : Control
 {
-    public MainView Main {get;set;}=null!;private Label status=null!;private Button[] coins=Array.Empty<Button>();private Button[] foods=Array.Empty<Button>();private int selected;private bool initialized;private bool dragging;private Vector2 dragStart;
+    public MainView Main {get;set;}=null!;
+    private Control table=null!, delivery=null!;
+    private Label status=null!, help=null!;
+    private TextureRect bowl=null!;
+    private Button[] coins=Array.Empty<Button>(), foods=Array.Empty<Button>();
+    private Vector2[] near=Array.Empty<Vector2>(), far=Array.Empty<Vector2>();
+    private readonly Dictionary<int,Tween> moves=new();
+    private Tween? bowlMove;
+    private int selected, dragged=-1;
+    private Vector2 dragStart, grabOffset;
+    private bool initialized, foodReady;
+    private MemoryState? shown;
+    private GameSession Session=>GetNode<GameSession>("/root/GameSession");
     public override void _Ready()
     {
         try
         {
-            status=SceneBindings.Require<Label>(this,"Panel/Content/Status");
-            coins=Enumerable.Range(1,4).Select(i=>SceneBindings.Require<Button>(this,"Panel/Content/Coins/Coin"+i)).ToArray();
-            foods=new[]{"Take","Wait","Share"}.Select(id=>SceneBindings.Require<Button>(this,"Panel/Content/Foods/"+id)).ToArray();
-            for(int i=0;i<coins.Length;i++)
-            {
-                var index=i;coins[i].Pressed+=()=>Push(index);
-                coins[i].GuiInput+=ev=>{
-                    if(ev is InputEventMouseButton mb&&mb.ButtonIndex==MouseButton.Left)
-                    {
-                        if(mb.Pressed){dragging=true;dragStart=mb.Position;}
-                        else if(dragging){dragging=false;if(mb.Position.DistanceTo(dragStart)>30)Push(index);}
-                    }};
-            }
-            for(int i=0;i<foods.Length;i++){var index=i;foods[i].Pressed+=()=>Resolve(index);}
-            Refresh();
+            table=SceneBindings.Require<Control>(this,"Table");
+            delivery=SceneBindings.Require<Control>(table,"DeliveryArea");
+            status=SceneBindings.Require<Label>(this,"Status");
+            help=SceneBindings.Require<Label>(this,"Help");
+            bowl=SceneBindings.Require<TextureRect>(table,"Bowl");
+            coins=Enumerable.Range(1,4).Select(i=>SceneBindings.Require<Button>(table,"Coin"+i)).ToArray();
+            near=Enumerable.Range(1,4).Select(i=>SceneBindings.Require<Marker2D>(table,"Near"+i).Position).ToArray();
+            far=Enumerable.Range(1,4).Select(i=>SceneBindings.Require<Marker2D>(table,"Far"+i).Position).ToArray();
+            foods=new[]{"Take","Wait","Share"}.Select(id=>SceneBindings.Require<Button>(table,"Foods/"+id)).ToArray();
+            for(int i=0;i<4;i++){var index=i;coins[i].Pressed+=()=>{if(dragged<0)TryPush(index);};}
+            for(int i=0;i<3;i++){var index=i;foods[i].Pressed+=()=>Resolve(index);}
+            SceneBindings.Require<Button>(this,"HelpToggle").Pressed+=()=>help.Visible=!help.Visible;
+            GetWindow().FocusExited+=CancelDrag;
+            RestoreCoinPositions();
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
-    public override void _Process(double delta)=>Refresh();
-    private void Refresh()
+    public override void _Process(double delta)
     {
-        var m=GetNode<GameSession>("/root/GameSession").Snapshot.MemoryState;if(m==null)return;
-        status.Text=$"推过：{m.PushedTotal} / 5"+(m.Replay?"（主动重看）":"");
-        for(int i=0;i<4;i++){coins[i].Disabled=m.PushedCoinIds.Contains("c"+(i+1));coins[i].Text=coins[i].Disabled?"已推过":$"{(i==3?2:1)}";coins[i].Modulate=coins[i].Disabled?new Color(1,1,1,.55f):Colors.White;}
-        foreach(var f in foods)f.Disabled=m.PushedTotal!=5;
-        if(!initialized){initialized=true;selected=m.PushedTotal==5?0:Array.FindIndex(coins,b=>!b.Disabled);if(selected<0)selected=0;(m.PushedTotal==5?foods[selected]:coins[selected]).GrabFocus();}
+        if(HasMeta("binding_failure"))return;
+        var state=Session.Snapshot.MemoryState;
+        if(state!=shown)RestoreCoinPositions();
     }
-    private void Push(int index)
+    private void SetStatus(MemoryState state)=>status.Text=$"那年清晨 · {state.PushedTotal}/5"+(state.Replay?" · 重看":"");
+    public void RestoreCoinPositions()
     {
-        var s=GetNode<GameSession>("/root/GameSession");var m=s.Snapshot.MemoryState;if(m==null||s.Flow!=FlowState.Memory)return;
-        var id="c"+(index+1);s.TryDispatch(new("memory.coin.push",id,m.InstanceId+":"+id));Refresh();
-        if(s.Snapshot.MemoryState!.PushedTotal==5){selected=0;foods[0].GrabFocus();}
-        else{for(int offset=1;offset<=4;offset++){var next=(index+offset)%4;if(!coins[next].Disabled){selected=next;coins[next].GrabFocus();break;}}}
+        if(coins.Length!=4)return;
+        CancelDrag();foreach(var move in moves.Values)move.Kill();moves.Clear();bowlMove?.Kill();bowlMove=null;
+        var state=Session.Snapshot.MemoryState;shown=state;if(state==null)return;
+        SetStatus(state);
+        for(int i=0;i<4;i++)
+        {
+            var pushed=state.PushedCoinIds.Contains("c"+(i+1));
+            coins[i].Disabled=pushed;coins[i].Position=pushed?far[i]:near[i];
+        }
+        foodReady=state.PushedTotal==5;
+        bowl.Position=SceneBindings.Require<Marker2D>(table,foodReady?"BowlNear":"BowlFar").Position;
+        foreach(var item in foods)item.Disabled=!foodReady;
+        if(!initialized){initialized=true;FocusCoin(-1);}
+    }
+    private Vector2 Local(Vector2 viewportPosition)=>table.GetGlobalTransformWithCanvas().AffineInverse()*viewportPosition;
+    public override void _Input(InputEvent ev)
+    {
+        if(HasMeta("binding_failure")||Session.Flow!=FlowState.Memory)return;
+        if(ev is InputEventMouseButton click&&click.ButtonIndex==MouseButton.Left)
+        {
+            var p=Local(click.Position);
+            if(click.Pressed)
+            {
+                for(int i=0;i<4;i++)if(!coins[i].Disabled&&new Rect2(coins[i].Position,coins[i].Size).HasPoint(p))
+                {
+                    dragged=i;selected=i;dragStart=p;grabOffset=p-coins[i].Position;coins[i].GrabFocus();GetViewport().SetInputAsHandled();break;
+                }
+            }
+            else if(dragged>=0)
+            {
+                var index=dragged;dragged=-1;
+                var valid=CoinDragPolicy.IsDelivery(new(dragStart.X,dragStart.Y),new(p.X,p.Y),new(delivery.Position.X,delivery.Position.Y,delivery.Size.X,delivery.Size.Y));
+                if(!valid||!TryPush(index))coins[index].Position=Session.Snapshot.MemoryState!.PushedCoinIds.Contains("c"+(index+1))?far[index]:near[index];
+                GetViewport().SetInputAsHandled();
+            }
+        }
+        else if(ev is InputEventMouseMotion motion&&dragged>=0){coins[dragged].Position=Local(motion.Position)-grabOffset;GetViewport().SetInputAsHandled();}
+    }
+    public void CancelDrag()
+    {
+        if(dragged<0)return;
+        var index=dragged;dragged=-1;
+        coins[index].Position=Session.Snapshot.MemoryState?.PushedCoinIds.Contains("c"+(index+1))==true?far[index]:near[index];
+    }
+    public bool TryPush(int index)
+    {
+        if(index<0||index>=4||Session.Flow!=FlowState.Memory||Session.Snapshot.MemoryState is not {} state)return false;
+        var id="c"+(index+1);
+        if(!Session.TryDispatch(new("memory.coin.push",id,state.InstanceId+":"+id)).Applied)return false;
+        shown=Session.Snapshot.MemoryState!;SetStatus(shown);coins[index].Disabled=true;
+        if(moves.Remove(index,out var old))old.Kill();
+        var tween=CreateTween();moves[index]=tween;
+        tween.TweenProperty(coins[index],"position",far[index],Session.Options.ReducedMotion?.08:.35).SetTrans(Tween.TransitionType.Sine);
+        tween.Finished+=()=>moves.Remove(index);
+        if(shown.PushedTotal==5)
+        {
+            foodReady=false;foreach(var item in foods)item.Disabled=true;
+            bowlMove=CreateTween();bowlMove.TweenProperty(bowl,"position",SceneBindings.Require<Marker2D>(table,"BowlNear").Position,Session.Options.ReducedMotion?.15:.65);
+            bowlMove.Finished+=()=>{bowlMove=null;if(!IsInsideTree())return;foodReady=true;foreach(var item in foods)item.Disabled=false;selected=0;foods[0].GrabFocus();};
+        }
+        else FocusCoin(index);
+        return true;
+    }
+    private void FocusCoin(int after)
+    {
+        if(foodReady){selected=0;foods[0].GrabFocus();return;}
+        for(int offset=1;offset<=4;offset++){var next=(after+offset+4)%4;if(!coins[next].Disabled){selected=next;coins[next].GrabFocus();break;}}
     }
     private void Resolve(int index)
     {
-        var s=GetNode<GameSession>("/root/GameSession");var m=s.Snapshot.MemoryState;if(m==null||s.Flow!=FlowState.Memory)return;
-        if(s.TryDispatch(new("memory.food.resolve",new[]{"Take","Wait","Share"}[index],m.InstanceId)).Applied)_=Main.ReturnMemory(true);
+        if(!foodReady||Session.Flow!=FlowState.Memory||Session.Snapshot.MemoryState is not {} state||Main==null)return;
+        if(Session.TryDispatch(new("memory.food.resolve",new[]{"Take","Wait","Share"}[index],state.InstanceId)).Applied)_=Main.ReturnMemory(true);
     }
     public void HandleKey(Key key)
     {
-        var s=GetNode<GameSession>("/root/GameSession");if(s.Flow!=FlowState.Memory)return;
-        if(key==Key.Escape){_=Main.ReturnMemory(false);return;}
-        bool food=s.Snapshot.MemoryState?.PushedTotal==5;
-        if(key is Key.Left or Key.A or Key.Right or Key.D){var count=food?3:4;selected=(selected+(key is Key.Left or Key.A?-1:1)+count)%count;(food?foods[selected]:coins[selected]).GrabFocus();}
-        else if(key is Key.E or Key.Enter){if(food)Resolve(selected);else Push(selected);}
+        if(Session.Flow!=FlowState.Memory)return;
+        if(key==Key.Escape){CancelDrag();if(Main!=null)_=Main.ReturnMemory(false);return;}
+        if(key is Key.Left or Key.A or Key.Right or Key.D)
+        {
+            var direction=key is Key.Left or Key.A?-1:1;
+            if(foodReady){selected=(selected+direction+3)%3;foods[selected].GrabFocus();}
+            else for(int offset=1;offset<=4;offset++){var next=(selected+direction*offset+8)%4;if(!coins[next].Disabled){selected=next;coins[next].GrabFocus();break;}}
+        }
+        else if(key is Key.E or Key.Enter){if(foodReady)Resolve(selected);else TryPush(selected);}
     }
+    public override void _ExitTree(){GetWindow().FocusExited-=CancelDrag;CancelDrag();foreach(var move in moves.Values)move.Kill();moves.Clear();bowlMove?.Kill();bowlMove=null;}
 }

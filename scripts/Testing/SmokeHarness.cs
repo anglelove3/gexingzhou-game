@@ -7,6 +7,7 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="ExperienceCoins"){await ExperienceCoinsChecks();GD.Print("GODOT_CHECKS_PASS ExperienceCoins");GetTree().Quit();return;}
             if(suite=="ExperienceDialogue"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS ExperienceDialogue");GetTree().Quit();return;}
             if(suite=="ExperienceGuidance"){await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceGuidance");GetTree().Quit();return;}
             if(suite=="ExperienceSoupSeat"){await ExperienceSoupSeatChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceSoupSeat");GetTree().Quit();return;}
@@ -31,7 +32,7 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
@@ -40,6 +41,7 @@ public partial class SmokeHarness : Node
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
                 if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");GetTree().Quit();return;}
                 if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");GetTree().Quit();return;}
+                if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");GetTree().Quit();return;}
                 if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {
@@ -204,7 +206,7 @@ public partial class SmokeHarness : Node
         if(menu.GetNodeOrNull<TextureRect>("Background")?.Texture==null)throw new Exception("Boot screen still has placeholder art");menu.Free();
         var memory=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn").Instantiate<SoupMemoryController>();AddChild(memory);await Frames(2);
         if(memory.GetNodeOrNull<TextureRect>("Background")?.Texture==null)throw new Exception("Memory table art missing");
-        if(!memory.GetNode<TextureRect>("Background").GetGlobalRect().IsEqualApprox(memory.GetGlobalRect())||memory.GetNode<TextureRect>("SoupBowl").Size.X>180.1f||memory.GetNode<TextureRect>("SoupBowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
+        if(!memory.GetNode<TextureRect>("Background").GetGlobalRect().IsEqualApprox(memory.GetGlobalRect())||memory.GetNode<TextureRect>("Table/Bowl").Size.X>180.1f||memory.GetNode<TextureRect>("Table/Bowl").Size.Y>140.1f)throw new Exception("Memory raster ignores its requested display size");
         if(memory.FindChildren("*","Button",true,false).OfType<Button>().Count(b=>b.Icon!=null)<4)throw new Exception("Playable coin controls have no actual art");memory.Free();
     }
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
@@ -293,6 +295,7 @@ public partial class SmokeHarness : Node
         KeyPress(Key.E);await Frames(2);KeyPress(Key.E);await Frames(2);
         if(captureDirectory!=null)GD.Print($"COIN_STATE food={food} step=4 total={s.Snapshot.MemoryState!.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
         if(s.Snapshot.MemoryState!.PushedTotal!=5)throw new Exception($"Keyboard did not push all coins: total={s.Snapshot.MemoryState.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
+        await WaitUntil(()=>!main.Memory!.GetNode<Button>("Table/Foods/Take").Disabled,"Bowl arrival");
         for(int i=0;i<food;i++){KeyPress(Key.Right);await Frames(2);}KeyPress(Key.E);await Frames(50);await WaitUntil(()=>main.Memory==null&&s.Flow!=GeXingzhou.Domain.FlowState.Transition,"Memory return");
         if(main.SoupSeat.IsActing)await WaitUntil(()=>!main.SoupSeat.IsActing,"Seated after memory return");
         if(captureDirectory!=null){AssertDialogueFits(main);await Capture("return-"+food+"-font-"+s.Options.SubtitleSize);}
@@ -311,7 +314,7 @@ public partial class SmokeHarness : Node
             main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");
             main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Choose(main,0);await Frames(50);
             if(s.Snapshot.MemoryState!.InstanceId!="soup-2"||s.Snapshot.MemoryState.PushedTotal!=1)throw new Exception("Interrupted replay did not survive reload/reentry");
-            for(int i=0;i<3;i++){KeyPress(Key.E);await Frames(2);}KeyPress(Key.E);await Frames(50);await Finish(main);
+            for(int i=0;i<3;i++){KeyPress(Key.E);await Frames(2);}await WaitUntil(()=>!main.Memory!.GetNode<Button>("Table/Foods/Take").Disabled,"Replay bowl arrival");KeyPress(Key.E);await Frames(50);await Finish(main);
             if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete)throw new Exception("Replay regressed story");
         }
         var before=s.Snapshot;var result=await main.SceneFlow.TryEnter("missing_scene",new(1,1));
