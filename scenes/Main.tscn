@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 [ext_resource type="Script" path="res://scripts/MainView.cs" id="Script"]
 [ext_resource type="PackedScene" path="res://scenes/world/CommunityGate.tscn" id="World"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Phone.tscn" id="Phone"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/RestController.cs" id="Rest"]
 [ext_resource type="PackedScene" path="res://scenes/ui/RestOptions.tscn" id="RestOptions"]
 [ext_resource type="Script" path="res://scripts/GuidanceController.cs" id="Guidance"]
+[ext_resource type="Script" path="res://scripts/SoupSeatController.cs" id="SoupSeat"]
 [node name="Main" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -91,6 +92,8 @@ script=ExtResource("Guidance")
 visible=false
 [node name="Rest" type="Node" parent="."]
 script=ExtResource("Rest")
+[node name="SoupSeat" type="Node" parent="."]
+script=ExtResource("SoupSeat")
 [node name="Dialogue" parent="." instance=ExtResource("Dialogue")]
 visible=false
 [node name="Choices" parent="." instance=ExtResource("Choices")]

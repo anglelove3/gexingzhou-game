@@ -1,8 +1,19 @@
 {
-  "version": 3,
+  "version": 4,
   "status": "vs01_editable_ui_and_rest_resources_v2",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
+    {
+      "id": "player-soup",
+      "file": "assets/art/vs01-v3/player-soup.png",
+      "size": [1254,1254],
+      "sha256": "91A8FAA75CE91CE7E26AED631992C6CAA7A2EA3FA5A39805DB7CA4393729E9D5",
+      "usage": "9_measured_seated_action_poses; eat3_chopsticks3_phone3",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-05",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_SOUP_V3.md"
+    },
     {
       "id": "community",
       "file": "assets/art/vs01-v1/community-v1.png",

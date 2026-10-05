@@ -11,6 +11,8 @@ public partial class MainView : Control
     public SettingsController Settings {get;private set;}=null!;private int lastFont;
     public RestController Rest {get;private set;}=null!;
     public GuidanceController Guidance {get;private set;}=null!;
+    public SoupSeatController SoupSeat {get;private set;}=null!;
+    public Position2 SafeSavePosition=>SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
     private WorldDisplayController display=null!;
@@ -27,6 +29,7 @@ public partial class MainView : Control
             Rest=SceneBindings.Require<RestController>(this,"Rest");
             Guidance=SceneBindings.Require<GuidanceController>(this,"Guidance");
             Guidance.Configure(this);
+            SoupSeat=SceneBindings.Require<SoupSeatController>(this,"SoupSeat");SoupSeat.Configure(this);
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
             prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
@@ -54,6 +57,7 @@ public partial class MainView : Control
     {
         var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);
         prompt.Text=(Rest.IsActive?(GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身"):World.Interactions.Prompt)+" · Tab 手机";
+        if(SoupSeat.IsActive)prompt.Text=(SoupSeat.IsActing?"稍等一会儿":"E 桌边选项 · Esc 起身")+" · Tab 手机";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
         if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
         prompt.Visible=s.Flow==FlowState.Field;
@@ -74,18 +78,14 @@ public partial class MainView : Control
         if(target.ActionId=="invitation.meeting_complete")ShowDialogue("invitation.meeting",()=>s.TryDispatch(new(target.ActionId,"meeting","invitation-1")));
         else if(target.ActionId=="candy.hey.delivered")
         {
-            if(s.Snapshot.Stage==SliceStage.CandyHeyPending)ShowDialogue("hey.delivery",()=>{s.TryDispatch(new(target.ActionId,"delivered","hey-1"));OfferHey();});
+            if(s.Snapshot.Stage==SliceStage.CandyHeyPending)ShowDialogue("hey.delivery",()=>{if(s.TryDispatch(new(target.ActionId,"delivered","hey-1")).Applied)World.ShowCandyHandover();OfferHey();});
             else if(s.Snapshot.Stage>=SliceStage.CandyHeyDelivered)OfferHey();else ShowNotice("Hey哥","先去小区门口找张大炮吧。");
         }
         else if(target.ActionId=="soup.meet")
         {
-            if(s.Snapshot.Stage==SliceStage.CandyHeyDelivered)s.TryDispatch(new("soup.meet","sit","soup-seat-1"));
-            if(s.Snapshot.Stage==SliceStage.SoupMeet)
-            {if(s.Snapshot.ChoiceCodes.ContainsKey("soup-response-1"))ShowMemoryEntry();else ShowDialogue("soup.start",OfferSoup);}
-            else if(s.Snapshot.Stage==SliceStage.MemoryActive)ShowMemoryEntry();
-            else if(s.Snapshot.Stage==SliceStage.MemoryReturned)ShowSoupReturn("soup.return");
-            else if(s.Snapshot.Stage==SliceStage.SliceComplete)ShowMemoryEntry(true);
-            else ShowNotice("桌边","先把张大炮托你的喜糖交给Hey哥。");
+            if(s.Snapshot.Stage<SliceStage.CandyHeyDelivered){ShowNotice("桌边","先把张大炮托你的喜糖交给Hey哥。");return;}
+            if(SoupSeat.IsActing)return;
+            if(SoupSeat.IsActive)OpenSoupMeeting();else SoupSeat.Begin(OpenSoupMeeting);
         }
         else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else _=SceneFlow.TryEnter(id,new(120,280));}
         else if(target.ActionId=="observe")ShowObservation(target);
@@ -104,11 +104,20 @@ public partial class MainView : Control
         else ShowNotice(target.Caption,target.Description);
     }
     private void OfferHey()=>Choices.Open("糖已经收好。接下来你怎么做？",new (string,Action)[]{("收起手机，站一会儿",()=>ShowDialogue("hey.stay")),("看一眼手机",()=>ShowDialogue("hey.phone")),("转身去汤店",()=>ShowDialogue("hey.leave"))});
+    private void OpenSoupMeeting()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        if(s.Snapshot.Stage==SliceStage.CandyHeyDelivered)s.TryDispatch(new("soup.meet","sit","soup-seat-1"));
+        if(s.Snapshot.Stage==SliceStage.SoupMeet){if(s.Snapshot.ChoiceCodes.ContainsKey("soup-response-1"))ShowMemoryEntry();else ShowDialogue("soup.start",OfferSoup);}
+        else if(s.Snapshot.Stage==SliceStage.MemoryActive)ShowMemoryEntry();
+        else if(s.Snapshot.Stage==SliceStage.MemoryReturned)ShowSoupReturn("soup.return");
+        else if(s.Snapshot.Stage==SliceStage.SliceComplete)ShowMemoryEntry(true);
+    }
     private void OfferSoup()
     {
         var options=new List<(string,Action)>();
         foreach(var (code,caption) in new[]{("eat","先吃一口汤"),("set_chopsticks","替他摆好筷子"),("check_phone","看一眼旧手机")})
-            options.Add((caption,()=>{var s=GetNode<GameSession>("/root/GameSession");if(s.TryDispatch(new("soup.response",code,"soup-response-1")).Applied)ShowDialogue("soup."+code,ShowMemoryEntry);}));
+            options.Add((caption,()=>{var s=GetNode<GameSession>("/root/GameSession");if(s.TryDispatch(new("soup.response",code,"soup-response-1")).Applied)SoupSeat.PlayAction(code,()=>ShowDialogue("soup."+code,ShowMemoryEntry));}));
         Choices.Open("张大炮：最近怎么样？你可以用行动回答。",options);
     }
     private void ShowMemoryEntry()=>ShowMemoryEntry(false);
@@ -130,7 +139,11 @@ public partial class MainView : Control
         if(Memory!=null){Memory.Free();Memory=null;}World.Visible=true;
         s.RecordMemoryReturned();
         s.SaveCheckpoint();
-        if(complete&&s.Snapshot.MemoryState is {} m){s.TryDispatch(new("memory.return","return",m.InstanceId));if(!m.Replay)ShowSoupReturn(context.DialogueNodeId);else ShowNotice("回忆结束","过去没有被改写。你仍坐在现实的汤店里。");}
+        if(complete&&s.Snapshot.MemoryState is {} m)
+        {
+            s.TryDispatch(new("memory.return","return",m.InstanceId));
+            SoupSeat.Begin(()=>{if(!m.Replay)ShowSoupReturn(context.DialogueNodeId);else ShowNotice("回忆结束","过去没有被改写。你仍坐在现实的汤店里。");});
+        }
     }
     private void ShowSoupReturn(string fallbackId)
     {
@@ -158,7 +171,7 @@ public partial class MainView : Control
     {
         var path=ScenePath(sceneId);if(path==null)return false;
         var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return false;
-        Rest?.Cancel();
+        Rest?.Cancel();SoupSeat?.Cancel();
         var next=packed.Instantiate<WorldView>();World.Free();World=next;viewport.AddChild(World);
         if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return false;}
         World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);return true;
@@ -169,14 +182,15 @@ public partial class MainView : Control
         if(ev is not InputEventKey{Pressed:true,Echo:false} key)return;
         if(GetNode<GameSession>("/root/GameSession").Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
         if(Settings.IsOpen){if(key.PhysicalKeycode==Key.Escape)Settings.Close();else return;}
-        else if(key.PhysicalKeycode==Key.F5){var s=GetNode<GameSession>("/root/GameSession");if(Rest.IsActive)s.UpdatePosition(Rest.SavePosition);s.SaveManual();}
-        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();Rest.Cancel();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
+        else if(key.PhysicalKeycode==Key.F5){var s=GetNode<GameSession>("/root/GameSession");s.UpdatePosition(SafeSavePosition);s.SaveManual();}
+        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
         else if(Phone.IsOpen){if(key.PhysicalKeycode==Key.Tab||key.PhysicalKeycode==Key.Escape)Phone.Close();else return;}
         else if(key.PhysicalKeycode==Key.Tab&&!Choices.IsOpen)Phone.Open("messages");
         else if(Choices.IsOpen){if(key.PhysicalKeycode is Key.Escape or Key.E)Choices.HandleKey(key.PhysicalKeycode);else return;}
         else if(Dialogue.IsOpen)Dialogue.HandleKey(key.PhysicalKeycode);
         else if(Memory!=null)Memory.HandleKey(key.PhysicalKeycode);
         else if(Rest.HandleKey(key.PhysicalKeycode)){}
+        else if(SoupSeat.HandleKey(key.PhysicalKeycode)){}
         else if(key.PhysicalKeycode==Key.Escape)Settings.Open();
         else return;
         GetViewport().SetInputAsHandled();

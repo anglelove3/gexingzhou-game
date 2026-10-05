@@ -9,6 +9,7 @@ public partial class SmokeHarness : Node
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="ExperienceDialogue"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS ExperienceDialogue");GetTree().Quit();return;}
             if(suite=="ExperienceGuidance"){await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceGuidance");GetTree().Quit();return;}
+            if(suite=="ExperienceSoupSeat"){await ExperienceSoupSeatChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceSoupSeat");GetTree().Quit();return;}
             if(suite=="EditableWorld")
             {
                 await EditableWorldChecks();GD.Print("GODOT_CHECKS_PASS EditableWorld");GetTree().Quit();return;
@@ -30,7 +31,7 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
@@ -38,6 +39,7 @@ public partial class SmokeHarness : Node
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
                 if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");GetTree().Quit();return;}
+                if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");GetTree().Quit();return;}
                 if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {
@@ -208,6 +210,7 @@ public partial class SmokeHarness : Node
     private void KeyPress(Key key){using var down=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=true};using var up=new InputEventKey{Keycode=key,PhysicalKeycode=key,Pressed=false};Input.ParseInputEvent(down);Input.ParseInputEvent(up);}
     private async Task Finish(MainView main)
     {
+        if(main.SoupSeat.IsActing)await WaitUntil(()=>!main.SoupSeat.IsActing,"Soup before dialogue");
         for(int i=0;i<40&&main.Dialogue.IsOpen;i++){await GameTime(.18);if(!main.Dialogue.IsOpen)break;KeyPress(Key.E);await Frames(2);if(main.Dialogue.IsOpen){var panel=main.Dialogue.GetChildren().OfType<PanelContainer>().Single();if(!main.GetGlobalRect().Grow(.1f).Encloses(panel.GetGlobalRect()))throw new Exception("Dialogue overflows logical screen");}}
         if(main.Dialogue.IsOpen)throw new Exception("Dialogue never finished with keyboard");
     }
@@ -246,6 +249,7 @@ public partial class SmokeHarness : Node
     }
     private async Task Choose(MainView main,int index)
     {
+        if(main.SoupSeat.IsActing)await WaitUntil(()=>!main.SoupSeat.IsActing,"Soup before choice");
         if(!main.Choices.IsOpen)throw new Exception("Expected keyboard choice");
         await Frames(2);for(int i=0;i<index;i++){KeyPress(Key.Down);await Frames(2);}KeyPress(Key.Enter);await Frames(2);
         if(main.Choices.IsOpen)throw new Exception("Keyboard choice did not close");
@@ -258,6 +262,7 @@ public partial class SmokeHarness : Node
         main.ChangeWorld("convenience_street",new(1120,280));main.ChangeWorld("soup_shop",new(440,280));await Frames(2);
         await Capture("soup");
         main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);
+        await WaitUntil(()=>!main.SoupSeat.IsActing,"Soup first seat");
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);}
         await Finish(main);await Choose(main,index);await Finish(main);
         if(s.Snapshot.ChoiceCodes["soup-response-1"]!=code||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SoupMeet)throw new Exception("Wrong soup route: want="+code+" got="+s.Snapshot.ChoiceCodes["soup-response-1"]);
@@ -289,9 +294,10 @@ public partial class SmokeHarness : Node
         if(captureDirectory!=null)GD.Print($"COIN_STATE food={food} step=4 total={s.Snapshot.MemoryState!.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
         if(s.Snapshot.MemoryState!.PushedTotal!=5)throw new Exception($"Keyboard did not push all coins: total={s.Snapshot.MemoryState.PushedTotal} flow={s.Flow} ids={string.Join(',',s.Snapshot.MemoryState.PushedCoinIds)}");
         for(int i=0;i<food;i++){KeyPress(Key.Right);await Frames(2);}KeyPress(Key.E);await Frames(50);await WaitUntil(()=>main.Memory==null&&s.Flow!=GeXingzhou.Domain.FlowState.Transition,"Memory return");
+        if(main.SoupSeat.IsActing)await WaitUntil(()=>!main.SoupSeat.IsActing,"Seated after memory return");
         if(captureDirectory!=null){AssertDialogueFits(main);await Capture("return-"+food+"-font-"+s.Options.SubtitleSize);}
         if(narrative)AssertReturnBranch(main,food);
-        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(narrative)SeedNarrativeMarkers(s);main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await Frames(2);if(narrative)AssertReturnBranch(main,food);}
+        if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");if(narrative)SeedNarrativeMarkers(s);main.World.GetChildren().OfType<Interactable>().Single(t=>t.Id=="seat").TryInteract(s);await WaitUntil(()=>!main.SoupSeat.IsActing,"Restored soup seat");if(narrative)AssertReturnBranch(main,food);}
         await Finish(main);
         if(s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.SliceComplete||s.Snapshot.SceneId!="soup_shop")throw new Exception("Memory did not return and complete slice");
         if(!s.Snapshot.CompletedActions.Contains("soup.payment:soup-payment-1"))throw new Exception("Payment feedback missing");

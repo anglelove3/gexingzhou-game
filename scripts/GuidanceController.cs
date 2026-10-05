@@ -22,11 +22,12 @@ public partial class GuidanceController : Node
             if(target.GetNodeOrNull<Label>("NameLabel") is {} name)
                 name.Visible=field&&target.IsActive&&target.IsVisibleInTree()&&Math.Abs(target.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=140;
         var nearbyObservation=field&&targets.Any(t=>t.ActionId=="observe"&&t.IsActive&&Math.Abs(t.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=40);
-        if(field&&!messageShown&&s.Snapshot.InvitationState.VoiceReceived)
+        var invitation=s.Snapshot.Stage<=SliceStage.InvitationResolved;
+        if(field&&invitation&&!messageShown&&s.Snapshot.InvitationState.VoiceReceived)
         {messageShown=true;current="Tab 打开旧手机 · 张大炮发来了消息";remaining=6;}
         else if(nearbyObservation&&!observationShown&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
         {observationShown=true;current="E 观察 · 可以看看，也可以继续走";remaining=4;}
         hint.Text=current;
-        hint.Visible=field&&remaining>0&&(current.StartsWith("Tab")||nearbyObservation);
+        hint.Visible=field&&remaining>0&&(current.StartsWith("Tab")?invitation:nearbyObservation);
     }
 }

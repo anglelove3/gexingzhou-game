@@ -33,6 +33,13 @@ public partial class WorldView : Node2D
     {
         GetTarget("cannon")?.SetActive(SceneId=="community_gate"&&snapshot.InvitationState.CarArrived&&snapshot.Stage<=SliceStage.InvitationResolved);
     }
+    public void ShowCandyHandover()
+    {
+        if(GetNodeOrNull<Sprite2D>("Hey/HandoverCandy") is not {} candy)return;
+        candy.Visible=true;candy.Position=new(-30,-40);candy.Modulate=Colors.White;
+        var tween=CreateTween();tween.TweenProperty(candy,"position",new Vector2(-2,-35),GetNode<GameSession>("/root/GameSession").Options.ReducedMotion?.2:.65);
+        tween.TweenInterval(.35);tween.TweenProperty(candy,"modulate:a",0f,.2);tween.TweenCallback(Callable.From(()=>candy.Visible=false));
+    }
     public Interactable AddTarget(string id,float x,string caption,string body,string action)
     {
         var target=GD.Load<PackedScene>("res://scenes/world/Interactable.tscn").Instantiate<Interactable>();

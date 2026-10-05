@@ -1,0 +1,138 @@
+[gd_resource type="SpriteFrames" load_steps=21 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v2/player-rest.png" id="Rest"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v3/player-soup.png" id="Soup"]
+[sub_resource type="AtlasTexture" id="Rest0"]
+atlas=ExtResource("Rest")
+region=Rect2(166,6,94,311)
+filter_clip=true
+metadata/seat_pivot=Vector2(44,171)
+metadata/stand_pivot=Vector2(44,308)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest1"]
+atlas=ExtResource("Rest")
+region=Rect2(438,40,118,278)
+filter_clip=true
+metadata/seat_pivot=Vector2(53,158)
+metadata/stand_pivot=Vector2(53,275)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest2"]
+atlas=ExtResource("Rest")
+region=Rect2(716,76,137,241)
+filter_clip=true
+metadata/seat_pivot=Vector2(72,149)
+metadata/stand_pivot=Vector2(72,238)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest3"]
+atlas=ExtResource("Rest")
+region=Rect2(1008,95,179,225)
+filter_clip=true
+metadata/seat_pivot=Vector2(72,152)
+metadata/stand_pivot=Vector2(72,222)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest4"]
+atlas=ExtResource("Rest")
+region=Rect2(721,653,190,260)
+filter_clip=true
+metadata/seat_pivot=Vector2(68,164)
+metadata/stand_pivot=Vector2(68,257)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest5"]
+atlas=ExtResource("Rest")
+region=Rect2(131,970,150,254)
+filter_clip=true
+metadata/seat_pivot=Vector2(61,165)
+metadata/stand_pivot=Vector2(61,251)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest6"]
+atlas=ExtResource("Rest")
+region=Rect2(438,944,137,279)
+filter_clip=true
+metadata/seat_pivot=Vector2(75,176)
+metadata/stand_pivot=Vector2(75,276)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest7"]
+atlas=ExtResource("Rest")
+region=Rect2(730,923,131,301)
+filter_clip=true
+metadata/seat_pivot=Vector2(85,172)
+metadata/stand_pivot=Vector2(85,298)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Rest8"]
+atlas=ExtResource("Rest")
+region=Rect2(1034,911,99,313)
+filter_clip=true
+metadata/seat_pivot=Vector2(46,171)
+metadata/stand_pivot=Vector2(46,310)
+metadata/pose_scale=0.2215
+[sub_resource type="AtlasTexture" id="Soup0"]
+atlas=ExtResource("Soup")
+region=Rect2(136,53,253,380)
+filter_clip=true
+metadata/seat_pivot=Vector2(85,250)
+metadata/stand_pivot=Vector2(85,377)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup1"]
+atlas=ExtResource("Soup")
+region=Rect2(530,52,254,381)
+filter_clip=true
+metadata/seat_pivot=Vector2(84,250)
+metadata/stand_pivot=Vector2(84,378)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup2"]
+atlas=ExtResource("Soup")
+region=Rect2(904,57,259,376)
+filter_clip=true
+metadata/seat_pivot=Vector2(82,245)
+metadata/stand_pivot=Vector2(82,373)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup3"]
+atlas=ExtResource("Soup")
+region=Rect2(139,452,263,382)
+filter_clip=true
+metadata/seat_pivot=Vector2(90,250)
+metadata/stand_pivot=Vector2(90,379)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup4"]
+atlas=ExtResource("Soup")
+region=Rect2(527,458,323,375)
+filter_clip=true
+metadata/seat_pivot=Vector2(68,245)
+metadata/stand_pivot=Vector2(68,372)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup5"]
+atlas=ExtResource("Soup")
+region=Rect2(919,453,270,380)
+filter_clip=true
+metadata/seat_pivot=Vector2(73,246)
+metadata/stand_pivot=Vector2(73,377)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup6"]
+atlas=ExtResource("Soup")
+region=Rect2(115,848,290,382)
+filter_clip=true
+metadata/seat_pivot=Vector2(109,252)
+metadata/stand_pivot=Vector2(109,379)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup7"]
+atlas=ExtResource("Soup")
+region=Rect2(531,853,267,376)
+filter_clip=true
+metadata/seat_pivot=Vector2(88,249)
+metadata/stand_pivot=Vector2(88,373)
+metadata/pose_scale=0.136
+[sub_resource type="AtlasTexture" id="Soup8"]
+atlas=ExtResource("Soup")
+region=Rect2(903,845,301,383)
+filter_clip=true
+metadata/seat_pivot=Vector2(101,250)
+metadata/stand_pivot=Vector2(101,380)
+metadata/pose_scale=0.136
+[resource]
+animations=[
+{"frames":[{"duration":1.0,"texture":SubResource("Rest0")},{"duration":1.0,"texture":SubResource("Rest1")},{"duration":1.0,"texture":SubResource("Rest2")},{"duration":1.0,"texture":SubResource("Rest3")}],"loop":false,"name":&"sit_down","speed":12.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Rest4")}],"loop":true,"name":&"seated","speed":1.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Rest5")},{"duration":1.0,"texture":SubResource("Rest6")},{"duration":1.0,"texture":SubResource("Rest7")},{"duration":1.0,"texture":SubResource("Rest8")}],"loop":false,"name":&"stand_up","speed":12.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Soup0")},{"duration":1.0,"texture":SubResource("Soup1")},{"duration":1.0,"texture":SubResource("Soup2")}],"loop":false,"name":&"eat","speed":6.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Soup3")},{"duration":1.0,"texture":SubResource("Soup4")},{"duration":1.0,"texture":SubResource("Soup5")}],"loop":false,"name":&"set_chopsticks","speed":6.0},
+{"frames":[{"duration":1.0,"texture":SubResource("Soup6")},{"duration":1.0,"texture":SubResource("Soup7")},{"duration":1.0,"texture":SubResource("Soup8")}],"loop":false,"name":&"check_phone","speed":6.0}
+]

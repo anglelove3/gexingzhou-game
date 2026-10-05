@@ -19,7 +19,7 @@ public partial class RestController : Node
     }
     public bool Begin(BenchView value)
     {
-        if(HasMeta("binding_error")||main.World.HasMeta("binding_error")||value.HasMeta("binding_error")||value.GetParent()!=main.World||!value.IsActive||
+        if(main.SoupSeat?.IsActive==true||HasMeta("binding_error")||main.World.HasMeta("binding_error")||value.HasMeta("binding_error")||value.GetParent()!=main.World||!value.IsActive||
            GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field||!state.TrySit())return false;
         bench=value;player=main.World.Player;player.GlobalPosition=value.StandAnchor.GlobalPosition;
         art=player.GetNode<AnimatedSprite2D>("Artwork");int current=++generation;

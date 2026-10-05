@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v1/street-v1.png" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Npc2"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="Npc3"]
 [ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
+[ext_resource type="Texture2D" path="res://assets/atlases/candy-bag.tres" id="Candy"]
 [sub_resource type="RectangleShape2D" id="Ground"]
 size=Vector2(1280,16)
 [sub_resource type="RectangleShape2D" id="Side"]
@@ -118,6 +119,11 @@ position=Vector2(0,-34)
 scale=Vector2(0.13793103448275862,0.13793103448275862)
 texture=ExtResource("Npc1")
 flip_h=true
+[node name="HandoverCandy" type="Sprite2D" parent="Hey"]
+visible=false
+position=Vector2(-30,-40)
+scale=Vector2(0.035,0.035)
+texture=ExtResource("Candy")
 [node name="SoupExit" type="Node2D" parent="."]
 position=Vector2(1120,280)
 script=ExtResource("5")
