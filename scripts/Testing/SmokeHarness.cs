@@ -7,6 +7,7 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="ExperienceDialogue"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS ExperienceDialogue");GetTree().Quit();return;}
             if(suite=="EditableWorld")
             {
                 await EditableWorldChecks();GD.Print("GODOT_CHECKS_PASS EditableWorld");GetTree().Quit();return;
@@ -28,13 +29,14 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
                 if(requested!=null){var dimensions=requested.Split('x');GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(dimensions[0]),int.Parse(dimensions[1]));await Frames(3);}
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
+                if(suite=="CaptureExperience"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS CaptureExperience");GetTree().Quit();return;}
                 if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {

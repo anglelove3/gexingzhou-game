@@ -94,7 +94,7 @@ public partial class MainView : Control
         {
             var id=s.Snapshot.InvitationState.Resolution==InvitationResolution.Answered?"observation.community.answered":s.Snapshot.InvitationState.VoiceReceived?"observation.community.unanswered":"observation.community.quiet";
             if(s.Catalog!.Dialogues.TryGetValue(id,out var node)&&node is not null)
-                Dialogue.ShowText(target.Caption,target.Description+"\n"+string.Join("\n",node.Lines),s.MarkFirstCommunityObservation);
+                Dialogue.ShowText("葛行舟",target.Description+"\n"+string.Join("\n",node.Lines),s.MarkFirstCommunityObservation,DialogueLineKind.Thought);
             else ShowNotice(target.Caption,target.Description);
         }
         else ShowNotice(target.Caption,target.Description);

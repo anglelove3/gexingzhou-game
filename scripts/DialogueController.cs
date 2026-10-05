@@ -8,6 +8,7 @@ public partial class DialogueController : Control
     [Export(PropertyHint.Range,"0.5,1.0,0.01")] public float MonologueOpacity {get;set;}=.82f;
     private double elapsed;private Action? finish;
     private FlowState source;private Control? previousFocus;
+    private DialogueLineKind? presentedKind;
     public bool IsOpen {get;private set;}
     public override void _Ready()
     {
@@ -27,10 +28,10 @@ public partial class DialogueController : Control
         if(s.Catalog==null||!dialogue.Start(id,s.Catalog).Success)return false;
         Begin(onFinished);return true;
     }
-    public void ShowText(string title,string body,Action? onFinished=null)
+    public void ShowText(string title,string body,Action? onFinished=null,DialogueLineKind kind=DialogueLineKind.Spoken)
     {
         if(HasMeta("binding_error"))return;
-        dialogue.Start("notice",new ContentCatalog{Dialogues=new Dictionary<string,DialogueNode>{{"notice",new(title,new[]{body})}}});
+        dialogue.Start("notice",new ContentCatalog{Dialogues=new Dictionary<string,DialogueNode>{{"notice",new(title,new[]{body},new[]{new DialogueLineMetadata(null,kind)})}}});
         Begin(onFinished);
     }
     private void Begin(Action? callback)
@@ -38,21 +39,28 @@ public partial class DialogueController : Control
         var s=GetNode<GameSession>("/root/GameSession");
         if(!IsOpen){source=s.Flow;previousFocus=GetViewport().GuiGetFocusOwner();}
         IsOpen=true;Visible=true;elapsed=0;finish=callback;s.Flow=FlowState.Dialogue;
-        nameLabel.Text=dialogue.Speaker;text.Text=dialogue.Text;
-        if(dialogue.Speaker=="葛行舟"&&authoredStyle is StyleBoxTexture raster)
+        presentedKind=null;ApplyLinePresentation();text.Text=dialogue.Text;
+        GetNode<ScrollContainer>("Panel/Content/Body").ScrollVertical=0;
+    }
+    private void ApplyLinePresentation()
+    {
+        nameLabel.Text=dialogue.Kind switch{DialogueLineKind.Thought=>dialogue.Speaker+"·心声",DialogueLineKind.Narration=>"旁白",_=>dialogue.Speaker};
+        if(presentedKind==dialogue.Kind)return;
+        presentedKind=dialogue.Kind;
+        nameLabel.AddThemeColorOverride("font_color",dialogue.Kind==DialogueLineKind.Spoken?new Color(.96f,.84f,.62f):new Color(.82f,.85f,.87f));
+        if(dialogue.Kind!=DialogueLineKind.Spoken&&authoredStyle is StyleBoxTexture raster)
         {
             var lighter=(StyleBoxTexture)raster.Duplicate();var tint=lighter.ModulateColor;
-            tint.A*=Math.Clamp(MonologueOpacity,.5f,1f);lighter.ModulateColor=tint;
+            tint.A*=dialogue.Kind==DialogueLineKind.Thought?Math.Clamp(MonologueOpacity,.5f,1f):.94f;lighter.ModulateColor=tint;
             panel.AddThemeStyleboxOverride("panel",lighter);
         }
         else panel.AddThemeStyleboxOverride("panel",authoredStyle);
-        GetNode<ScrollContainer>("Panel/Content/Body").ScrollVertical=0;
     }
     public override void _Process(double delta)
     {
         if(!IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Dialogue)return;
         elapsed+=delta;dialogue.Tick(delta,GetNode<GameSession>("/root/GameSession").Options.TextSpeed);
-        nameLabel.Text=dialogue.Speaker;text.Text=dialogue.Text;
+        ApplyLinePresentation();text.Text=dialogue.Text;
     }
     public void HandleKey(Key key)
     {

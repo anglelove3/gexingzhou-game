@@ -26,10 +26,19 @@ public sealed class ContentCatalog
             if (ids.Count==0) errors.Add("No scenes");
             var events = JsonSerializer.Deserialize<string[]>(read("events.json")) ?? Array.Empty<string>();
             if(events.Length==0 || events.Any(string.IsNullOrWhiteSpace) || events.Distinct().Count()!=events.Length) errors.Add("Empty or duplicate events");
-            var dialogues=JsonSerializer.Deserialize<Dictionary<string,DialogueNode>>(read("dialogues.json"))??new();
+            var dialogues=new Dictionary<string,DialogueNode>();
+            using var dialogueJson=JsonDocument.Parse(read("dialogues.json"));
+            foreach(var entry in dialogueJson.RootElement.EnumerateObject())
+            {
+                try
+                {
+                    var node=entry.Value.Deserialize<DialogueNode>();
+                    if(string.IsNullOrWhiteSpace(entry.Name)||node==null||!node.IsValid||!dialogues.TryAdd(entry.Name,node))errors.Add("Invalid dialogue: "+entry.Name);
+                }
+                catch(JsonException ex){errors.Add("Invalid dialogue: "+entry.Name+" — "+ex.Message);}
+            }
             string[] requiredDialogues={"invitation.answer","invitation.meeting","hey.delivery","hey.stay","hey.phone","hey.leave","soup.start","soup.eat","soup.set_chopsticks","soup.check_phone","soup.return","soup.return.take","soup.return.wait","soup.return.share","soup.tomorrow","observation.community.quiet","observation.community.answered","observation.community.unanswered"};
             foreach(var id in requiredDialogues)if(!dialogues.ContainsKey(id))errors.Add("Missing dialogue: "+id);
-            foreach(var entry in dialogues)if(string.IsNullOrWhiteSpace(entry.Key)||entry.Value is not {} node||string.IsNullOrWhiteSpace(node.Speaker)||node.Lines==null||node.Lines.Length==0||node.Lines.Any(string.IsNullOrWhiteSpace))errors.Add("Invalid dialogue: "+entry.Key);
             return new(errors.Count==0,errors.Count==0 ? new ContentCatalog{Parameters=values,Dialogues=dialogues} : null, errors);
         }
         catch(Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException or ArgumentException)

@@ -126,7 +126,7 @@ public partial class SmokeHarness
             s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
             var main=await NewPolishMain();s.AdvanceClock(65);
             var expected=string.Join("\n",s.Catalog!.Dialogues.Values.OrderByDescending(n=>string.Join("",n.Lines).Length).First().Lines);
-            main.Dialogue.ShowText("葛行舟",expected);await Frames(3);
+            main.Dialogue.ShowText("葛行舟",expected,kind:DialogueLineKind.Thought);await Frames(3);
             var body=main.Dialogue.GetNode<Label>("Panel/Content/Body/Text");
             Require(body.Text==expected,"Story truncated to fit artwork");
             var scroll=main.Dialogue.GetNode<ScrollContainer>("Panel/Content/Body");scroll.ScrollVertical=10000;
