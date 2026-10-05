@@ -5,6 +5,13 @@ public static class SaveChecks
     private static string DirectoryFor(string purpose){var path=Path.Combine("test-output",purpose+"-"+Guid.NewGuid());Directory.CreateDirectory(path);return Path.GetFullPath(path);}
     public static void Register(List<(string,string,Action)> tests)
     {
+        tests.Add(("Save","AudioFieldsKeepOriginalVersion",()=>{
+            var dir=DirectoryFor("audio-version");var repo=new SaveRepository(dir);
+            var snapshot=new WorldSnapshot{Settings=new(){MasterVolume=.2,MusicVolume=.3,EffectsVolume=.4,EnvironmentVolume=.5}};
+            Check.True(repo.Save(snapshot).Success);var loaded=repo.Load();Check.Equal(snapshot.Settings,loaded.Snapshot!.Settings);
+            using var json=System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(dir,"save.json")));
+            Check.Equal(1,json.RootElement.GetProperty("schema_version").GetInt32());Check.Equal("vs01-0.1",json.RootElement.GetProperty("content_version").GetString()!);
+        }));
         tests.Add(("Save","RejectsUnsafeReturnPosition",()=>{
             var s=new WorldSnapshot{SceneId="memory_soup_table",Stage=SliceStage.MemoryActive,MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(955,280),"soup.return",true)};
             Check.True(SaveRepository.Validate(s)!=null);

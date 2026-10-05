@@ -13,6 +13,8 @@ public partial class MainView : Control
     public GuidanceController Guidance {get;private set;}=null!;
     public SoupSeatController SoupSeat {get;private set;}=null!;
     public AudioDirector Audio {get;private set;}=null!;
+    public PauseController Pause {get;private set;}=null!;
+    public bool CanPause=>World!=null&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!Rest.IsActive&&!SoupSeat.IsActive&&!Phone.IsOpen&&!Dialogue.IsOpen&&!Choices.IsOpen&&Memory==null;
     public Position2 SafeSavePosition=>SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
@@ -32,6 +34,8 @@ public partial class MainView : Control
             Guidance=SceneBindings.Require<GuidanceController>(this,"Guidance");
             Guidance.Configure(this);
             SoupSeat=SceneBindings.Require<SoupSeatController>(this,"SoupSeat");SoupSeat.Configure(this);
+            Pause=SceneBindings.Require<PauseController>(this,"Pause");Pause.Configure(this);
+            SceneBindings.Require<Button>(this,"HUD/PauseButton").Pressed+=()=>Pause.Open();
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
             prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
@@ -72,6 +76,7 @@ public partial class MainView : Control
         status.Text="葛行舟 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
         World.RefreshQuestActors(s.Snapshot);
         Guidance.Refresh();
+        var pauseButton=GetNode<Button>("HUD/PauseButton");pauseButton.Visible=CanPause;pauseButton.Disabled=!CanPause;
     }
     public void ShowNotice(string title,string body)
     {
@@ -183,21 +188,37 @@ public partial class MainView : Control
         World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);Audio.SetScene(sceneId);return true;
     }
     private static string? ScenePath(string id)=>id switch{"convenience_street"=>"ConvenienceStreet","community_gate"=>"CommunityGate","soup_shop"=>"SoupShop",_=>null};
+    private void LoadManual()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();
+        var loaded=s.ManualSaves.Load();
+        if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}
+        else ShowNotice("手动存档",loaded.Message);
+    }
     public override void _Input(InputEvent ev)
     {
         if(ev is not InputEventKey{Pressed:true,Echo:false} key)return;
-        if(GetNode<GameSession>("/root/GameSession").Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
-        if(Settings.IsOpen){if(key.PhysicalKeycode==Key.Escape)Settings.Close();else return;}
-        else if(key.PhysicalKeycode==Key.F5){var s=GetNode<GameSession>("/root/GameSession");s.UpdatePosition(SafeSavePosition);s.SaveManual();}
-        else if(key.PhysicalKeycode==Key.F9){var s=GetNode<GameSession>("/root/GameSession");if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();var loaded=s.ManualSaves.Load();if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}else ShowNotice("手动存档",loaded.Message);}
-        else if(Phone.IsOpen){if(key.PhysicalKeycode==Key.Tab||key.PhysicalKeycode==Key.Escape)Phone.Close();else return;}
-        else if(key.PhysicalKeycode==Key.Tab&&!Choices.IsOpen)Phone.Open("messages");
-        else if(Choices.IsOpen){if(key.PhysicalKeycode is Key.Escape or Key.E)Choices.HandleKey(key.PhysicalKeycode);else return;}
-        else if(Dialogue.IsOpen)Dialogue.HandleKey(key.PhysicalKeycode);
-        else if(Memory!=null)Memory.HandleKey(key.PhysicalKeycode);
-        else if(Rest.HandleKey(key.PhysicalKeycode)){}
-        else if(SoupSeat.HandleKey(key.PhysicalKeycode)){}
-        else if(key.PhysicalKeycode==Key.Escape)Settings.Open();
+        var code=key.PhysicalKeycode;var s=GetNode<GameSession>("/root/GameSession");
+        if(s.Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
+        if(Settings.IsOpen){if(code==Key.Escape)Settings.Close();else return;}
+        else if(Pause.IsOpen)
+        {
+            if(code==Key.Escape)Pause.Close();
+            else if(code==Key.F5)Pause.Save();
+            else if(code==Key.F9){Pause.Close();LoadManual();}
+            else return;
+        }
+        else if(code==Key.F5){s.UpdatePosition(SafeSavePosition);s.SaveManual();}
+        else if(code==Key.F9)LoadManual();
+        else if(Phone.IsOpen){if(code is Key.Tab or Key.Escape)Phone.Close();else return;}
+        else if(code==Key.Tab&&!Choices.IsOpen){Memory?.CancelDrag();Phone.Open("messages");}
+        else if(Choices.IsOpen){if(code is Key.Escape or Key.E)Choices.HandleKey(code);else return;}
+        else if(Dialogue.IsOpen)Dialogue.HandleKey(code);
+        else if(Memory!=null)Memory.HandleKey(code);
+        else if(Rest.HandleKey(code)){}
+        else if(SoupSeat.HandleKey(code)){}
+        else if(code==Key.Escape)Pause.Open();
         else return;
         GetViewport().SetInputAsHandled();
     }

@@ -1,4 +1,4 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins')][string]$Batch='All')
+param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause')][string]$Batch='All')
 . "$PSScriptRoot/Common.ps1"
 try {
     $context=Get-ToolContext $GodotExe
@@ -9,10 +9,12 @@ try {
     $required+=@('soup-seated-reduced','soup-eat-reduced','soup-chopsticks-reduced','soup-phone-reduced','soup-risen-reduced')
     foreach($font in @(20,24,32)){foreach($kind in @('spoken','thought','narration')){$required+='dialogue-'+$kind+'-'+$font}}
     foreach($font in @(20,24,32)){foreach($kind in @('table','partial','complete','help')){$required+='memory-'+$kind+'-'+$font}}
+    foreach($font in @(20,24,32)){foreach($kind in @('pause','pause-settings','pause-save-failed')){$required+=$kind+'-'+$font}}
+    if($Batch -eq 'CapturePause'){$required=@($required|Where-Object {$_ -match '^pause-'})}
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat')}else{@($Batch)}
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause')}else{@($Batch)}
     foreach($size in @('1280x720','1920x1080','1440x1080')) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
         [IO.Directory]::CreateDirectory($outputDir)|Out-Null

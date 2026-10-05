@@ -7,6 +7,7 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="ExperiencePause"){await ExperiencePauseChecks();GD.Print("GODOT_CHECKS_PASS ExperiencePause");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceAudio"){await ExperienceAudioChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS ExperienceAudio");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceCoins"){await ExperienceCoinsChecks();GD.Print("GODOT_CHECKS_PASS ExperienceCoins");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceDialogue"){await ExperienceDialogueChecks();GD.Print("GODOT_CHECKS_PASS ExperienceDialogue");await DrainAudio();GetTree().Quit();return;}
@@ -33,7 +34,7 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");await DrainAudio();GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
@@ -43,6 +44,7 @@ public partial class SmokeHarness : Node
                 if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CapturePause"){await PauseVisualChecks();GD.Print("GODOT_CHECKS_PASS CapturePause");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {
@@ -70,9 +72,13 @@ public partial class SmokeHarness : Node
                     if(!enabled&&after!=before||enabled&&after-before!=7)throw new Exception($"Event switch or pairing failed: enabled={enabled} before={before} after={after}");
                     GD.Print($"ACCESSIBILITY_PATH_PASS font={font} instant=true reduced=true records={enabled}");
                 }
-                var settingsMain=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(settingsMain);await Frames(3);KeyPress(Key.Escape);await Frames(2);
-                if(!settingsMain.Settings.IsOpen)throw new Exception("Settings not keyboard accessible");KeyPress(Key.Escape);await Frames(2);
-                if(settingsMain.Settings.IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Settings did not restore field flow");
+                var settingsMain=await NewPolishMain();KeyPress(Key.Escape);await Frames(2);
+                if(!settingsMain.Pause.IsOpen)throw new Exception("Pause not keyboard accessible");
+                settingsMain.Pause.GetNode<Button>("Panel/Scroll/Content/Settings").EmitSignal(Button.SignalName.Pressed);await Frames(2);
+                if(!settingsMain.Settings.IsOpen)throw new Exception("Settings not accessible from pause");KeyPress(Key.Escape);await Frames(2);
+                if(settingsMain.Settings.IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Paused)throw new Exception("Settings did not restore pause flow");
+                KeyPress(Key.Escape);await Frames(2);
+                if(settingsMain.Pause.IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=GeXingzhou.Domain.FlowState.Field)throw new Exception("Pause did not restore field flow");
                 settingsMain.Free();await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Accessibility");await DrainAudio();GetTree().Quit();return;
             }
             if(suite=="Recovery")

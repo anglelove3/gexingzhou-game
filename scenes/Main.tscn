@@ -1,4 +1,5 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
+[ext_resource type="PackedScene" path="res://scenes/ui/Pause.tscn" id="Pause"]
 [ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Audio"]
 [ext_resource type="Script" path="res://scripts/MainView.cs" id="Script"]
 [ext_resource type="PackedScene" path="res://scenes/world/CommunityGate.tscn" id="World"]
@@ -57,6 +58,15 @@ theme_override_constants/outline_size=6
 text="张大炮把钱压在碗边：这顿我来。"
 autowrap_mode=3
 mouse_filter=2
+[node name="PauseButton" type="Button" parent="HUD"]
+layout_mode=1
+anchor_left=1.0
+anchor_right=1.0
+offset_left=-160.0
+offset_top=24.0
+offset_right=-24.0
+offset_bottom=80.0
+text="暂停"
 [node name="TaskCard" type="PanelContainer" parent="HUD"]
 offset_left=24.0
 offset_top=20.0
@@ -110,6 +120,8 @@ script=ExtResource("SoupSeat")
 [node name="Dialogue" parent="." instance=ExtResource("Dialogue")]
 visible=false
 [node name="Choices" parent="." instance=ExtResource("Choices")]
+visible=false
+[node name="Pause" parent="." instance=ExtResource("Pause")]
 visible=false
 [node name="Settings" parent="." instance=ExtResource("Settings")]
 visible=false

@@ -68,5 +68,6 @@ public partial class AudioDirector : Node
     }
     public void SetPaused(bool value){if(value==paused)return;paused=value;if(value)StopTransient();ApplySettings(options);}
     public void StopTransient(){foreach(var slot in slots){slot.Stop();slot.Stream=null;}}
-    public override void _ExitTree(){StopTransient();if(ready){music.Stop();ambience.Stop();music.Stream=null;ambience.Stream=null;}ready=false;}
+    public void StopAll(){StopTransient();if(ready){music.Stop();ambience.Stop();music.Stream=null;ambience.Stream=null;}}
+    public override void _ExitTree(){StopAll();ready=false;}
 }

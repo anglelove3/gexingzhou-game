@@ -56,8 +56,8 @@ public partial class GameSession : Node
     {
         var r=Recorder.TryAppend(new(){PlaythroughId=Snapshot.PlaythroughId,SceneId=Snapshot.SceneId,EventId=id,OpportunityId=opportunity,ChoiceCode=choice.ToLowerInvariant(),CheckpointId=JsonNamingPolicy.SnakeCaseLower.ConvertName(Snapshot.Stage.ToString()),ActiveMilliseconds=Snapshot.SceneActiveMilliseconds.GetValueOrDefault(Snapshot.SceneId)});if(!r.Success)EventWarning=r.Message;
     }
-    public void SaveCheckpoint(){var r=Saves.Save(Snapshot);SaveMessage=r.Success?"":r.Message;}
-    public void SaveManual(){var r=ManualSaves.Save(Snapshot);SaveMessage=r.Message;}
+    public SaveResult SaveCheckpoint(){var r=Saves.Save(Snapshot);SaveMessage=r.Success?"":r.Message;return r;}
+    public SaveResult SaveManual(){var r=ManualSaves.Save(Snapshot);SaveMessage=r.Message;return r;}
     public void MarkFirstCommunityObservation()
     {
         if(Snapshot.CompletedActions.Contains("observation.community.first"))return;
