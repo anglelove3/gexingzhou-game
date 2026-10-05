@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 [ext_resource type="Script" path="res://scripts/MainView.cs" id="Script"]
 [ext_resource type="PackedScene" path="res://scenes/world/CommunityGate.tscn" id="World"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Phone.tscn" id="Phone"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/WorldDisplayController.cs" id="Display"]
 [ext_resource type="Script" path="res://scripts/RestController.cs" id="Rest"]
 [ext_resource type="PackedScene" path="res://scenes/ui/RestOptions.tscn" id="RestOptions"]
+[ext_resource type="Script" path="res://scripts/GuidanceController.cs" id="Guidance"]
 [node name="Main" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -69,6 +70,23 @@ text="A/D 移动 · Shift 加快 · E 互动 · Tab 手机"
 mouse_filter=2
 [node name="Phone" parent="." instance=ExtResource("Phone")]
 visible=false
+[node name="Guidance" type="Label" parent="HUD"]
+layout_mode=1
+anchor_top=1.0
+anchor_right=1.0
+anchor_bottom=1.0
+offset_left=30.0
+offset_top=-114.0
+offset_right=-30.0
+offset_bottom=-72.0
+mouse_filter=2
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,0.95)
+theme_override_constants/outline_size=6
+text="E 观察 · 可以看看，也可以继续走"
+visible=false
+[node name="Guidance" type="Node" parent="."]
+script=ExtResource("Guidance")
 [node name="RestOptions" parent="." instance=ExtResource("RestOptions")]
 visible=false
 [node name="Rest" type="Node" parent="."]

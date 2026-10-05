@@ -4,11 +4,13 @@ try {
     $context=Get-ToolContext $GodotExe
     Add-Type -AssemblyName System.Drawing
     $required=@('menu','phone','soup','memory','memory-font-32','art-community_gate','art-convenience_street','art-soup_shop','art-walk-0','art-walk-1','art-walk-2','art-walk-3','observation-quiet','observation-answered','observation-unanswered','return-0-font-32','return-1-font-32','return-2-font-32','polish-dialogue-20','polish-dialogue-24','polish-dialogue-32','polish-phone-20','polish-phone-24','polish-phone-32','rest-seated','rest-options','rest-smoke','rest-risen')
+    $required+=@('guidance-first','guidance-cannon','guidance-exit')
+    foreach($font in @(20,24,32)){foreach($kind in @('spoken','thought','narration')){$required+='dialogue-'+$kind+'-'+$font}}
     foreach($size in @('1280x720','1920x1080','1440x1080')) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
         [IO.Directory]::CreateDirectory($outputDir)|Out-Null
         $combined=''
-        foreach($batch in @('Capture','CaptureNarrative','CapturePolish')) {
+        foreach($batch in @('Capture','CaptureNarrative','CapturePolish','CaptureExperience')) {
             $stdout=Join-Path $outputDir ($size+'-'+$batch+'.stdout.log');$stderr=Join-Path $outputDir ($size+'-'+$batch+'.stderr.log')
             $arguments=@('--borderless','--position','-10000,-10000','--resolution',$size,'--path',('"'+$script:ProjectRoot+'"'),'res://tests/integration/Smoke.tscn','--',("--suite="+$batch),"--capture-size=$size")
             $process=Start-Process -FilePath $context.GodotExe -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
@@ -27,6 +29,6 @@ try {
             try {if($image.Width -ne [int]$dimensions[0] -or $image.Height -ne [int]$dimensions[1]){throw "CAPTURE_PIXEL_SIZE_MISMATCH $name $size"}} finally {$image.Dispose()}
         }
     }
-    Write-Output 'CAPTURE_PASS 84 required real-rendered images; visual inspection still required'
+    Write-Output "CAPTURE_PASS $($required.Count*3) required real-rendered images; visual inspection still required"
     exit 0
 } catch {Write-Output "CAPTURE_FAIL $_";exit 1}

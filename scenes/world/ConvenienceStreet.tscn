@@ -56,6 +56,19 @@ Caption="回安置小区"
 Description=""
 ActionId="scene:community_gate"
 IsActive=true
+[node name="NameLabel" type="Label" parent="CommunityExit"]
+offset_left=-100.0
+offset_top=-111.0
+offset_right=100.0
+offset_bottom=-88.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=13
+text="回安置小区"
+mouse_filter=2
+visible=false
 [node name="Marker" type="Label" parent="CommunityExit"]
 offset_left=-8.0
 offset_top=-88.0
@@ -75,6 +88,19 @@ Caption="Hey哥 · 递喜糖 / 聊两句"
 Description=""
 ActionId="candy.hey.delivered"
 IsActive=true
+[node name="NameLabel" type="Label" parent="Hey"]
+offset_left=-100.0
+offset_top=-111.0
+offset_right=100.0
+offset_bottom=-88.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=13
+text="Hey哥"
+mouse_filter=2
+visible=false
 [node name="Marker" type="Label" parent="Hey"]
 offset_left=-8.0
 offset_top=-88.0
@@ -100,6 +126,19 @@ Caption="去鸭血粉丝汤店"
 Description=""
 ActionId="scene:soup_shop"
 IsActive=true
+[node name="NameLabel" type="Label" parent="SoupExit"]
+offset_left=-100.0
+offset_top=-111.0
+offset_right=100.0
+offset_bottom=-88.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=13
+text="去鸭血粉丝汤店"
+mouse_filter=2
+visible=false
 [node name="Marker" type="Label" parent="SoupExit"]
 offset_left=-8.0
 offset_top=-88.0

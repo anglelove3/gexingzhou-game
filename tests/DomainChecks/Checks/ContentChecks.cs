@@ -23,7 +23,9 @@ public static class ContentChecks
             var loaded = ContentCatalog.Load("content/vs01"); Check.True(loaded.Success);
             Check.Equal(112d,loaded.Catalog!.Parameters["move.walk_speed"]);
             Check.Equal(168d,loaded.Catalog.Parameters["move.run_speed"]);
-            Check.Equal(20d,loaded.Catalog.Parameters["invitation.voice_delay"]);
+            Check.Equal(8d,loaded.Catalog.Parameters["invitation.voice_delay"]);
+            Check.Equal(15d,loaded.Catalog.Parameters["invitation.call_delay"]);
+            Check.Equal(30d,loaded.Catalog.Parameters["invitation.car_fallback"]);
         }));
         tests.Add(("Content","ReportsMissingDirectory", () => Check.True(!ContentCatalog.Load("test-output/missing-content").Success)));
         foreach (var (name, scenes, events) in new[] {

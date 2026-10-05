@@ -4,6 +4,31 @@ using System.Text.Json;
 
 public partial class SmokeHarness
 {
+    private async Task ExperienceGuidanceChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);s.NewGame();
+        s.AdvanceClock(7.99);Require(!s.Snapshot.InvitationState.VoiceReceived,"Voice before eight seconds");
+        s.Flow=FlowState.Phone;s.AdvanceClock(10);Require(!s.Snapshot.InvitationState.VoiceReceived,"Phone advanced invitation");
+        s.Flow=FlowState.Dialogue;s.AdvanceClock(10);Require(!s.Snapshot.InvitationState.VoiceReceived,"Dialogue advanced invitation");
+        s.Flow=FlowState.Field;s.AdvanceClock(.01);Require(s.Snapshot.InvitationState.VoiceReceived,"Voice missing at eight seconds");
+        s.AdvanceClock(15);Require(s.Snapshot.InvitationState.PhoneRinging&&!s.Snapshot.InvitationState.CarArrived,"Call interval changed");
+        s.AdvanceClock(30);Require(s.Snapshot.InvitationState.CarArrived,"Ignored phone stranded player");
+        var main=await NewPolishMain();var hint=main.GetNodeOrNull<Label>("HUD/Guidance");Require(hint!=null,"Missing authored guidance label");
+        main.World.Player.Position=new(160,280);await Frames(3);
+        Require(hint!.Visible&&hint.Text.Contains("E 观察"),"Missing first observation hint");await Capture("guidance-first");
+        var oldSign=main.World.GetTarget("old_sign")!;main.ShowObservation(oldSign);main.Dialogue.HandleKey(Key.Escape);await Frames(2);
+        Require(!s.Snapshot.CompletedActions.Contains("observation.community.first"),"Cancelled observation consumed");
+        main.World.Player.Position=new(320,280);await Frames(3);Require(!hint.Visible,"Hint retained far from object");
+        s.AdvanceClock(53);main.World.Player.Position=new(400,280);await Frames(3);
+        var cannon=main.World.GetNodeOrNull<Label>("Cannon/NameLabel");Require(cannon is {Visible:true}&&cannon.Text=="张大炮","Missing near actor name");
+        Require(hint.Visible&&hint.Text.Contains("Tab"),"Missing first message hint");await Capture("guidance-cannon");
+        main.World.Player.Position=new(1480,280);await Frames(3);
+        var exit=main.World.GetNodeOrNull<Label>("StreetExit/NameLabel");Require(exit is {Visible:true}&&exit.Text.Contains("便利店街"),"Missing exit destination");Require(!cannon!.Visible,"Distant actor name stayed visible");await Capture("guidance-exit");
+        main.World.Player.Position=new(800,280);await Frames(3);Require(!exit!.Visible,"Distant exit name stayed visible");
+        main.ChangeWorld("convenience_street",new(600,280));await Frames(3);Require(main.World.GetNode<Label>("Hey/NameLabel").Visible,"Hey name absent");
+        main.ChangeWorld("soup_shop",new(440,280));await Frames(3);Require(main.World.GetNode<Label>("Seat/NameLabel").Visible,"Soup actor name absent");
+        main.Free();await Frames(2);
+    }
     private async Task ExperienceDialogueChecks()
     {
         var session=GetNode<GameSession>("/root/GameSession");

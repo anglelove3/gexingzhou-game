@@ -10,6 +10,7 @@ public partial class MainView : Control
     public SoupMemoryController? Memory {get;private set;}
     public SettingsController Settings {get;private set;}=null!;private int lastFont;
     public RestController Rest {get;private set;}=null!;
+    public GuidanceController Guidance {get;private set;}=null!;
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
     private WorldDisplayController display=null!;
@@ -24,6 +25,8 @@ public partial class MainView : Control
             Choices=SceneBindings.Require<ChoiceController>(this,"Choices");
             Settings=SceneBindings.Require<SettingsController>(this,"Settings");
             Rest=SceneBindings.Require<RestController>(this,"Rest");
+            Guidance=SceneBindings.Require<GuidanceController>(this,"Guidance");
+            Guidance.Configure(this);
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
             prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
@@ -57,6 +60,7 @@ public partial class MainView : Control
         var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
         status.Text="葛行舟 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
         World.RefreshQuestActors(s.Snapshot);
+        Guidance.Refresh();
     }
     public void ShowNotice(string title,string body)
     {

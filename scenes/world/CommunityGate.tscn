@@ -76,6 +76,19 @@ Caption="张大炮 · 见面"
 Description=""
 ActionId="invitation.meeting_complete"
 IsActive=false
+[node name="NameLabel" type="Label" parent="Cannon"]
+offset_left=-100.0
+offset_top=-111.0
+offset_right=100.0
+offset_bottom=-88.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=13
+text="张大炮"
+mouse_filter=2
+visible=false
 [node name="Marker" type="Label" parent="Cannon"]
 offset_left=-8.0
 offset_top=-88.0
@@ -101,6 +114,19 @@ Caption="去便利店街"
 Description=""
 ActionId="scene:convenience_street"
 IsActive=true
+[node name="NameLabel" type="Label" parent="StreetExit"]
+offset_left=-100.0
+offset_top=-111.0
+offset_right=100.0
+offset_bottom=-88.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
+theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=13
+text="去便利店街"
+mouse_filter=2
+visible=false
 [node name="Marker" type="Label" parent="StreetExit"]
 offset_left=-8.0
 offset_top=-88.0

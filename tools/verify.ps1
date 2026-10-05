@@ -1,6 +1,6 @@
 param([string]$Suite,[string]$GodotExe)
 . "$PSScriptRoot/Common.ps1"
-$known=@('Movement','Invitation','Hey','Soup','Memory','Slice','Resume','ResumeSeed','ResumeRead','Accessibility','Recovery','Narrative','Art','EditableWorld','EditableUi','ResponsiveUi','PolishedUi','Rest','ExperienceDialogue')
+$known=@('Movement','Invitation','Hey','Soup','Memory','Slice','Resume','ResumeSeed','ResumeRead','Accessibility','Recovery','Narrative','Art','EditableWorld','EditableUi','ResponsiveUi','PolishedUi','Rest','ExperienceDialogue','ExperienceGuidance')
 try {
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
@@ -14,7 +14,7 @@ try {
         Invoke-Checked $context.DotnetExe @('run','--project','tests/DomainChecks') 'domain'
         Invoke-Checked $context.DotnetExe @('build','GeXingzhou.csproj','--no-restore') 'build'
         Invoke-Checked $context.GodotExe @('--headless','--editor','--path',$script:ProjectRoot,'--import') 'import'
-        if($Suite){$suites=@($Suite)}else{$suites=@('Movement','Invitation','Hey','Soup','Memory','Slice','ResumeSeed','ResumeRead','Accessibility','Recovery','Narrative','Art','EditableWorld','EditableUi','ResponsiveUi','PolishedUi','Rest','ExperienceDialogue')}
+        if($Suite){$suites=@($Suite)}else{$suites=@('Movement','Invitation','Hey','Soup','Memory','Slice','ResumeSeed','ResumeRead','Accessibility','Recovery','Narrative','Art','EditableWorld','EditableUi','ResponsiveUi','PolishedUi','Rest','ExperienceDialogue','ExperienceGuidance')}
         $resumeRoot='res://test-output/verify-resume-'+[Guid]::NewGuid().ToString('N')
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
