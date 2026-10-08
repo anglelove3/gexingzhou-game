@@ -132,7 +132,7 @@ public partial class MainView : Control
     {
         var options=new List<(string,Action)>();
         foreach(var (code,caption) in new[]{("eat","先吃一口汤"),("set_chopsticks","替他摆好筷子"),("check_phone","看一眼旧手机")})
-            options.Add((caption,()=>{var s=GetNode<GameSession>("/root/GameSession");if(s.TryDispatch(new("soup.response",code,"soup-response-1")).Applied)SoupSeat.PlayAction(code,()=>ShowDialogue("soup."+code,ShowMemoryEntry));}));
+            options.Add((caption,()=>{var s=GetNode<GameSession>("/root/GameSession");if(s.TryDispatch(new("soup.response",code,"soup-response-1")).Applied&&!SoupSeat.PlayAction(code,()=>ShowDialogue("soup."+code,ShowMemoryEntry)))ShowDialogue("soup."+code,ShowMemoryEntry);}));
         Choices.Open("张大炮：最近怎么样？你可以用行动回答。",options);
     }
     private void ShowMemoryEntry()=>ShowMemoryEntry(false);

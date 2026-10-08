@@ -17,7 +17,7 @@ public partial class SmokeHarness
     {
         foreach(var font in new[]{20,24,32})
         {
-            var table=await NewCoinTable(0,font);await Capture("memory-table-"+font);
+            var table=await NewCoinTable(0,font);AssertTabletopArtAlignment(table);await Capture("memory-table-"+font);
             table.HandleKey(Key.E);table.HandleKey(Key.E);await Frames(18);await Capture("memory-partial-"+font);
             table.HandleKey(Key.E);table.HandleKey(Key.E);await Frames(18);await Capture("memory-complete-"+font);
             table.GetNode<Button>("HelpToggle").EmitSignal(Button.SignalName.Pressed);await Frames(3);await Capture("memory-help-"+font);
@@ -25,8 +25,22 @@ public partial class SmokeHarness
         }
         GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
     }
+    private void AssertTabletopArtAlignment(SoupMemoryController table)
+    {
+        var rect=table.GetGlobalRect();var surface=table.GetNode<Control>("Table");
+        foreach(var i in Enumerable.Range(1,4))
+        {
+            var far=surface.GetNode<Marker2D>("Far"+i).GlobalPosition;
+            Require((far.Y-rect.Position.Y)/rect.Size.Y>=.50f,"Paid coin floats above authored tabletop");
+        }
+        var region=surface.GetNode<Control>("DeliveryArea").GetGlobalRect();
+        Require((region.Position.Y-rect.Position.Y)/rect.Size.Y>=.46f&&rect.Encloses(region),"Delivery region detached from tabletop");
+        Require(rect.Encloses(surface.GetNode<TextureRect>("Bowl").GetGlobalRect()),"Bowl cropped outside screen");
+        Require(rect.Encloses(surface.GetNode<Control>("Foods").GetGlobalRect()),"Table foods cropped outside screen");
+    }
     private async Task ExperienceCoinsChecks()
     {
+        await CoinCrossProgressReloadChecks();
         var s=GetNode<GameSession>("/root/GameSession");
         for(int n=0;n<4;n++)
         {
@@ -59,5 +73,29 @@ public partial class SmokeHarness
         var before=s.Snapshot.MemoryState;active.GetNode<Button>("Table/Coin4").EmitSignal(Button.SignalName.Pressed);await Frames(2);
         Require(s.Snapshot.MemoryState==before,"Duplicate two-unit coin changed progress");active.Free();await Frames(2);
         GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
+    }
+    private async Task CoinCrossProgressReloadChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        foreach(var (current,loaded) in new[]{(3,4),(4,1)})
+        {
+            var savedTable=await NewCoinTable(loaded);Require(s.SaveManual().Success,"Cross-progress fixture save");savedTable.Free();await Frames(2);
+            var seed=await NewCoinTable(current);var candidate=s.Snapshot;seed.Free();await Frames(2);
+            s.PendingRestore=candidate;var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(4);
+            GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(8);
+            var reloaded=GetTree().CurrentScene as MainView;
+            Require(reloaded!=null&&reloaded!=main&&reloaded.Memory!=null,"Actual F9 did not recreate memory");main.Free();await Frames(3);
+            var table=reloaded!.Memory!;var focus=loaded==4?table.GetNode<Button>("Table/Foods/Take"):table.GetNode<Button>("Table/Coin2");
+            Require(GetViewport().GuiGetFocusOwner()==focus,"Cross-progress reload retained stale keyboard selection "+current+"->"+loaded);
+            KeyPress(Key.E);await Frames(2);
+            if(loaded==4)
+            {
+                Require(s.Snapshot.MemoryState is {Completed:true,FoodChoice:FoodChoice.Take},"Loaded completed coins did not choose first food");
+                await WaitUntil(()=>s.Flow!=FlowState.Transition&&reloaded.Memory==null,"Loaded food return");
+            }
+            else Require(s.Snapshot.MemoryState!.PushedTotal==2&&s.Snapshot.MemoryState.PushedCoinIds.Contains("c2"),"Loaded partial coins chose paid coin");
+            reloaded.Free();await Frames(2);
+        }
+        GD.Print("COIN_CROSS_PROGRESS_F9_PASS 2");
     }
 }

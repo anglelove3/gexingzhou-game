@@ -71,13 +71,20 @@ autowrap_mode=3
 mouse_filter=2
 [node name="Table" type="Control" parent="."]
 layout_mode=1
-anchors_preset=15
-anchor_right=1.0
-anchor_bottom=1.0
+anchors_preset=8
+anchor_left=0.5
+anchor_top=0.5
+anchor_right=0.5
+anchor_bottom=0.5
+offset_left=-640.0
+offset_top=-360.0
+offset_right=640.0
+offset_bottom=360.0
+pivot_offset=Vector2(640,360)
 mouse_filter=2
 [node name="DeliveryArea" type="Control" parent="Table"]
 offset_left=350.0
-offset_top=325.0
+offset_top=350.0
 offset_right=900.0
 offset_bottom=450.0
 mouse_filter=2
@@ -90,13 +97,13 @@ theme_override_font_sizes/font_size=20
 text="往桌子那边推"
 mouse_filter=2
 [node name="BowlFar" type="Marker2D" parent="Table"]
-position=Vector2(1000,340)
+position=Vector2(900,340)
 [node name="BowlNear" type="Marker2D" parent="Table"]
-position=Vector2(950,460)
+position=Vector2(850,460)
 [node name="Bowl" type="TextureRect" parent="Table"]
-offset_left=1000.0
+offset_left=900.0
 offset_top=340.0
-offset_right=1180.0
+offset_right=1080.0
 offset_bottom=480.0
 texture=ExtResource("Bowl")
 expand_mode=1
@@ -192,10 +199,13 @@ size_flags_horizontal=3
 custom_minimum_size=Vector2(0,62)
 text="一起分着吃"
 [node name="Hint" type="Label" parent="."]
+layout_mode=1
+anchor_top=1.0
+anchor_bottom=1.0
 offset_left=40.0
-offset_top=680.0
+offset_top=-40.0
 offset_right=1240.0
-offset_bottom=718.0
+offset_bottom=-2.0
 theme_override_font_sizes/font_size=20
 text="← → / A D 选择 · E 推币/确认 · 鼠标拖币 · Esc 回现实，下次继续"
 mouse_filter=2

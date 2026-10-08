@@ -25,7 +25,8 @@ public partial class SoupSeatController : Node
     }
     public bool PlayAction(string code,Action completed)
     {
-        if(!IsActive||IsActing||suspended||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field||code is not ("eat" or "set_chopsticks" or "check_phone"))return false;
+        if(!IsActive||IsActing||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field||code is not ("eat" or "set_chopsticks" or "check_phone"))return false;
+        suspended=false;
         main.Audio.PlayCue(code=="eat"?AudioCue.Bowl:code=="set_chopsticks"?AudioCue.Chopsticks:AudioCue.PhoneMessage);
         StartPose(code,()=>{SetSeated();completed();});return true;
     }

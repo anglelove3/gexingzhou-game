@@ -184,8 +184,11 @@ public partial class SmokeHarness
     }
     private async Task EditableUiChecks()
     {
+        var retained=new List<Resource>();
         foreach(var path in new[]{"scenes/ui/RestOptions.tscn","scenes/world/Bench.tscn","assets/ui/vs01-v2/phone.tres","assets/ui/vs01-v2/dialogue.tres","assets/animations/player-rest-v2.tres","assets/animations/player-rest-reduced-v2.tres","assets/art/vs01-v2/phone-frame.png","assets/art/vs01-v2/dialogue-frame.png","assets/art/vs01-v2/player-rest.png","assets/art/vs01-v2/bench-foreground.png"})
-            Require(ResourceLoader.Exists("res://"+path)&&ResourceLoader.Load("res://"+path)!=null,"BundleDependencies "+path);
+        {
+            var resource=ResourceLoader.Load("res://"+path);Require(ResourceLoader.Exists("res://"+path)&&resource!=null,"BundleDependencies "+path);retained.Add(resource!);
+        }
         var saved=new (string File,string[] Paths)[]{
             ("Boot",new[]{"Background","Menu/Title","Menu/StartButton","Menu/AutoResumeButton","Menu/ManualResumeButton","Menu/RecoveryButton","Menu/SettingsButton","Menu/QuitButton","StartupError","Choices","Settings"}),
             ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
@@ -197,7 +200,8 @@ public partial class SmokeHarness
         foreach(var (file,paths) in saved)
         {
             Require(ResourceLoader.Exists($"res://scenes/{file}.tscn"),"OfflineUiTree missing scene "+file);
-            var node=GD.Load<PackedScene>($"res://scenes/{file}.tscn").Instantiate();
+            GD.Print("EDITABLE_UI_OFFLINE "+file);
+            var packed=GD.Load<PackedScene>($"res://scenes/{file}.tscn");retained.Add(packed);var node=packed.Instantiate();
             try{foreach(var path in paths)Require(node.GetNodeOrNull(path)!=null,"OfflineUiTree missing "+file+"/"+path);}
             finally{node.Free();}
         }
@@ -214,6 +218,7 @@ public partial class SmokeHarness
         main.Dialogue.HandleKey(Key.Escape);main.Phone.Open("messages");main.Phone.Close();main.Phone.Open("messages");
         Require(main.FindChildren("Phone","",true,false).Count==1,"NoDuplicateUiOnOpen phone duplicated");main.Phone.Close();main.Free();await Frames(2);
         GD.Print("EDITABLE_UI_PASS OfflineUiTree NoDuplicateUiOnOpen SavedStylesSurviveReady");
+        GC.KeepAlive(retained);
     }
     private static void Require(bool value,string message)
     { if(!value)throw new InvalidOperationException(message); }

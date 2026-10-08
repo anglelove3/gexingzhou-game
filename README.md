@@ -2,13 +2,15 @@
 
 这是Godot 4.7.2 .NET + C#的**编辑器可运行首段试玩**，已接入第一版正式栅格美术，不是完整游戏，也不是无需引擎的Windows EXE。项目目录沿用用户指定的“顾行舟”，角色名仍为“葛行舟”。额外游戏插件不是当前依赖。
 
-2026-10-04本轮升级：世界、角色和主要UI具名节点已存入.tscn，本地可以编辑；手机/对白有新正式图框，背景按窗口比例覆盖、HUD缩成任务卡。长椅E有坐下动作，再由玩家选择“坐一会儿／来一根／起身”，默认不抽烟，本轮无buff。菜单开着Esc先收起，再Esc起身；Tab手机；坐姿F5保存安全站立位置，F9恢复站立。
+最新更新记录：2026-10-08 23:30（北京时间，记录整理时间；实际提交时间见Git）。R1—R6首段体验润色已接入，并修复汤店真实选项跳过动作/对白、跨进度F9焦点越界、4:3桌面物件与背景错位。详细内容见[更新日志](docs/development/10_更新日志.md)，验证与待办见[首段润色验收记录](docs/reviews/2026-10-05_首段润色验收记录.md)。用户已授权完成验证后同步GitHub的`feature/vs01`，另一游戏不改动。
+
+2026-10-04历史升级：世界、角色和主要UI具名节点已存入.tscn，本地可以编辑；手机/对白有新正式图框，背景按窗口比例覆盖、HUD缩成任务卡。长椅E有坐下动作，再由玩家选择“坐一会儿／来一根／起身”，默认不抽烟，本轮无buff。菜单开着Esc先收起，再Esc起身；Tab手机；坐姿F5保存安全站立位置，F9恢复站立。
 
 最新证据与人工待办见[场景润色验收记录](docs/development/08_场景润色验收记录.md)，学习从[Godot与VSCode联合编辑](docs/development/07_Godot与VSCode联合编辑.md)开始。Godot F5运行完整游戏；VS Code Ctrl+Shift+B构建C#。新资源、完整生图提示及哈希在docs/project/2026-10-04_场景润色资源记录.json；v1原图保留。
 
 ## 开始试玩
 
-跨电脑开发使用独立公开仓库[anglelove3/gexingzhou-game](https://github.com/anglelove3/gexingzhou-game)，开发分支`feature/vs01`。公开源码不等于素材已获商业发行认证。首次克隆、认证、环境准备及给另一台Codex的接续提示见[GitHub与跨设备接续](docs/development/09_GitHub与跨设备接续.md)。原始故事集、照片、存档和本机配置不随Git同步；原有fangguoge-game保持不变。本轮润色仅本地提交，未经用户批准不推送。
+跨电脑开发使用独立公开仓库[anglelove3/gexingzhou-game](https://github.com/anglelove3/gexingzhou-game)，开发分支`feature/vs01`。公开源码不等于素材已获商业发行认证。首次克隆、认证、环境准备及给另一台Codex的接续提示见[GitHub与跨设备接续](docs/development/09_GitHub与跨设备接续.md)。原始故事集、照片、存档和本机配置不随Git同步；原有fangguoge-game保持不变。2026-10-08用户已授权本轮完成后推送；换设备时先核对Git状态，再pull --ff-only，不覆盖未提交改动。
 
 1. 用Godot **4.7.2 .NET版**导入本目录的`project.godot`。需要.NET SDK 8（本机锁定8.0.425，可使用较新的8.0补丁）。普通Godot版不能运行C#。
 2. 在项目根目录终端执行`dotnet build GeXingzhou.csproj`，等编译完成；Godot按F5运行，选择“开始新游戏”。已有存档不会无提示被抹掉。

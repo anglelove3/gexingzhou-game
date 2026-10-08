@@ -13,7 +13,7 @@ public partial class SoupMemoryController : Control
     private Tween? bowlMove;
     private int selected, dragged=-1;
     private Vector2 dragStart, grabOffset;
-    private bool initialized, foodReady;
+    private bool foodReady;
     private MemoryState? shown;
     private GameSession Session=>GetNode<GameSession>("/root/GameSession");
     public override void _Ready()
@@ -21,6 +21,7 @@ public partial class SoupMemoryController : Control
         try
         {
             table=SceneBindings.Require<Control>(this,"Table");
+            Resized+=UpdateTableLayout;UpdateTableLayout();
             delivery=SceneBindings.Require<Control>(table,"DeliveryArea");
             status=SceneBindings.Require<Label>(this,"Status");
             help=SceneBindings.Require<Label>(this,"Help");
@@ -36,6 +37,17 @@ public partial class SoupMemoryController : Control
             RestoreCoinPositions();
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
+    }
+    private void UpdateTableLayout()
+    {
+        if(table==null||GetNodeOrNull<TextureRect>("Background")?.Texture is not {} texture||Size.X<=0||Size.Y<=0)return;
+        var dimensions=texture.GetSize();
+        if(dimensions.X<=0||dimensions.Y<=0)return;
+        // Authored points use the 1280x720 cover crop; apply the same cover ratio
+        // around the same centre as the background, rather than screen coordinates.
+        var reference=Math.Max(1280f/dimensions.X,720f/dimensions.Y);
+        var cover=Math.Max(Size.X/dimensions.X,Size.Y/dimensions.Y);
+        table.Scale=Vector2.One*(cover/reference);
     }
     public override void _Process(double delta)
     {
@@ -58,7 +70,7 @@ public partial class SoupMemoryController : Control
         foodReady=state.PushedTotal==5;
         bowl.Position=SceneBindings.Require<Marker2D>(table,foodReady?"BowlNear":"BowlFar").Position;
         foreach(var item in foods)item.Disabled=!foodReady;
-        if(!initialized){initialized=true;FocusCoin(-1);}
+        FocusCoin(-1);
     }
     private Vector2 Local(Vector2 viewportPosition)=>table.GetGlobalTransformWithCanvas().AffineInverse()*viewportPosition;
     public override void _Input(InputEvent ev)
@@ -117,7 +129,7 @@ public partial class SoupMemoryController : Control
     }
     private void Resolve(int index)
     {
-        if(!foodReady||Session.Flow!=FlowState.Memory||Session.Snapshot.MemoryState is not {} state||Main==null)return;
+        if(index<0||index>=foods.Length||!foodReady||Session.Flow!=FlowState.Memory||Session.Snapshot.MemoryState is not {} state||Main==null)return;
         if(Session.TryDispatch(new("memory.food.resolve",new[]{"Take","Wait","Share"}[index],state.InstanceId)).Applied)_=Main.ReturnMemory(true);
     }
     public void HandleKey(Key key)
@@ -132,5 +144,5 @@ public partial class SoupMemoryController : Control
         }
         else if(key is Key.E or Key.Enter){if(foodReady)Resolve(selected);else TryPush(selected);}
     }
-    public override void _ExitTree(){GetWindow().FocusExited-=CancelDrag;CancelDrag();foreach(var move in moves.Values)move.Kill();moves.Clear();bowlMove?.Kill();bowlMove=null;}
+    public override void _ExitTree(){Resized-=UpdateTableLayout;GetWindow().FocusExited-=CancelDrag;CancelDrag();foreach(var move in moves.Values)move.Kill();moves.Clear();bowlMove?.Kill();bowlMove=null;}
 }

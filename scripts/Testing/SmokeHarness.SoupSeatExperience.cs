@@ -32,6 +32,7 @@ public partial class SmokeHarness
     }
     private async Task ExperienceSoupSeatChecks()
     {
+        await SoupChoiceEntryChecks();
         var s=GetNode<GameSession>("/root/GameSession");
         foreach(var reduced in new[]{false,true})
         {
@@ -79,5 +80,26 @@ public partial class SmokeHarness
         var delivery=await NewPolishMain();s.AdvanceClock(53);s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1"));delivery.ChangeWorld("convenience_street",new(600,280));await Frames(3);
         delivery.World.GetTarget("hey")!.TryInteract(s);await Finish(delivery);delivery.Choices.Close();await Frames(2);await Capture("candy-handover");
         Require(s.Snapshot.CandyCount==0,"Handover did not commit once");delivery.World.GetTarget("hey")!.TryInteract(s);Require(s.Snapshot.CandyCount==0,"Repeated handover altered candy");delivery.Choices.Close();delivery.Free();await Frames(2);
+    }
+    private async Task SoupChoiceEntryChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        foreach(var reduced in new[]{false,true})foreach(var (code,index) in new[]{("eat",0),("set_chopsticks",1),("check_phone",2)})
+        {
+            var main=await NewSoupMain(reduced);
+            main.HandleInteraction(main.World.GetTarget("seat")!);
+            await WaitUntil(()=>main.Dialogue.IsOpen,"Real soup opening");await Finish(main);
+            Require(main.Choices.IsOpen,"Soup choices absent");await Frames(3);
+            var option=main.Choices.GetNode<Button>("Panel/Content/Options/Option"+(index+1));option.GrabFocus();
+            KeyPress(Key.E);await Frames(2);
+            Require(main.SoupSeat.IsActing&&main.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation==code,"Normal choice skipped action "+code);
+            Require(s.Snapshot.ChoiceCodes.GetValueOrDefault("soup-response-1")==code,"Normal choice not recorded");
+            await WaitUntil(()=>main.Dialogue.IsOpen,"Action branch dialogue "+code);
+            var expected=code switch{"eat"=>"行，先吃。","set_chopsticks"=>"哟，葛大爷还会伺候人了？",_=>"又卡了？"};
+            Require(main.Dialogue.GetNode<Label>("Panel/Content/Body/Text").Text.StartsWith(expected),"Wrong action branch dialogue "+code);
+            await Finish(main);Require(main.Choices.IsOpen,"Action did not offer memory");main.Choices.Close();
+            main.Free();await Frames(2);
+        }
+        GD.Print("SOUP_CHOICE_ENTRY_PASS 6");
     }
 }
