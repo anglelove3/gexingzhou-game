@@ -1,4 +1,4 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat')][string]$Batch='All')
+param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat')][string]$Batch='All')
 . "$PSScriptRoot/Common.ps1"
 try {
     $context=Get-ToolContext $GodotExe
@@ -14,6 +14,10 @@ try {
     $exploration=@('depth-front','depth-back','depth-side','depth-table-occlusion','observation-sign','observation-menu','observation-note','observation-hover','compact-short-20','compact-short-24','compact-short-32','compact-long-32')
     $depthSeat=@();foreach($suffix in @('','-reduced')){foreach($action in @('sit','stand')){foreach($frame in @('start','mid','end')){$depthSeat+='depth-'+$action+'-'+$frame+$suffix}};foreach($action in @('eat','chopsticks','phone')){$depthSeat+='depth-'+$action+$suffix}}
     $required+=$exploration+$depthSeat
+    $phoneChat=@();foreach($font in @(20,24,32)){foreach($state in @('empty','message','long','call','answered')){$phoneChat+='chat-'+$state+'-'+$font}}
+    $phoneChat+='chat-missed'
+    $required+=$phoneChat
+    if($Batch -eq 'CapturePhoneChat'){$required=$phoneChat}
     if($Batch -eq 'CaptureExploration'){$required=$exploration}
     if($Batch -eq 'CaptureDepthSeat'){$required=$depthSeat}
     if($Batch -eq 'CaptureEnd'){$required=@($required|Where-Object {$_ -match '^end-'})}
@@ -21,7 +25,7 @@ try {
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat')}else{@($Batch)}
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat')}else{@($Batch)}
     foreach($size in @('1280x720','1920x1080','1440x1080')) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
         [IO.Directory]::CreateDirectory($outputDir)|Out-Null

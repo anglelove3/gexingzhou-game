@@ -137,7 +137,7 @@ public partial class SmokeHarness
             var answer=main.Phone.GetNode<Button>("Frame/Content/AnswerButton");var close=main.Phone.GetNode<Button>("Frame/Content/CloseButton");
             Require(answer.IsVisibleInTree()&&answer.FocusMode==Control.FocusModeEnum.All,"Answer unreachable");
             Require(close.IsVisibleInTree()&&main.GetGlobalRect().Encloses(close.GetGlobalRect()),"Close clipped");
-            Require(main.Phone.GetNode<PanelContainer>("Frame").GetThemeStylebox("panel") is StyleBoxTexture,"Phone has no raster frame");
+            Require(main.Phone.GetNode<PanelContainer>("Frame").GetThemeStylebox("panel") is StyleBoxFlat,"Phone lacks editable handset style");
             await Capture("polish-phone-"+font);
             main.Phone.Close();await Frames(2);
             Require(main.Dialogue.IsOpen&&main.Dialogue.Visible,"PhoneOverDialogueRestoration lost dialogue");

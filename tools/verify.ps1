@@ -6,6 +6,7 @@ try {
     $known+='DepthSeat'
     $known+='ExplorationUi'
     $known+='FinalBoundaries'
+    $known+='PhoneChat'
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -24,6 +25,7 @@ try {
         if(!$Suite){$suites+='DepthSeat'}
         if(!$Suite){$suites+='ExplorationUi'}
         if(!$Suite){$suites+='FinalBoundaries'}
+        if(!$Suite){$suites+='PhoneChat'}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
             if($name -in @('ResumeSeed','ResumeRead')){$arguments+="--test-save-root=$resumeRoot"}

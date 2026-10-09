@@ -1,6 +1,81 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=11 format=3]
 [ext_resource type="Script" path="res://scripts/PhoneController.cs" id="Script"]
-[ext_resource type="StyleBox" path="res://assets/ui/vs01-v2/phone.tres" id="PanelStyle"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/npcs-v1.png" id="NpcArt"]
+[sub_resource type="AtlasTexture" id="CannonPortrait"]
+atlas=ExtResource("NpcArt")
+region=Rect2(252,8,116,116)
+filter_clip=true
+[sub_resource type="StyleBoxFlat" id="Handset"]
+bg_color=Color(0.925,0.925,0.925,1)
+border_width_left=8
+border_width_top=12
+border_width_right=8
+border_width_bottom=12
+border_color=Color(0.105,0.115,0.12,1)
+corner_radius_top_left=28
+corner_radius_top_right=28
+corner_radius_bottom_left=28
+corner_radius_bottom_right=28
+content_margin_left=20.0
+content_margin_right=20.0
+content_margin_top=18.0
+content_margin_bottom=18.0
+shadow_color=Color(0,0,0,0.45)
+shadow_size=14
+shadow_offset=Vector2(3,7)
+[sub_resource type="StyleBoxFlat" id="Speaker"]
+bg_color=Color(0.2,0.22,0.23,1)
+corner_radius_top_left=3
+corner_radius_top_right=3
+corner_radius_bottom_left=3
+corner_radius_bottom_right=3
+[sub_resource type="StyleBoxFlat" id="WhiteBubble"]
+bg_color=Color(1,1,1,1)
+corner_radius_top_left=6
+corner_radius_top_right=6
+corner_radius_bottom_left=6
+corner_radius_bottom_right=6
+content_margin_left=12.0
+content_margin_right=12.0
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="GreenBubble"]
+bg_color=Color(0.65,0.9,0.47,1)
+corner_radius_top_left=6
+corner_radius_top_right=6
+corner_radius_bottom_left=6
+corner_radius_bottom_right=6
+content_margin_left=12.0
+content_margin_right=12.0
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="Action"]
+bg_color=Color(0.03,0.66,0.33,1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="ActionHover"]
+bg_color=Color(0.02,0.52,0.27,1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color=Color(0,0,0,0)
+border_width_left=3
+border_width_top=3
+border_width_right=3
+border_width_bottom=3
+border_color=Color(0.11,0.42,0.29,1)
+corner_radius_top_left=8
+corner_radius_top_right=8
+corner_radius_bottom_left=8
+corner_radius_bottom_right=8
 [node name="Phone" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -18,50 +93,168 @@ anchor_right=1.0
 anchor_bottom=1.0
 grow_horizontal=2
 grow_vertical=2
-color=Color(0,0,0,0.58)
+color=Color(0.025,0.035,0.04,0.52)
 [node name="Frame" type="PanelContainer" parent="."]
 layout_mode=1
 anchor_left=0.5
 anchor_right=0.5
-anchor_top=0.05
-anchor_bottom=0.95
-offset_left=-300.0
-offset_right=300.0
+anchor_top=0.5
+anchor_bottom=0.5
+offset_left=-215.0
+offset_right=215.0
+offset_top=-340.0
+offset_bottom=340.0
 grow_horizontal=2
 grow_vertical=2
-theme_override_styles/panel=ExtResource("PanelStyle")
+theme_override_styles/panel=SubResource("Handset")
+[node name="EdgeWear" type="Line2D" parent="Frame"]
+points=PackedVector2Array(4,40,4,59,5,63)
+width=1.0
+default_color=Color(0.53,0.52,0.46,0.8)
+[node name="CornerWear" type="Line2D" parent="Frame"]
+points=PackedVector2Array(14,15,20,11,31,10)
+width=1.0
+default_color=Color(0.59,0.58,0.52,0.65)
 [node name="Content" type="VBoxContainer" parent="Frame"]
 layout_mode=2
-theme_override_constants/separation=12
+theme_override_constants/separation=8
+[node name="EarpieceRow" type="HBoxContainer" parent="Frame/Content"]
+layout_mode=2
+alignment=1
+[node name="Earpiece" type="Panel" parent="Frame/Content/EarpieceRow"]
+custom_minimum_size=Vector2(64,5)
+layout_mode=2
+theme_override_styles/panel=SubResource("Speaker")
+[node name="StatusBar" type="Label" parent="Frame/Content"]
+layout_mode=2
+theme_override_colors/font_color=Color(0.35,0.36,0.37,1)
+theme_override_font_sizes/font_size=16
+text="旧手机                                      消息"
 [node name="Contact" type="Label" parent="Frame/Content"]
 layout_mode=2
-text="旧手机 · 消息与任务"
-autowrap_mode=3
-custom_minimum_size=Vector2(0,50)
+custom_minimum_size=Vector2(0,42)
+theme_override_colors/font_color=Color(0.11,0.12,0.13,1)
+text="张大炮"
+horizontal_alignment=1
+vertical_alignment=1
+[node name="HeaderLine" type="ColorRect" parent="Frame/Content"]
+custom_minimum_size=Vector2(0,1)
+layout_mode=2
+color=Color(0.82,0.83,0.83,1)
+mouse_filter=2
 [node name="MessageScroll" type="ScrollContainer" parent="Frame/Content"]
 layout_mode=2
 size_flags_vertical=3
 custom_minimum_size=Vector2(0,96)
 horizontal_scroll_mode=0
 follow_focus=true
-[node name="Messages" type="Label" parent="Frame/Content/MessageScroll"]
+[node name="Messages" type="VBoxContainer" parent="Frame/Content/MessageScroll"]
 layout_mode=2
-text="张大炮：葛大爷，别装死，我要结婚了！等会儿来找你。"
-autowrap_mode=3
 size_flags_horizontal=3
+theme_override_constants/separation=16
+[node name="Empty" type="Label" parent="Frame/Content/MessageScroll/Messages"]
+layout_mode=2
+theme_override_colors/font_color=Color(0.36,0.38,0.39,1)
+text="还没有新消息。"
+horizontal_alignment=1
+autowrap_mode=3
+[node name="MessageCaption" type="Label" parent="Frame/Content/MessageScroll/Messages"]
+layout_mode=2
+theme_override_colors/font_color=Color(0.38,0.4,0.41,1)
+theme_override_font_sizes/font_size=16
+text="聊天记录 · 滚轮 / PgUp / PgDn 翻阅"
+horizontal_alignment=1
+autowrap_mode=3
+[node name="Incoming" type="HBoxContainer" parent="Frame/Content/MessageScroll/Messages"]
+layout_mode=2
+theme_override_constants/separation=10
+[node name="Avatar" type="TextureRect" parent="Frame/Content/MessageScroll/Messages/Incoming"]
+custom_minimum_size=Vector2(44,44)
+layout_mode=2
+size_flags_vertical=0
+texture=SubResource("CannonPortrait")
+expand_mode=1
+stretch_mode=5
+[node name="Bubble" type="PanelContainer" parent="Frame/Content/MessageScroll/Messages/Incoming"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_styles/panel=SubResource("WhiteBubble")
+[node name="Text" type="Label" parent="Frame/Content/MessageScroll/Messages/Incoming/Bubble"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_colors/font_color=Color(0.1,0.11,0.12,1)
+text="葛大爷，别装死，我要结婚了！等会儿来找你。"
+autowrap_mode=3
+[node name="CallNotice" type="Label" parent="Frame/Content/MessageScroll/Messages"]
+layout_mode=2
+theme_override_colors/font_color=Color(0.31,0.33,0.34,1)
+text="语音通话 · 正在呼叫你…"
+horizontal_alignment=1
+autowrap_mode=3
+[node name="Outgoing" type="HBoxContainer" parent="Frame/Content/MessageScroll/Messages"]
+layout_mode=2
+theme_override_constants/separation=10
+[node name="Space" type="Control" parent="Frame/Content/MessageScroll/Messages/Outgoing"]
+layout_mode=2
+custom_minimum_size=Vector2(28,0)
+[node name="Bubble" type="PanelContainer" parent="Frame/Content/MessageScroll/Messages/Outgoing"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_styles/panel=SubResource("GreenBubble")
+[node name="Text" type="Label" parent="Frame/Content/MessageScroll/Messages/Outgoing/Bubble"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_colors/font_color=Color(0.1,0.14,0.09,1)
+text="已接听语音通话"
+autowrap_mode=3
+[node name="Avatar" type="PanelContainer" parent="Frame/Content/MessageScroll/Messages/Outgoing"]
+custom_minimum_size=Vector2(44,44)
+layout_mode=2
+size_flags_vertical=0
+theme_override_styles/panel=SubResource("WhiteBubble")
+[node name="Initial" type="Label" parent="Frame/Content/MessageScroll/Messages/Outgoing/Avatar"]
+layout_mode=2
+theme_override_colors/font_color=Color(0.28,0.29,0.3,1)
+theme_override_font_sizes/font_size=20
+text="舟"
+horizontal_alignment=1
+vertical_alignment=1
 [node name="Task" type="Label" parent="Frame/Content"]
 layout_mode=2
-text="当前任务：回到故乡，先走走看看。"
+theme_override_colors/font_color=Color(0.34,0.37,0.37,1)
+theme_override_font_sizes/font_size=20
+text="行程提醒\n走走，看看搬迁后的故乡"
 autowrap_mode=3
-custom_minimum_size=Vector2(0,80)
 [node name="AnswerButton" type="Button" parent="Frame/Content"]
 layout_mode=2
-custom_minimum_size=Vector2(0,56)
-text="接听张大炮的电话"
+custom_minimum_size=Vector2(0,52)
+theme_override_colors/font_color=Color(1,1,1,1)
+theme_override_colors/font_hover_color=Color(1,1,1,1)
+theme_override_colors/font_pressed_color=Color(1,1,1,1)
+theme_override_styles/normal=SubResource("Action")
+theme_override_styles/hover=SubResource("ActionHover")
+theme_override_styles/pressed=SubResource("ActionHover")
+theme_override_styles/focus=SubResource("Focus")
+text="接听语音通话"
 [node name="CloseButton" type="Button" parent="Frame/Content"]
 layout_mode=2
-custom_minimum_size=Vector2(0,56)
-text="收起手机（Tab / Esc）"
+custom_minimum_size=Vector2(0,46)
+theme_override_colors/font_color=Color(0.25,0.28,0.29,1)
+theme_override_colors/font_focus_color=Color(0.25,0.28,0.29,1)
+theme_override_colors/font_hover_color=Color(0.1,0.25,0.16,1)
+theme_override_colors/font_pressed_color=Color(0.1,0.25,0.16,1)
+theme_override_styles/normal=SubResource("WhiteBubble")
+theme_override_styles/hover=SubResource("GreenBubble")
+theme_override_styles/pressed=SubResource("GreenBubble")
+theme_override_styles/focus=SubResource("Focus")
+text="收起手机 · Tab / Esc"
+[node name="HomeIndicator" type="HBoxContainer" parent="Frame/Content"]
+layout_mode=2
+alignment=1
+[node name="Bar" type="Panel" parent="Frame/Content/HomeIndicator"]
+custom_minimum_size=Vector2(72,4)
+layout_mode=2
+theme_override_styles/panel=SubResource("Speaker")
 [node name="StartupError" type="Label" parent="."]
 visible=false
 z_index=110

@@ -1,5 +1,5 @@
 # Godot 与 VS Code 联合编辑：第一轮练习
-更新：2026-10-09。工程唯一根目录 E:\游戏创作\顾行舟；Godot.NET4.7.2、C#、.NET8。
+更新：2026-10-10。工程唯一根目录 E:\游戏创作\顾行舟；Godot.NET4.7.2、C#、.NET8。
 
 ## 两个工具分别负责什么
 
@@ -17,8 +17,8 @@ Godot负责场景位置、图片、容器布局、主题、SpriteFrames、碰撞
 ## 练习2：修改手机或对白外观
 
 打开scenes/ui/Phone.tscn或Dialogue.tscn：编辑器中完整显示，运行Main时默认隐藏，由Tab/对白控制显示。
-手机Frame仍使用assets/ui/vs01-v2/phone.tres九宫格，微信式改造留后续；Dialogue的Panel现在是场景内StyleBoxFlat轻字幕，不再用旧金属图框。可在主题覆盖改内容边距/色彩，保留节点路径。运行时按字号和坐姿安全区调整高度/位置，不缩小字体；若改布局要跑ExplorationUi和EditableUi。
-姓名、正文、提示是独立节点；对白正文位于Panel/Content/Body/Text，可滚动，提示不随正文滚走。手机消息位于Frame/Content/MessageScroll/Messages；接听/收起按钮仍是真实Button。容器管理的控件位置应改父容器/边距，而不是和容器抢offset。
+手机Frame已改为场景内StyleBoxFlat细长机身；浅灰聊天区与白/绿气泡都可以编辑，不再引用旧phone.tres金属九宫格。旧资源保留作历史素材。Phone根节点导出HandsetWidth/HandsetMaxHeight调整最大宽高，运行时按窗口留边适配，不改聊天字号。CloseButton的font_focus_color必须保持深色，不能只改普通字色。Dialogue的Panel仍为轻字幕，按字号和坐姿安全区调整高度/位置。改布局后跑PhoneChat、ExplorationUi和EditableUi。
+姓名、正文、提示是独立节点；对白正文位于Panel/Content/Body/Text，可滚动，提示不随正文滚走。手机消息列表是Frame/Content/MessageScroll/Messages，邀请正文在Incoming/Bubble/Text；Outgoing是接听记录而非虚构聊天回复，CallNotice是来电/未接提示。头像使用原NPC图集的AtlasTexture区域，不另存真人照片。接听/收起仍是真实Button。容器控件应改父容器/边距，不和容器抢offset。界面数据由PhoneController.Open绑定；运行时不会重建一套静态UI。
 
 ## 练习3：修改一条C#提示并构建
 
