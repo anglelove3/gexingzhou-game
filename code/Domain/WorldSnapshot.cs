@@ -10,6 +10,7 @@ public sealed record WorldSnapshot
     public string TimeBlock {get;init;} = "arrival";
     public int CandyCount {get;init;}
     public HashSet<string> CompletedActions {get;init;} = new();
+    public HashSet<string> DiscoveredIds {get;init;} = new();
     public string PhoneState {get;init;} = "closed";
     public InvitationState InvitationState {get;init;}=new();
     public Dictionary<string,string> ChoiceCodes {get;init;}=new();
