@@ -1,0 +1,73 @@
+[gd_resource type="SpriteFrames" load_steps=14 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/player-depth.png" id="1"]
+[sub_resource type="AtlasTexture" id="F0"]
+atlas=ExtResource("1")
+region=Rect2(0,0,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(165,411)
+[sub_resource type="AtlasTexture" id="F1"]
+atlas=ExtResource("1")
+region=Rect2(313,0,314,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(157,411)
+[sub_resource type="AtlasTexture" id="F2"]
+atlas=ExtResource("1")
+region=Rect2(627,0,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(160,412)
+[sub_resource type="AtlasTexture" id="F3"]
+atlas=ExtResource("1")
+region=Rect2(940,0,314,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(170,412)
+[sub_resource type="AtlasTexture" id="F4"]
+atlas=ExtResource("1")
+region=Rect2(0,418,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(155,408)
+[sub_resource type="AtlasTexture" id="F5"]
+atlas=ExtResource("1")
+region=Rect2(313,418,314,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(159,412)
+[sub_resource type="AtlasTexture" id="F6"]
+atlas=ExtResource("1")
+region=Rect2(627,418,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(155,412)
+[sub_resource type="AtlasTexture" id="F7"]
+atlas=ExtResource("1")
+region=Rect2(940,418,314,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(157,412)
+[sub_resource type="AtlasTexture" id="F8"]
+atlas=ExtResource("1")
+region=Rect2(0,836,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(153,392)
+[sub_resource type="AtlasTexture" id="F9"]
+atlas=ExtResource("1")
+region=Rect2(313,836,314,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(155,398)
+[sub_resource type="AtlasTexture" id="F10"]
+atlas=ExtResource("1")
+region=Rect2(627,836,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(151,398)
+[sub_resource type="AtlasTexture" id="F11"]
+atlas=ExtResource("1")
+region=Rect2(940,836,314,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(157,400)
+[resource]
+animations=[
+{"frames":[{"duration":1.0,"texture":SubResource("F0")}],"loop":true,"name":&"idle_side","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F1")},{"duration":1.0,"texture":SubResource("F2")},{"duration":1.0,"texture":SubResource("F3")},{"duration":1.0,"texture":SubResource("F2")}],"loop":true,"name":&"walk_side","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F4")}],"loop":true,"name":&"idle_front","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F5")},{"duration":1.0,"texture":SubResource("F6")},{"duration":1.0,"texture":SubResource("F7")},{"duration":1.0,"texture":SubResource("F6")}],"loop":true,"name":&"walk_front","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F8")}],"loop":true,"name":&"idle_back","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F9")},{"duration":1.0,"texture":SubResource("F10")},{"duration":1.0,"texture":SubResource("F11")},{"duration":1.0,"texture":SubResource("F10")}],"loop":true,"name":&"walk_back","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F0")}],"loop":true,"name":&"idle","speed":8.0},
+{"frames":[{"duration":1.0,"texture":SubResource("F1")},{"duration":1.0,"texture":SubResource("F2")},{"duration":1.0,"texture":SubResource("F3")},{"duration":1.0,"texture":SubResource("F2")}],"loop":true,"name":&"walk","speed":8.0}
+]

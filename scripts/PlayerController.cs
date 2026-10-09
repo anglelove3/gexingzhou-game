@@ -8,9 +8,38 @@ public partial class PlayerController : CharacterBody2D
     [Export] public SpriteFrames SoupFrames {get;set;}=null!;
     [Export] public SpriteFrames ReducedSoupFrames {get;set;}=null!;
     private bool soupActive;
+    public string Facing {get;private set;}="side";
     private MainView? owner;private float stepDistance;
     [Export] public float RestStandingPixels {get;set;}=307;
     private SpriteFrames walkingFrames=null!;private bool restActive;private Vector2 seatOffset;
+    [Export] public SpriteFrames DepthFrames {get;set;}=null!;
+    private NavigationProfile? navigation;private bool focused=true;
+    private readonly HashSet<string> suppressed=new();
+    private static readonly string[] MovementActions={"move_left","move_right","move_up","move_down","move_fast"};
+    public void ApplyNavigation(NavigationProfile profile)
+    {
+        navigation=profile;bool depth=profile.Mode==WorldMode.Depth2D;
+        SceneBindings.Require<CollisionShape2D>(this,"CollisionShape2D").Disabled=depth;
+        SceneBindings.Require<CollisionShape2D>(this,"FootCollisionShape2D").Disabled=!depth;
+        if(depth)
+        {
+            foreach(var name in new[]{"idle_front","idle_back","idle_side","walk_front","walk_back","walk_side"})
+                if(DepthFrames==null||!DepthFrames.HasAnimation(name)||DepthFrames.GetFrameCount(name)==0)
+                    throw new InvalidOperationException("二维朝向资源缺失："+name);
+            walkingFrames=DepthFrames;artwork.SpriteFrames=walkingFrames;Facing="side";artwork.Play("idle_side");AnchorArtwork();
+        }
+    }
+    private void SuppressHeld(){foreach(var name in MovementActions)if(Input.IsActionPressed(name))suppressed.Add(name);}
+    private float AxisStrength(string name)
+    {
+        if(!Input.IsActionPressed(name)){suppressed.Remove(name);return 0;}
+        return suppressed.Contains(name)?0:Input.GetActionStrength(name);
+    }
+    public override void _Notification(int what)
+    {
+        if(what==NotificationApplicationFocusOut){focused=false;SuppressHeld();Velocity=Vector2.Zero;}
+        else if(what==NotificationApplicationFocusIn){focused=true;SuppressHeld();}
+    }
     public override void _Ready()
     {
         try
@@ -30,7 +59,7 @@ public partial class PlayerController : CharacterBody2D
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
-    public void SetInputLocked(bool value) {locked=value;if(value)Velocity=Vector2.Zero;}
+    public void SetInputLocked(bool value) {locked=value;if(value){SuppressHeld();Velocity=Vector2.Zero;}}
     private static void ValidateRestFrames(SpriteFrames? frames,string label)
     {
         foreach(var (name,count) in new[]{("sit_down",3),("seated",1),("smoke",6),("stand_up",3)})
@@ -62,7 +91,8 @@ public partial class PlayerController : CharacterBody2D
     }
     public void ClearRestPose()
     {
-        restActive=false;soupActive=false;artwork.SpriteFrames=walkingFrames;artwork.Play("idle");AnchorArtwork();
+        restActive=false;soupActive=false;artwork.SpriteFrames=walkingFrames;
+        artwork.Play(navigation?.Mode==WorldMode.Depth2D?"idle_"+Facing:"idle");AnchorArtwork();
     }
     private static void ValidateSoupFrames(SpriteFrames? frames)
     {
@@ -95,12 +125,25 @@ public partial class PlayerController : CharacterBody2D
     {
         var session=GetNode<GameSession>("/root/GameSession");
         float axis=(Input.IsPhysicalKeyPressed(Key.D)||Input.IsPhysicalKeyPressed(Key.Right)?1:0)-(Input.IsPhysicalKeyPressed(Key.A)||Input.IsPhysicalKeyPressed(Key.Left)?1:0);
-        var p=session.Catalog!.Parameters;
-        float vx=MovementModel.Step(Velocity.X,axis,Input.IsPhysicalKeyPressed(Key.Shift),locked||restActive||(session.Flow!=FlowState.Field), (float)delta,(float)p["move.walk_speed"],(float)p["move.run_speed"],(float)p["move.acceleration"],(float)p["move.deceleration"]);
-        var before=Position;Velocity=new Vector2(vx,0);MoveAndSlide();
+        var p=session.Catalog!.Parameters;bool depth=navigation?.Mode==WorldMode.Depth2D;
+        bool blocked=locked||restActive||session.Flow!=FlowState.Field||!focused;
+        var before=Position;float vertical=0;
+        if(depth)
+        {
+            if(blocked)SuppressHeld();
+            axis=AxisStrength("move_right")-AxisStrength("move_left");vertical=AxisStrength("move_down")-AxisStrength("move_up");
+            var velocity=Movement2DModel.Step(new(Velocity.X,Velocity.Y),new(axis,vertical),AxisStrength("move_fast")>0,blocked,(float)delta);
+            Velocity=new(velocity.X,velocity.Y);
+        }
+        else
+        {
+            float vx=MovementModel.Step(Velocity.X,axis,Input.IsPhysicalKeyPressed(Key.Shift),blocked,(float)delta,(float)p["move.walk_speed"],(float)p["move.run_speed"],(float)p["move.acceleration"],(float)p["move.deceleration"]);
+            Velocity=new(vx,0);
+        }
+        MoveAndSlide();
         if(!locked&&!restActive&&session.Flow==FlowState.Field)
         {
-            stepDistance+=Math.Abs(Position.X-before.X);
+            stepDistance+=depth?Position.DistanceTo(before):Math.Abs(Position.X-before.X);
             while(stepDistance>=32){stepDistance-=32;owner?.Audio?.PlayCue(AudioCue.Footstep);}
         }
         if(restActive)
@@ -108,10 +151,14 @@ public partial class PlayerController : CharacterBody2D
             MainView? main=null;for(Node? pnode=GetParent();pnode!=null;pnode=pnode.GetParent())if(pnode is MainView m){main=m;break;}
             session.UpdatePosition(main?.SafeSavePosition??new(Position.X,Position.Y));return;
         }
-        if(axis!=0&&!locked&&session.Flow==FlowState.Field)artwork.FlipH=axis<0;
-        bool walking=Math.Abs(Velocity.X)>1&&!locked&&session.Flow==FlowState.Field;
-        artwork.SpeedScale=walking?Math.Clamp(Math.Abs(Velocity.X)/120f,.6f,1.6f):1;
-        var animation=walking?"walk":"idle";if(artwork.Animation!=animation)artwork.Play(animation);
+        if(!blocked&&(axis!=0||vertical!=0))
+        {
+            if(depth){Facing=Math.Abs(axis)>Math.Abs(vertical)?"side":vertical<0?"back":"front";artwork.FlipH=Facing=="side"&&axis<0;}
+            else artwork.FlipH=axis<0;
+        }
+        bool walking=Velocity.Length()>1&&!blocked;
+        artwork.SpeedScale=walking?Math.Clamp(Velocity.Length()/120f,.6f,1.6f):1;
+        var animation=(walking?"walk":"idle")+(depth?"_"+Facing:"");if(artwork.Animation!=animation)artwork.Play(animation);
         if(session.Options.ReducedMotion&&!walking){artwork.Stop();artwork.Frame=0;}else if(!artwork.IsPlaying())artwork.Play(animation);
         session.UpdatePosition(new(Position.X,Position.Y));
     }
@@ -125,6 +172,11 @@ public partial class PlayerController : CharacterBody2D
                 artwork.Animation=="stand_up"?1f-(float)artwork.Frame/(artwork.SpriteFrames.GetFrameCount(artwork.Animation)-1):1;
             var pivot=atlas.GetMeta("stand_pivot").AsVector2().Lerp(atlas.GetMeta("seat_pivot").AsVector2(),t);
             artwork.Position=seatOffset*t+(texture.GetSize()/2-pivot)*scaleRest;return;
+        }
+        if(navigation?.Mode==WorldMode.Depth2D&&texture is AtlasTexture footFrame&&footFrame.HasMeta("foot_pivot"))
+        {
+            float depthScale=96f/400;artwork.Scale=Vector2.One*depthScale;
+            artwork.Position=(texture.GetSize()/2-footFrame.GetMeta("foot_pivot").AsVector2())*depthScale;return;
         }
         float scale=68f/(texture.GetHeight()-4);artwork.Scale=Vector2.One*scale;
         artwork.Position=new Vector2(0,-(texture.GetHeight()/2f-2)*scale);

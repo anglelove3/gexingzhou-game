@@ -236,20 +236,23 @@ public partial class SmokeHarness
         foreach(var (file,paths) in new[] {
             ("CommunityGate",new[]{"OldSign","Bench/SeatAnchor","Bench/StandAnchor","Cannon","StreetExit"}),
             ("ConvenienceStreet",new[]{"CommunityExit","Hey","SoupExit"}),
-            ("SoupShop",new[]{"StreetExit","Seat","Sign","Menu","Counter","Shopkeeper","SoupBowl"}) })
+            ("SoupShop",new[]{"Targets/StreetExit","Targets/Seat","Targets/Sign","Targets/Menu","Targets/Note","DepthLayers/Props/Counter","DepthLayers/Actors/Shopkeeper","DepthLayers/Props/Table/SoupBowl","Navigation/GroundBoundary/CollisionPolygon2D"}) })
         {
             var world=GD.Load<PackedScene>($"res://scenes/world/{file}.tscn").Instantiate<WorldView>();
             try
             {
-                foreach(var path in paths.Concat(new[]{"Backdrop","Player/Artwork","Player/Camera2D","Player/CollisionShape2D","Interactions","Floor/CollisionShape2D","LeftBoundary/CollisionShape2D","RightBoundary/CollisionShape2D"}))
+                string playerPath=file=="SoupShop"?"DepthLayers/Actors/Player":"Player";
+                var shared=new[]{"Backdrop",playerPath+"/Artwork",playerPath+"/Camera2D",playerPath+"/CollisionShape2D","Interactions"};
+                var floor=file=="SoupShop"?new[]{"Navigation/Obstacles/Table/CollisionPolygon2D",playerPath+"/FootCollisionShape2D"}:new[]{"Floor/CollisionShape2D","LeftBoundary/CollisionShape2D","RightBoundary/CollisionShape2D"};
+                foreach(var path in paths.Concat(shared).Concat(floor))
                     Require(world.GetNodeOrNull(path)!=null,$"SavedWorldNodes: {file}/{path} not editable offline");
-                var before=world.GetNode<PlayerController>("Player");
+                var before=world.GetNode<PlayerController>(playerPath);
                 var backdrop=world.GetNode<Sprite2D>("Backdrop");var authored=backdrop.Position+new Vector2(0,2);backdrop.Position=authored;
                 if(file=="CommunityGate")world.GetNode<Node2D>("Bench").Position=new Vector2(940,280);
                 GetNode<GameSession>("/root/GameSession").NewGame();AddChild(world);await Frames(3);
                 Require(ReferenceEquals(before,world.Player),"InspectorChangesSurviveReady: player rebuilt");
                 Require(backdrop.Position==authored,"InspectorChangesSurviveReady: background reset");
-                var ids=world.GetChildren().OfType<Interactable>().Select(t=>t.Id).ToArray();
+                var ids=world.GetTargets().Select(t=>t.Id).ToArray();
                 Require(ids.Length==ids.Distinct().Count(),"Duplicate interaction IDs");
                 if(file=="CommunityGate")
                 {

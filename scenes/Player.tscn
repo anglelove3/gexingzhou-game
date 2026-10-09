@@ -1,10 +1,13 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 [ext_resource type="Script" path="res://scripts/PlayerController.cs" id="1"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-v1.tres" id="2"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-rest-v2.tres" id="Rest"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-rest-reduced-v2.tres" id="Reduced"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-soup-v3.tres" id="Soup"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-soup-reduced-v3.tres" id="ReducedSoup"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/player-depth-v4.tres" id="Depth"]
+[sub_resource type="CircleShape2D" id="Foot"]
+radius=8.0
 [sub_resource type="RectangleShape2D" id="Body"]
 size=Vector2(16,56)
 [node name="Player" type="CharacterBody2D"]
@@ -15,9 +18,13 @@ RestFrames=ExtResource("Rest")
 ReducedRestFrames=ExtResource("Reduced")
 SoupFrames=ExtResource("Soup")
 ReducedSoupFrames=ExtResource("ReducedSoup")
+DepthFrames=ExtResource("Depth")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position=Vector2(0,-28)
 shape=SubResource("Body")
+[node name="FootCollisionShape2D" type="CollisionShape2D" parent="."]
+shape=SubResource("Foot")
+disabled=true
 [node name="Camera2D" type="Camera2D" parent="."]
 position=Vector2(0,-100)
 limit_left=0

@@ -17,7 +17,7 @@ public partial class GuidanceController : Node
     {
         if(main==null||!GodotObject.IsInstanceValid(main.World))return;
         var s=GetNode<GameSession>("/root/GameSession");var field=s.Flow==FlowState.Field;
-        var targets=main.World.GetChildren().OfType<Interactable>().ToArray();
+        var targets=main.World.GetTargets();
         foreach(var target in targets)
             if(target.GetNodeOrNull<Label>("NameLabel") is {} name)
                 name.Visible=field&&target.IsActive&&target.IsVisibleInTree()&&Math.Abs(target.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=140;

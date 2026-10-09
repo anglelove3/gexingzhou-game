@@ -6,20 +6,27 @@ public partial class WorldView : Node2D
     [Export] public string SceneId {get;set;}="community_gate";
     [Export] public int Width {get;set;}=1600;
     [Export] public Rect2 ViewBounds {get;set;}=new(0,0,1600,360);
+    [Export] public WorldMode Mode {get;set;}=WorldMode.Horizontal;
+    public NavigationProfile Navigation {get;private set;}=null!;
     public PlayerController Player {get;private set;}=null!;
     public InteractionController Interactions {get;private set;}=null!;
     public override void _Ready()
     {
         try
         {
-            Player=SceneBindings.Require<PlayerController>(this,"Player");
+            Player=SceneBindings.Require<PlayerController>(this,Mode==WorldMode.Depth2D?"DepthLayers/Actors/Player":"Player");
             Interactions=SceneBindings.Require<InteractionController>(this,"Interactions");
             SceneBindings.Require<Sprite2D>(this,"Backdrop");
-            foreach(var path in new[]{"Floor/CollisionShape2D","LeftBoundary/CollisionShape2D","RightBoundary/CollisionShape2D"})
-                SceneBindings.Require<CollisionShape2D>(this,path);
+            if(Mode==WorldMode.Horizontal)
+                foreach(var path in new[]{"Floor/CollisionShape2D","LeftBoundary/CollisionShape2D","RightBoundary/CollisionShape2D"})
+                    SceneBindings.Require<CollisionShape2D>(this,path);
+            Navigation=NavigationSceneReader.Read(this);
+            if(!NavigationSceneReader.LoadCatalog().Profiles.TryGetValue(SceneId,out var baked)||!NavigationSceneReader.Matches(Navigation,baked))
+                throw new InvalidOperationException("导航数据与编辑场景不一致，请检查后重新导出："+SceneId);
+            Player.ApplyNavigation(Navigation);
             if(HasMeta("binding_error"))throw new InvalidOperationException(GetMeta("binding_error").AsString());
             var ids=new HashSet<string>();
-            foreach(var target in GetChildren().OfType<Interactable>())
+            foreach(var target in GetTargets())
                 if(string.IsNullOrWhiteSpace(target.Id)||!ids.Add(target.Id))
                     throw new InvalidOperationException("交互标识为空或重复："+target.Id);
             Interactions.Player=Player;
@@ -28,7 +35,13 @@ public partial class WorldView : Node2D
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
-    public Interactable? GetTarget(string id)=>GetChildren().OfType<Interactable>().FirstOrDefault(t=>t.Id==id);
+    public IReadOnlyList<Interactable> GetTargets()=>FindChildren("*","",true,false).OfType<Interactable>().ToArray();
+    public Interactable? GetTarget(string id)=>GetTargets().FirstOrDefault(t=>t.Id==id);
+    public Marker2D GetAnchor(string key)
+    {
+        var name=key switch{"entry"=>"EntryAnchor","exit"=>"ExitAnchor","stand"=>"StandAnchor","safe"=>"SafeAnchor","memory_return"=>"MemoryReturnAnchor","seat"=>"SeatAnchor",_=>throw new InvalidOperationException("未知锚点："+key)};
+        return SceneBindings.Require<Marker2D>(this,"Navigation/Anchors/"+name);
+    }
     public void RefreshQuestActors(WorldSnapshot snapshot)
     {
         GetTarget("cannon")?.SetActive(SceneId=="community_gate"&&snapshot.InvitationState.CarArrived&&snapshot.Stage<=SliceStage.InvitationResolved);

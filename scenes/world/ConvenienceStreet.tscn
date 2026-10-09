@@ -20,6 +20,14 @@ script=ExtResource("1")
 SceneId="convenience_street"
 Width=1280
 ViewBounds=Rect2(0,0,1280,360)
+[node name="Navigation" type="Node2D" parent="."]
+[node name="Anchors" type="Node2D" parent="Navigation"]
+[node name="EntryAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(120,280)
+[node name="ExitAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(1160,280)
+[node name="SafeAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(320,280)
 [node name="Backdrop" type="Sprite2D" parent="."]
 texture_filter=2
 z_index=-10

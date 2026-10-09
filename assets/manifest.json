@@ -1,12 +1,15 @@
 {
-  "version": 5,
-  "status": "vs01_player_experience_polish",
+  "version": 6,
+  "status": "vs01_depth_soup_sample_in_development",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
     {
       "id": "player-soup",
       "file": "assets/art/vs01-v3/player-soup.png",
-      "size": [1254,1254],
+      "size": [
+        1254,
+        1254
+      ],
       "sha256": "91A8FAA75CE91CE7E26AED631992C6CAA7A2EA3FA5A39805DB7CA4393729E9D5",
       "usage": "9_measured_seated_action_poses; eat3_chopsticks3_phone3",
       "source": "built-in image_gen",
@@ -50,7 +53,7 @@
         724
       ],
       "sha256": "9A73996F3503FD320DB94DF5C90040497C17A57A73407CA4D292C49E6ACD4049",
-      "usage": "soup_shop_level",
+      "usage": "legacy_art_reference_not_depth_room_background",
       "source": "built-in image_gen",
       "generated_on": "2026-10-04",
       "license_status": "AI_generated_for_project; commercial_release_review_required",
@@ -174,6 +177,118 @@
       "generated_on": "2026-10-04",
       "license_status": "AI_generated_for_project; commercial_release_review_required",
       "provenance": "docs/project/2026-10-04_场景润色资源记录.json"
+    },
+    {
+      "id": "soup-background-v4",
+      "file": "assets/art/vs01-v4/soup-background.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "AA5D205C4445910A559E04F1CDA5B62B3517573FD9E2300004EC275F8F1F0649",
+      "usage": "clean_background_no_baked_floor_props",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "soup-table-v4",
+      "file": "assets/art/vs01-v4/soup-table.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "8524ABEB5640EB6F95875C4ADD6098E833EA37D01AB9FBCD710FD729C4994A76",
+      "usage": "separate_y_sorted_table",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "soup-table-front-v4",
+      "file": "assets/art/vs01-v4/soup-table-front.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "0608C0B9BB6BEA7AE38B602BA9F2D27AD33637A2E5BF9DBAD135F7F09B066ED7",
+      "usage": "thin_foreground_apron_native_atlas_view",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "soup-chair-v4",
+      "file": "assets/art/vs01-v4/soup-chair.png",
+      "size": [
+        1278,
+        1230
+      ],
+      "sha256": "3D4D7773FE0D8FFC2FEB401581829832333F2B7079D8AED356E413721A7FA2CF",
+      "usage": "chair_seat400_floor430",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "soup-counter-v4",
+      "file": "assets/art/vs01-v4/soup-counter.png",
+      "size": [
+        1942,
+        809
+      ],
+      "sha256": "2B16596364BA3D170FB34D10E704D1CC649A46B6D64B0A47C80B78ED517AD354",
+      "usage": "separate_counter",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "soup-pot-v4",
+      "file": "assets/art/vs01-v4/soup-pot.png",
+      "size": [
+        1356,
+        1159
+      ],
+      "sha256": "53B2BE4102ADA25925CE1D870567AC7FF25D525ACABA767C84177EF47ABCAE33",
+      "usage": "separate_plant_obstacle",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "cannon-seated-v4",
+      "file": "assets/art/vs01-v4/cannon-seated.png",
+      "size": [
+        1223,
+        1286
+      ],
+      "sha256": "BC2F7F220D8F74C98A70D111C2A95B1B5F6A726C4B466686D130773B183929F9",
+      "usage": "seated_cannon_no_baked_chair_flip_left",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "player-depth-v4",
+      "file": "assets/art/vs01-v4/player-depth.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "D8AA5E23CC150AAF9E5ABAF38DEDAA738027E0C693258DF07C0A709862A961CE",
+      "usage": "12_measured_frames_side_front_back_fixed96height",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_VS01_V4.md"
     }
   ],
   "concept_images_exported": false,

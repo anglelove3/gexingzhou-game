@@ -1,230 +1,229 @@
 [gd_scene load_steps=16 format=3]
-[ext_resource type="Texture2D" path="res://assets/atlases/coin-1.tres" id="Payment"]
-[ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
-[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/soup-v1.png" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
-[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="4"]
-[ext_resource type="Script" path="res://scripts/Interactable.cs" id="5"]
-[ext_resource type="PackedScene" path="res://scenes/world/Bench.tscn" id="6"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="Npc0"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Npc1"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Npc2"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="Npc3"]
+[ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-background.png" id="Bg"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
+[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="Interactions"]
+[ext_resource type="Script" path="res://scripts/Interactable.cs" id="Target"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-table.png" id="Table"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-table-front.png" id="Front"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-chair.png" id="Chair"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-counter.png" id="Counter"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-pot.png" id="Pot"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/cannon-seated.png" id="Cannon"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Shopkeeper"]
 [ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
-[sub_resource type="AtlasTexture" id="TableFront"]
-atlas=ExtResource("2")
-region=Rect2(760,425,280,24)
+[ext_resource type="Texture2D" path="res://assets/atlases/coin-1.tres" id="Payment"]
+[sub_resource type="AtlasTexture" id="Lip"]
+atlas=ExtResource("Front")
+region=Rect2(20,280,2130,195)
 filter_clip=true
-[sub_resource type="RectangleShape2D" id="Ground"]
-size=Vector2(960,16)
-[sub_resource type="RectangleShape2D" id="Side"]
-size=Vector2(16,360)
 [node name="SoupShop" type="Node2D"]
-script=ExtResource("1")
+script=ExtResource("World")
 SceneId="soup_shop"
 Width=960
-ViewBounds=Rect2(0,0,960,358)
+ViewBounds=Rect2(0,0,960,540)
+Mode=1
 [node name="Backdrop" type="Sprite2D" parent="."]
 texture_filter=2
 z_index=-10
-position=Vector2(0,-0.8000000000000114)
-scale=Vector2(0.4972375690607735,0.4972375690607735)
-texture=ExtResource("2")
+scale=Vector2(0.5741627,0.5738576)
+texture=ExtResource("Bg")
 centered=false
-[node name="Player" parent="." instance=ExtResource("3")]
-position=Vector2(320,280)
+[node name="DepthLayers" type="Node2D" parent="."]
+y_sort_enabled=true
+[node name="Actors" type="Node2D" parent="DepthLayers"]
+y_sort_enabled=true
+[node name="Player" parent="DepthLayers/Actors" instance=ExtResource("Player")]
+position=Vector2(100,460)
+[node name="Cannon" type="Node2D" parent="DepthLayers/Actors"]
+position=Vector2(580,430)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/Cannon"]
+texture_filter=2
+position=Vector2(-20.63,-40.397)
+scale=Vector2(0.066225,0.066225)
+texture=ExtResource("Cannon")
+flip_h=true
+[node name="NameLabel" type="Label" parent="DepthLayers/Actors/Cannon"]
+offset_left=-48.0
+offset_top=-97.0
+offset_right=48.0
+offset_bottom=-77.0
+theme_override_font_sizes/font_size=14
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
+theme_override_constants/outline_size=2
+text="张大炮"
+horizontal_alignment=1
+mouse_filter=2
+[node name="Shopkeeper" type="Sprite2D" parent="DepthLayers/Actors"]
+texture_filter=2
+position=Vector2(870,366)
+scale=Vector2(0.18,0.18)
+texture=ExtResource("Shopkeeper")
+flip_h=true
+[node name="Props" type="Node2D" parent="DepthLayers"]
+y_sort_enabled=true
+[node name="Table" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(509,435)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Table"]
+texture_filter=2
+position=Vector2(-62.136,-65.799)
+scale=Vector2(0.07002,0.090259)
+texture=ExtResource("Table")
+centered=false
+[node name="SoupBowl" type="Sprite2D" parent="DepthLayers/Props/Table"]
+position=Vector2(-20,-48)
+scale=Vector2(0.05,0.05)
+texture_filter=2
+texture=ExtResource("Bowl")
+[node name="Chairs" type="Node2D" parent="DepthLayers/Props"]
+y_sort_enabled=true
+[node name="LeftChair" type="Node2D" parent="DepthLayers/Props/Chairs"]
+position=Vector2(430,430)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Chairs/LeftChair"]
+texture_filter=2
+position=Vector2(-39.04,-69.47)
+scale=Vector2(0.0611,0.0611)
+texture=ExtResource("Chair")
+centered=false
+[node name="SeatSurface" type="Marker2D" parent="DepthLayers/Props/Chairs/LeftChair"]
+position=Vector2(0,-30)
+[node name="RightChair" type="Node2D" parent="DepthLayers/Props/Chairs"]
+position=Vector2(580,430)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Chairs/RightChair"]
+texture_filter=2
+position=Vector2(-39.04,-69.47)
+scale=Vector2(0.0611,0.0611)
+texture=ExtResource("Chair")
+centered=false
+[node name="Counter" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(831,414)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Counter"]
+texture_filter=2
+position=Vector2(-86.39,-66.98)
+scale=Vector2(0.0884,0.0884)
+texture=ExtResource("Counter")
+centered=false
+[node name="Pot" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(250,430)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Pot"]
+texture_filter=2
+position=Vector2(-50.99,-75.24)
+scale=Vector2(0.07213,0.07213)
+texture=ExtResource("Pot")
+centered=false
+[node name="Foreground" type="Node2D" parent="."]
+z_index=2
+[node name="TableEdge" type="Sprite2D" parent="Foreground"]
+visible=false
+texture_filter=2
+position=Vector2(509,411)
+scale=Vector2(0.05164,0.05128)
+texture=SubResource("Lip")
 [node name="Interactions" type="Node" parent="."]
-script=ExtResource("4")
-[node name="Floor" type="StaticBody2D" parent="."]
-position=Vector2(480,288)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
-shape=SubResource("Ground")
-[node name="LeftBoundary" type="StaticBody2D" parent="."]
-position=Vector2(-8,180)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
-shape=SubResource("Side")
-[node name="RightBoundary" type="StaticBody2D" parent="."]
-position=Vector2(968,180)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RightBoundary"]
-shape=SubResource("Side")
-[node name="StreetExit" type="Node2D" parent="."]
-position=Vector2(80,280)
-script=ExtResource("5")
+script=ExtResource("Interactions")
+[node name="Targets" type="Node2D" parent="."]
+[node name="StreetExit" type="Node2D" parent="Targets"]
+position=Vector2(48,460)
+script=ExtResource("Target")
 Id="street"
 Caption="回便利店街"
-Description=""
 ActionId="scene:convenience_street"
-IsActive=true
-[node name="NameLabel" type="Label" parent="StreetExit"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
-horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="回便利店街"
-mouse_filter=2
-visible=false
-[node name="Marker" type="Label" parent="StreetExit"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="›"
-mouse_filter=2
-[node name="Seat" type="Node2D" parent="."]
-position=Vector2(440,280)
-script=ExtResource("5")
+[node name="Seat" type="Node2D" parent="Targets"]
+position=Vector2(400,430)
+script=ExtResource("Target")
 Id="seat"
 Caption="张大炮 · 桌边坐下"
-Description=""
 ActionId="soup.meet"
-IsActive=true
-[node name="NameLabel" type="Label" parent="Seat"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
-horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="张大炮"
-mouse_filter=2
-visible=false
-[node name="Marker" type="Label" parent="Seat"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="◇"
-mouse_filter=2
-[node name="Artwork" type="Sprite2D" parent="Seat"]
-texture_filter=2
-position=Vector2(30,-28)
-scale=Vector2(0.13793103448275862,0.13793103448275862)
-texture=ExtResource("Npc3")
-flip_h=true
-[node name="Sign" type="Node2D" parent="."]
-position=Vector2(200,280)
-script=ExtResource("5")
+[node name="Sign" type="Node2D" parent="Targets"]
+position=Vector2(200,380)
+script=ExtResource("Target")
 Id="sign"
 Caption="旧招牌"
 Description="店换了地方，招牌搬了过来。边角的油烟擦不掉。"
 ActionId="observe"
-IsActive=true
-[node name="Marker" type="Label" parent="Sign"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="◇"
-mouse_filter=2
-[node name="Menu" type="Node2D" parent="."]
-position=Vector2(700,280)
-script=ExtResource("5")
+[node name="Menu" type="Node2D" parent="Targets"]
+position=Vector2(700,380)
+script=ExtResource("Target")
 Id="menu"
 Caption="看看菜单"
 Description="鸭血粉丝汤。记忆里便宜，现在也够吃顿热乎的。"
 ActionId="observe"
-IsActive=true
-[node name="Marker" type="Label" parent="Menu"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="◇"
-mouse_filter=2
-[node name="Counter" type="Node2D" parent="."]
-position=Vector2(800,280)
-script=ExtResource("5")
-Id="counter"
-Caption="收银台"
-Description="吃完再结账。老板摆摆手：先坐。"
+[node name="Note" type="Node2D" parent="Targets"]
+position=Vector2(740,430)
+script=ExtResource("Target")
+Id="note"
+Caption="柜台便条"
+Description="先坐，汤马上好。"
 ActionId="observe"
-IsActive=true
-[node name="Marker" type="Label" parent="Counter"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="◇"
-mouse_filter=2
-[node name="Shopkeeper" type="Sprite2D" parent="."]
-texture_filter=2
-position=Vector2(850,246)
-scale=Vector2(0.13709677419354838,0.13709677419354838)
-texture=ExtResource("Npc2")
-flip_h=true
-[node name="SoupBowl" type="Sprite2D" parent="."]
-texture_filter=2
-position=Vector2(415,206.5)
-scale=Vector2(0.04054054054054054,0.04054054054054054)
-texture=ExtResource("Bowl")
-[node name="SeatAnchor" type="Marker2D" parent="."]
-position=Vector2(358,237)
-[node name="StandAnchor" type="Marker2D" parent="."]
-position=Vector2(440,280)
-[node name="TableForeground" type="Sprite2D" parent="."]
-visible=false
-z_index=2
-position=Vector2(378,210.5)
-scale=Vector2(0.4972,0.4972)
-texture=SubResource("TableFront")
-centered=false
+[node name="Navigation" type="Node2D" parent="."]
+[node name="GroundBoundary" type="StaticBody2D" parent="Navigation"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/GroundBoundary"]
+build_mode=1
+polygon=PackedVector2Array(24,360,936,360,936,520,24,520)
+[node name="Obstacles" type="Node2D" parent="Navigation"]
+[node name="Counter" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Counter"]
+polygon=PackedVector2Array(750,360,912,360,912,414,750,414)
+[node name="LeftChair" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/LeftChair"]
+polygon=PackedVector2Array(418,422,442,422,442,438,418,438)
+[node name="Pot" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Pot"]
+polygon=PackedVector2Array(235,400,265,400,265,430,235,430)
+[node name="RightChair" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/RightChair"]
+polygon=PackedVector2Array(568,422,592,422,592,438,568,438)
+[node name="Table" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Table"]
+polygon=PackedVector2Array(460,414,558,414,558,442,460,442)
+[node name="Anchors" type="Node2D" parent="Navigation"]
+[node name="EntryAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(100,460)
+[node name="ExitAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(48,460)
+[node name="StandAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(400,430)
+[node name="SafeAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(120,480)
+[node name="MemoryReturnAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(400,430)
+[node name="SeatAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(430,430)
 [node name="PaymentCoin" type="Sprite2D" parent="."]
 visible=false
 z_index=4
-position=Vector2(390,224)
+position=Vector2(489,389)
 scale=Vector2(0.055,0.055)
 texture=ExtResource("Payment")
 [node name="ActionProps" type="Node2D" parent="."]
 z_index=3
 [node name="BowlSteam" type="Line2D" parent="ActionProps"]
 visible=false
-position=Vector2(415,201)
+position=Vector2(489,385)
 points=PackedVector2Array(0,0,-2,-4,1,-8,-1,-12)
 width=1.0
 default_color=Color(0.9,0.88,0.8,0.35)
 [node name="Chopsticks" type="Line2D" parent="ActionProps"]
 visible=false
-position=Vector2(392,211)
+position=Vector2(465,390)
 points=PackedVector2Array(0,0,18,0,18,2,0,2)
 width=1.0
 default_color=Color(0.55,0.35,0.18,1)
 [node name="PhoneGlow" type="Line2D" parent="ActionProps"]
 visible=false
-position=Vector2(374,224)
+position=Vector2(446,401)
 points=PackedVector2Array(-3,-3,3,0)
 width=2.0
 default_color=Color(0.45,0.65,0.72,0.45)
