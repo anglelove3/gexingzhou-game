@@ -62,6 +62,20 @@ Input image 1 is the matching wooden table reference. Keep its exact worn warm-b
 
 ## 参考及测量
 
+## player-soup 与 player-soup-phone（2026-10-09）
+
+模式：built-in image_gen，透明背景；参考为本项目player-depth.png，未使用真人照片。原始生成PNG像素不变，以AtlasTexture选取完整帧；总图末行截断的手机帧不使用，另生成手机三帧。起身按完整坐下关键帧逆序播放，减少动效复用关键帧、缩短过渡。坐稳臀部世界Y400、脚底约Y430；手机图以独立原生比例校准，家具与人物接触仍需正常速度真人验收。
+
+player-soup提示原文：
+
+Use case: stylized-concept. Image 1 identity reference for SAME male rock musician: black tied-back shaggy hair, dark worn denim jacket, black vest, jeans and wallet chain, black Martin boots. Production transparent 2D GAME SPRITES, square sheet EXACTLY FOUR equal columns and FOUR equal rows, 16 isolated figures. Camera fixed side view facing right. Painted pixel-textured realism matching reference. No furniture, no shadows, no text, no grid drawn. Each cell needs wide transparent padding; no body part touches or overlaps another cell. Keep physical body size identical in all frames. Upright height 90% of cell; seated head-to-foot height around 80% of upright, not miniature. Seated knees bend at 90 degrees, thigh level, shins vertical and LONG enough: butt-to-sole distance 32% of upright head-to-sole height, boots directly below knees. NO tucked or scrunched short legs. Boots on SAME 95% cell-height baseline in EVERY cell, including seated. Row1 four sit-down frames: upright, knee bend/lean forward, hips halfway down, final fully seated naturally. Row2 four eating frames seated, hand supports a bowl, utensil lifts to mouth then lowers. Row3 four setting-chopsticks frames seated, lift chopsticks, extend arm right to table-height, release, return arm. Row4 four checking-phone frames seated, reach pocket, lift phone, look at glowing screen, lower it. No extra figures, no cropped heads or feet. Genuine transparent alpha background.
+
+player-soup-phone提示原文：
+
+Use case: stylized-concept. Image 1 is approved identity reference. Production GAME ANIMATION atlas of SAME Chinese rock musician black tied hair, dark worn denim jacket, black vest, jeans wallet chain, Martin boots. Exactly THREE full-body SEATED phone-check poses in ONE horizontal row. Wide landscape 3:2 canvas. Each figure isolated on genuinely transparent alpha with generous gaps, fully visible head and boots, nothing cropped. Match painted pixel-realistic art. Side view facing right. Figure1 hand reaching jacket pocket. Figure2 both hands holding old phone and looking down at a softly glowing screen. Figure3 phone lowering toward pocket, ready to return to relaxed seated. Ordinary invisible LOW CHAIR: horizontal thighs, knees90°, vertical shins, boot soles flat beneath knees. Long lower legs: butt-to-sole 32% of the character's hypothetical upright height. Do NOT include any chair, table, background, floor, ground shadow, text or watermark. Identical physical body proportions and head size across poses, exact same sole baseline, generous transparent top and bottom margin. Three figures only, one row, no other poses.
+
+实际尺寸/hash见探索资源记录。素材专为项目生成，商用前仍须审核人物、品牌与生成素材权益；不承诺完整商用许可。
+
 背景参考既有soup-v1.png；人物参考既有player-v1.png与npcs-v1.png；桌沿参考本轮soup-table.png。未使用外部免费素材或真人照片。
 
 八个PNG的实际尺寸、SHA256、使用方式见探索资源记录。主角整张源图保持透明，显示区域为原生AtlasTexture；脚底测量使用alpha>=26，统一scale=96/400，不随场景Y位置缩放。张大炮坐姿在场景里水平翻转朝向桌面。家具可微调非等比尺寸以配合占位；人物不非等比拉伸。

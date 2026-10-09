@@ -7,7 +7,7 @@ public partial class PlayerController : CharacterBody2D
     [Export] public SpriteFrames ReducedRestFrames {get;set;}=null!;
     [Export] public SpriteFrames SoupFrames {get;set;}=null!;
     [Export] public SpriteFrames ReducedSoupFrames {get;set;}=null!;
-    private bool soupActive;
+    private bool soupActive,approachActive;
     public string Facing {get;private set;}="side";
     private MainView? owner;private float stepDistance;
     [Export] public float RestStandingPixels {get;set;}=307;
@@ -91,7 +91,7 @@ public partial class PlayerController : CharacterBody2D
     }
     public void ClearRestPose()
     {
-        restActive=false;soupActive=false;artwork.SpriteFrames=walkingFrames;
+        restActive=false;soupActive=false;approachActive=false;locked=false;SuppressHeld();artwork.SpriteFrames=walkingFrames;
         artwork.Play(navigation?.Mode==WorldMode.Depth2D?"idle_"+Facing:"idle");AnchorArtwork();
     }
     private static void ValidateSoupFrames(SpriteFrames? frames)
@@ -114,16 +114,25 @@ public partial class PlayerController : CharacterBody2D
     }
     public void SetSoupPose(string animation,Vector2 visualOffset,bool paused)
     {
-        soupActive=true;restActive=true;seatOffset=visualOffset;Velocity=Vector2.Zero;artwork.FlipH=false;
+        approachActive=false;soupActive=true;restActive=true;seatOffset=visualOffset;Velocity=Vector2.Zero;artwork.FlipH=false;
         var frames=GetNode<GameSession>("/root/GameSession").Options.ReducedMotion?ReducedSoupFrames:SoupFrames;
         if(artwork.SpriteFrames!=frames){artwork.SpriteFrames=frames;artwork.Animation=animation;artwork.Frame=0;}
         if(artwork.Animation!=animation){artwork.Play(animation);artwork.Frame=0;}
         artwork.SpeedScale=1;if(paused)artwork.Pause();else if(!artwork.IsPlaying())artwork.Play(animation);AnchorArtwork();
     }
     public void ClearSoupPose()=>ClearRestPose();
+    public void SetApproachPose(Vector2 direction,bool paused)
+    {
+        approachActive=true;locked=true;restActive=false;Velocity=Vector2.Zero;
+        Facing=Math.Abs(direction.X)>=Math.Abs(direction.Y)?"side":direction.Y<0?"back":"front";
+        artwork.FlipH=Facing=="side"&&direction.X<0;artwork.SpriteFrames=walkingFrames;
+        var name="walk_"+Facing;if(artwork.Animation!=name)artwork.Play(name);
+        if(paused)artwork.Pause();else if(!artwork.IsPlaying())artwork.Play(name);AnchorArtwork();
+    }
     public override void _PhysicsProcess(double delta)
     {
         var session=GetNode<GameSession>("/root/GameSession");
+        if(approachActive){SuppressHeld();Velocity=Vector2.Zero;return;}
         float axis=(Input.IsPhysicalKeyPressed(Key.D)||Input.IsPhysicalKeyPressed(Key.Right)?1:0)-(Input.IsPhysicalKeyPressed(Key.A)||Input.IsPhysicalKeyPressed(Key.Left)?1:0);
         var p=session.Catalog!.Parameters;bool depth=navigation?.Mode==WorldMode.Depth2D;
         bool blocked=locked||restActive||session.Flow!=FlowState.Field||!focused;

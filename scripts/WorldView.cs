@@ -10,6 +10,7 @@ public partial class WorldView : Node2D
     public NavigationProfile Navigation {get;private set;}=null!;
     public PlayerController Player {get;private set;}=null!;
     public InteractionController Interactions {get;private set;}=null!;
+    private Vector2 paymentOrigin;
     public override void _Ready()
     {
         try
@@ -24,6 +25,7 @@ public partial class WorldView : Node2D
             if(!NavigationSceneReader.LoadCatalog().Profiles.TryGetValue(SceneId,out var baked)||!NavigationSceneReader.Matches(Navigation,baked))
                 throw new InvalidOperationException("导航数据与编辑场景不一致，请检查后重新导出："+SceneId);
             Player.ApplyNavigation(Navigation);
+            if(GetNodeOrNull<Sprite2D>("PaymentCoin") is {} payment)paymentOrigin=payment.Position;
             if(HasMeta("binding_error"))throw new InvalidOperationException(GetMeta("binding_error").AsString());
             var ids=new HashSet<string>();
             foreach(var target in GetTargets())
@@ -56,8 +58,8 @@ public partial class WorldView : Node2D
     public void ShowPayment()
     {
         if(GetNodeOrNull<Sprite2D>("PaymentCoin") is not {} coin)return;
-        coin.Visible=true;coin.Position=new(390,224);coin.Modulate=Colors.White;
-        var tween=CreateTween();tween.TweenProperty(coin,"position",new Vector2(418,216),GetNode<GameSession>("/root/GameSession").Options.FadeDuration);
+        coin.Visible=true;coin.Position=paymentOrigin;coin.Modulate=Colors.White;
+        var tween=CreateTween();tween.TweenProperty(coin,"position",paymentOrigin+new Vector2(28,-8),GetNode<GameSession>("/root/GameSession").Options.FadeDuration);
         tween.TweenInterval(.6);tween.TweenProperty(coin,"modulate:a",0f,.2);tween.TweenCallback(Callable.From(()=>coin.Visible=false));
     }
     public Interactable AddTarget(string id,float x,string caption,string body,string action)

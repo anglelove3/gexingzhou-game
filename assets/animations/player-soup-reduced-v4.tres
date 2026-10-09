@@ -1,0 +1,131 @@
+[gd_resource type="SpriteFrames" load_steps=17 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/player-soup.png" id="Sheet"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/player-soup-phone.png" id="Phone"]
+[sub_resource type="AtlasTexture" id="S0"]
+atlas=ExtResource("Sheet")
+region=Rect2(90,4,108,371)
+filter_clip=true
+metadata/seat_pivot=Vector2(53,216)
+metadata/stand_pivot=Vector2(53,365)
+metadata/pose_scale=0.263736
+metadata/standing_height=364.000
+[sub_resource type="AtlasTexture" id="S1"]
+atlas=ExtResource("Sheet")
+region=Rect2(396,14,152,360)
+filter_clip=true
+metadata/seat_pivot=Vector2(38,220)
+metadata/stand_pivot=Vector2(72,355)
+metadata/pose_scale=0.263736
+metadata/standing_height=364.000
+[sub_resource type="AtlasTexture" id="S2"]
+atlas=ExtResource("Sheet")
+region=Rect2(700,52,184,322)
+filter_clip=true
+metadata/seat_pivot=Vector2(35,211)
+metadata/stand_pivot=Vector2(91,317)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+[sub_resource type="AtlasTexture" id="E0"]
+atlas=ExtResource("Sheet")
+region=Rect2(66,384,196,323)
+filter_clip=true
+metadata/seat_pivot=Vector2(34,212)
+metadata/stand_pivot=Vector2(138,319)
+metadata/pose_scale=0.280374
+metadata/standing_height=342.400
+metadata/action_contact=Vector2(151,167)
+[sub_resource type="AtlasTexture" id="E1"]
+atlas=ExtResource("Sheet")
+region=Rect2(397,386,208,321)
+filter_clip=true
+metadata/seat_pivot=Vector2(37,212)
+metadata/stand_pivot=Vector2(149,318)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+metadata/action_contact=Vector2(139,166)
+[sub_resource type="AtlasTexture" id="E2"]
+atlas=ExtResource("Sheet")
+region=Rect2(706,390,204,317)
+filter_clip=true
+metadata/seat_pivot=Vector2(35,209)
+metadata/stand_pivot=Vector2(145,315)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+metadata/action_contact=Vector2(140,162)
+[sub_resource type="AtlasTexture" id="E3"]
+atlas=ExtResource("Sheet")
+region=Rect2(1032,390,201,317)
+filter_clip=true
+metadata/seat_pivot=Vector2(36,209)
+metadata/stand_pivot=Vector2(143,315)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+metadata/action_contact=Vector2(130,145)
+[sub_resource type="AtlasTexture" id="C0"]
+atlas=ExtResource("Sheet")
+region=Rect2(60,714,208,315)
+filter_clip=true
+metadata/seat_pivot=Vector2(42,206)
+metadata/stand_pivot=Vector2(144,312)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+[sub_resource type="AtlasTexture" id="C1"]
+atlas=ExtResource("Sheet")
+region=Rect2(387,714,262,317)
+filter_clip=true
+metadata/seat_pivot=Vector2(41,208)
+metadata/stand_pivot=Vector2(160,314)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+[sub_resource type="AtlasTexture" id="C2"]
+atlas=ExtResource("Sheet")
+region=Rect2(704,717,241,312)
+filter_clip=true
+metadata/seat_pivot=Vector2(42,204)
+metadata/stand_pivot=Vector2(145,309)
+metadata/pose_scale=0.285714
+metadata/standing_height=336.000
+[sub_resource type="AtlasTexture" id="C3"]
+atlas=ExtResource("Sheet")
+region=Rect2(1028,712,210,317)
+filter_clip=true
+metadata/seat_pivot=Vector2(43,208)
+metadata/stand_pivot=Vector2(148,314)
+metadata/pose_scale=0.283019
+metadata/standing_height=339.200
+[sub_resource type="AtlasTexture" id="P0"]
+atlas=ExtResource("Phone")
+region=Rect2(20,96,544,844)
+filter_clip=true
+metadata/seat_pivot=Vector2(150,526)
+metadata/stand_pivot=Vector2(405,818)
+metadata/pose_scale=0.117
+metadata/standing_height=820.513
+metadata/action_contact=Vector2(220,335)
+[sub_resource type="AtlasTexture" id="P1"]
+atlas=ExtResource("Phone")
+region=Rect2(577,96,486,844)
+filter_clip=true
+metadata/seat_pivot=Vector2(110,526)
+metadata/stand_pivot=Vector2(343,818)
+metadata/pose_scale=0.117
+metadata/standing_height=820.513
+metadata/action_contact=Vector2(323,324)
+[sub_resource type="AtlasTexture" id="P2"]
+atlas=ExtResource("Phone")
+region=Rect2(1040,96,496,844)
+filter_clip=true
+metadata/seat_pivot=Vector2(128,526)
+metadata/stand_pivot=Vector2(379,818)
+metadata/pose_scale=0.117
+metadata/standing_height=820.513
+metadata/action_contact=Vector2(200,335)
+[resource]
+animations=[
+{"frames":[{"duration":1.0,"texture":SubResource("S0")},{"duration":1.0,"texture":SubResource("S1")},{"duration":1.0,"texture":SubResource("S2")},{"duration":1.0,"texture":SubResource("S2")}],"loop":false,"name":&"sit_down","speed":12.0},
+{"frames":[{"duration":1.0,"texture":SubResource("S2")}],"loop":true,"name":&"seated","speed":1.0},
+{"frames":[{"duration":1.0,"texture":SubResource("S2")},{"duration":1.0,"texture":SubResource("S2")},{"duration":1.0,"texture":SubResource("S1")},{"duration":1.0,"texture":SubResource("S0")}],"loop":false,"name":&"stand_up","speed":12.0},
+{"frames":[{"duration":1.0,"texture":SubResource("E0")},{"duration":1.0,"texture":SubResource("E1")},{"duration":1.0,"texture":SubResource("E2")},{"duration":1.0,"texture":SubResource("E3")}],"loop":false,"name":&"eat","speed":12.0},
+{"frames":[{"duration":1.0,"texture":SubResource("C0")},{"duration":1.0,"texture":SubResource("C1")},{"duration":1.0,"texture":SubResource("C2")},{"duration":1.0,"texture":SubResource("C3")}],"loop":false,"name":&"set_chopsticks","speed":12.0},
+{"frames":[{"duration":1.0,"texture":SubResource("P0")},{"duration":1.0,"texture":SubResource("P1")},{"duration":1.0,"texture":SubResource("P2")}],"loop":false,"name":&"check_phone","speed":12.0},
+]

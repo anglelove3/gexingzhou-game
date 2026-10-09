@@ -3,11 +3,13 @@ using GeXingzhou.Domain;
 public partial class BootMenu : Control
 {
     public AudioDirector Audio {get;private set;}=null!;
+    private PackedScene gameplayScene=null!;
     public override void _Ready()
     {
         try
         {
             Audio=SceneBindings.Require<AudioDirector>(this,"Audio");
+            gameplayScene=GD.Load<PackedScene>("res://scenes/Main.tscn")??throw new InvalidOperationException("主场景资源缺失。");
             var start=SceneBindings.Require<Button>(this,"Menu/StartButton");
             var settings=SceneBindings.Require<Button>(this,"Menu/SettingsButton");
             var quit=SceneBindings.Require<Button>(this,"Menu/QuitButton");
@@ -15,7 +17,7 @@ public partial class BootMenu : Control
             var preferences=SceneBindings.Require<SettingsController>(this,"Settings");
             var choices=SceneBindings.Require<ChoiceController>(this,"Choices");
             var s=GetNode<GameSession>("/root/GameSession");Theme=s.CreateUiTheme();Audio.SetScene("boot");
-            void Continue(WorldSnapshot snapshot){s.PendingRestore=snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}
+            void Continue(WorldSnapshot snapshot){s.PendingRestore=snapshot;GetTree().ChangeSceneToPacked(gameplayScene);}
             void Upgrade(bool manual,bool backup)
             {
                 choices.Open("将旧版进度复制到二维探索版本？旧文件只读保留，汤店站位会适配新场景。",new (string,Action)[]{
@@ -51,7 +53,7 @@ public partial class BootMenu : Control
             {
                 var a=s.Saves.PreserveForNewGame();var m=s.ManualSaves.PreserveForNewGame();
                 if(!a.Success||!m.Success){message.Text=a.Message+"\n"+m.Message;return;}
-                s.NewGame();GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+                s.NewGame();GetTree().ChangeSceneToPacked(gameplayScene);
             }
             start.Pressed+=()=>{
                 var a=s.ProbeResume(false);var m=s.ProbeResume(true);

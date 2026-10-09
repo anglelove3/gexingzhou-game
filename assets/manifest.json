@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "status": "vs01_depth_soup_sample_in_development",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
@@ -289,6 +289,34 @@
       "generated_on": "2026-10-09",
       "license_status": "AI_generated_for_project; commercial_release_review_required",
       "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "id": "player-soup-v4",
+      "usage": "native_atlas_complete_frames_only_seat400_sole430_fixed_body",
+      "provenance": "licenses/AI_ART_VS01_V4.md",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "file": "assets/art/vs01-v4/player-soup.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "source": "built-in image_gen",
+      "sha256": "773314AF3BAF1B882A1A8A459FA7C69026C49EC23F2E1360A786F5B4EED84202"
+    },
+    {
+      "id": "player-soup-phone-v4",
+      "usage": "native_atlas_complete_frames_only_seat400_sole430_fixed_body",
+      "provenance": "licenses/AI_ART_VS01_V4.md",
+      "generated_on": "2026-10-09",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "file": "assets/art/vs01-v4/player-soup-phone.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "built-in image_gen",
+      "sha256": "45A7203E7F8715BDBF6C6A59A690F7DF56011D3B0822A5C70707D01C6C254A0D"
     }
   ],
   "concept_images_exported": false,

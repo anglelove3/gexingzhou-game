@@ -115,6 +115,34 @@
       "generated_on": "2026-10-09",
       "license_status": "AI_generated_for_project; commercial_release_review_required",
       "provenance": "licenses/AI_ART_VS01_V4.md"
+    },
+    {
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "id": "player-soup-v4",
+      "source": "built-in image_gen",
+      "sha256": "773314AF3BAF1B882A1A8A459FA7C69026C49EC23F2E1360A786F5B4EED84202",
+      "provenance": "licenses/AI_ART_VS01_V4.md",
+      "usage": "native_atlas_complete_frames_only_seat400_sole430_fixed_body",
+      "file": "assets/art/vs01-v4/player-soup.png",
+      "generated_on": "2026-10-09",
+      "size": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "id": "player-soup-phone-v4",
+      "source": "built-in image_gen",
+      "sha256": "45A7203E7F8715BDBF6C6A59A690F7DF56011D3B0822A5C70707D01C6C254A0D",
+      "provenance": "licenses/AI_ART_VS01_V4.md",
+      "usage": "native_atlas_complete_frames_only_seat400_sole430_fixed_body",
+      "file": "assets/art/vs01-v4/player-soup-phone.png",
+      "generated_on": "2026-10-09",
+      "size": [
+        1536,
+        1024
+      ]
     }
   ],
   "reference_inputs": {
@@ -153,7 +181,10 @@
     "chair_feet_y": 430,
     "cannon_seat_source_y": 800,
     "cannon_sole_source_y": 1253,
-    "cannon_world_scale": 0.066225
+    "cannon_world_scale": 0.066225,
+    "soup_seat_hip_y": 400,
+    "soup_standing_height": 96,
+    "soup_runtime_atlas": "assets/animations/player-soup-v4.tres"
   },
   "commercial_note": "Generated specifically for this project, not a guarantee of clearance; review before commercial release."
 }

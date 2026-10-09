@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-background.png" id="Bg"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Shopkeeper"]
 [ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
 [ext_resource type="Texture2D" path="res://assets/atlases/coin-1.tres" id="Payment"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/player-soup-v4.tres" id="SoupFrames"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/player-soup-reduced-v4.tres" id="ReducedSoupFrames"]
 [sub_resource type="AtlasTexture" id="Lip"]
 atlas=ExtResource("Front")
 region=Rect2(20,280,2130,195)
@@ -35,6 +37,8 @@ y_sort_enabled=true
 y_sort_enabled=true
 [node name="Player" parent="DepthLayers/Actors" instance=ExtResource("Player")]
 position=Vector2(100,460)
+SoupFrames=ExtResource("SoupFrames")
+ReducedSoupFrames=ExtResource("ReducedSoupFrames")
 [node name="Cannon" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(580,430)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/Cannon"]
@@ -76,6 +80,7 @@ scale=Vector2(0.05,0.05)
 texture_filter=2
 texture=ExtResource("Bowl")
 [node name="Chairs" type="Node2D" parent="DepthLayers/Props"]
+z_index=-1
 y_sort_enabled=true
 [node name="LeftChair" type="Node2D" parent="DepthLayers/Props/Chairs"]
 position=Vector2(430,430)

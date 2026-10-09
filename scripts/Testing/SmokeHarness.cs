@@ -8,6 +8,7 @@ public partial class SmokeHarness : Node
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="DepthMovement"){await DepthMovementChecks();GD.Print("GODOT_CHECKS_PASS DepthMovement");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="DepthSeat"){await DepthSeatChecks();GD.Print("GODOT_CHECKS_PASS DepthSeat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="SaveUpgrade"){await SaveUpgradeChecks();GD.Print("GODOT_CHECKS_PASS SaveUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceEnd"){await ExperienceEndChecks();GD.Print("GODOT_CHECKS_PASS ExperienceEnd");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperiencePause"){await ExperiencePauseChecks();GD.Print("GODOT_CHECKS_PASS ExperiencePause");await DrainAudio();GetTree().Quit();return;}
@@ -45,7 +46,7 @@ public partial class SmokeHarness : Node
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
                 if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");await DrainAudio();GetTree().Quit();return;}
-                if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();await CaptureDepthSeatChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePause"){await PauseVisualChecks();GD.Print("GODOT_CHECKS_PASS CapturePause");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureEnd"){await EndVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureEnd");await DrainAudio();GetTree().Quit();return;}
@@ -161,7 +162,10 @@ public partial class SmokeHarness : Node
     private async Task DrainAudio()
     {
         foreach(var child in GetChildren().Where(n=>n is MainView or BootMenu).ToArray())child.Free();
-        await Task.Delay(150);await Frames(2);GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
+        await Task.Delay(150);await Frames(2);
+        await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
+        GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);
+        await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
     }
     // Catches missing runtime art, wrong frame/foot alignment, or cosmetics leaking into movement.
     private async Task ArtChecks()
