@@ -4,6 +4,10 @@ using System.Text.Json;
 public sealed record RestoreResult(bool Success,string? ErrorCode=null);
 public partial class GameSession : Node
 {
+    // Scene resources belong to the autoload lifetime, not a temporary GD.Load wrapper.
+    // Re-entering a scene must not race a previous wrapper's managed finalizer.
+    private readonly Dictionary<string,PackedScene> sceneResources=new();
+    public PackedScene? GetScene(string path)=>sceneResources.GetValueOrDefault(path);
     public WorldSnapshot Snapshot {get;private set;} = new();
     public ContentCatalog? Catalog {get;private set;}
     public NavigationCatalog Navigation {get;private set;}=null!;
@@ -49,6 +53,8 @@ public partial class GameSession : Node
     }
     public override void _Ready()
     {
+        foreach(var path in new[]{"res://scenes/Main.tscn","res://scenes/world/CommunityGate.tscn","res://scenes/world/ConvenienceStreet.tscn","res://scenes/world/SoupShop.tscn","res://scenes/world/MemorySoupTable.tscn"})
+            if(GD.Load<PackedScene>(path) is {} scene)sceneResources[path]=scene;
         var result=ContentCatalog.LoadText(name => Godot.FileAccess.GetFileAsString("res://content/vs01/"+name));
         Catalog=result.Catalog; ContentError=string.Join("\n",result.Errors);
         var args=OS.GetCmdlineUserArgs();var supplied=args.FirstOrDefault(a=>a.StartsWith("--test-save-root="))?.Split('=',2)[1];

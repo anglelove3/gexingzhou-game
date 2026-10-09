@@ -9,7 +9,7 @@ public partial class BootMenu : Control
         try
         {
             Audio=SceneBindings.Require<AudioDirector>(this,"Audio");
-            gameplayScene=GD.Load<PackedScene>("res://scenes/Main.tscn")??throw new InvalidOperationException("主场景资源缺失。");
+            gameplayScene=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/Main.tscn")??throw new InvalidOperationException("主场景资源缺失。");
             var start=SceneBindings.Require<Button>(this,"Menu/StartButton");
             var settings=SceneBindings.Require<Button>(this,"Menu/SettingsButton");
             var quit=SceneBindings.Require<Button>(this,"Menu/QuitButton");

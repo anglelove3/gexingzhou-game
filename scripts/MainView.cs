@@ -147,7 +147,7 @@ public partial class MainView : Control
     }
     public bool EnterMemoryView()
     {
-        var packed=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn");if(packed==null)return false;
+        var packed=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/world/MemorySoupTable.tscn");if(packed==null)return false;
         var next=packed.Instantiate<SoupMemoryController>();next.Main=this;next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;AddChild(next);
         if(next.HasMeta("binding_error")){next.Free();return false;}
         Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();Memory?.Free();Memory=next;
@@ -194,7 +194,7 @@ public partial class MainView : Control
         {
             var s=GetNode<GameSession>("/root/GameSession");var path=ScenePath(sceneId);
             if(path==null||s.Navigation==null||!s.Navigation.Profiles.TryGetValue(sceneId,out var nav)||!NavigationGeometry.CanStand(nav,position))return null;
-            var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return null;
+            var packed=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/world/"+path+".tscn");if(packed==null)return null;
             next=packed.Instantiate<WorldView>();
             if(!NavigationSceneReader.Matches(NavigationSceneReader.Read(next),nav)){next.Free();return null;}
             next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;return next;
@@ -225,7 +225,7 @@ public partial class MainView : Control
             viewport.AddChild(candidate);var invalid=candidate.HasMeta("binding_error");candidate.Free();
             if(invalid){GetNode<Label>("StartupError").Visible=false;ShowNotice("手动存档","场景资源暂不能加载；原进度保留。");return;}
             if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();
-            s.PendingRestore=snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+            s.PendingRestore=snapshot;GetTree().ChangeSceneToPacked(s.GetScene("res://scenes/Main.tscn")!);
         }
         else ShowNotice("手动存档",loaded.Message);
     }

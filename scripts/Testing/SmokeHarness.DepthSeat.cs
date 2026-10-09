@@ -63,6 +63,7 @@ public partial class SmokeHarness
             main.Free();await Frames(2);
         }
         await SoupChoiceEntryChecks();
+        GC.Collect();GC.WaitForPendingFinalizers();await Frames(4);
         await ExperienceSoupSeatChecks();
         GD.Print("DEPTH_SEAT_PASS Reachability ShortApproach Phone Cancel Hip Scale Esc Generation SixRealChoices F5F9");
     }
