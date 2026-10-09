@@ -6,6 +6,26 @@ public partial class GameSession : Node
 {
     public WorldSnapshot Snapshot {get;private set;} = new();
     public ContentCatalog? Catalog {get;private set;}
+    public NavigationCatalog Navigation {get;private set;}=null!;
+    public string LegacyDirectory {get;private set;}="";
+    public ResumeOffer ProbeResume(bool manual,bool backup=false)
+    {
+        if(Navigation==null)return new(ResumeSource.Blocked,new(LoadStatus.Corrupt,null,ContentError));
+        return SaveUpgradePolicy.Probe(manual?ManualSaves:Saves,new SaveRepository(LegacyDirectory,manual?"manual":"auto"),backup);
+    }
+    public LoadResult TryUpgradeLegacy(bool manual,bool backup=false)
+    {
+        var offer=ProbeResume(manual,backup);
+        if(offer.Source!=ResumeSource.Legacy)return offer.Result.Status==LoadStatus.Loaded?
+            new(LoadStatus.Corrupt,null,"该槽已有新版本进度，请使用继续或恢复入口。"):offer.Result;
+        var upgraded=LegacySaveAdapter.Upgrade(offer.Result.Snapshot!,Navigation);
+        if(upgraded.Status!=LoadStatus.Loaded)return upgraded;
+        var snapshot=upgraded.Snapshot! with {Settings=Options};
+        var saved=(manual?ManualSaves:Saves).Save(snapshot);
+        if(!saved.Success)return new(LoadStatus.IoError,null,saved.Message);
+        SaveMessage="旧进度可继续；汤店站位已适配新场景。";
+        return new(LoadStatus.Loaded,snapshot,SaveMessage);
+    }
     public string ContentError {get;private set;} = "";
     public string SaveMessage {get;private set;}="";
     public string SaveDirectory {get;private set;}="";
@@ -32,15 +52,39 @@ public partial class GameSession : Node
         var result=ContentCatalog.LoadText(name => Godot.FileAccess.GetFileAsString("res://content/vs01/"+name));
         Catalog=result.Catalog; ContentError=string.Join("\n",result.Errors);
         var args=OS.GetCmdlineUserArgs();var supplied=args.FirstOrDefault(a=>a.StartsWith("--test-save-root="))?.Split('=',2)[1];
-        var location=args.Any(a=>a.StartsWith("--suite="))?"res://test-output/integration/"+Guid.NewGuid():"user://saves/vs01";
+        var testing=args.Any(a=>a.StartsWith("--suite="));
+        var location=testing?"res://test-output/integration/"+Guid.NewGuid():"user://saves/vs01-explore-v2";
         if(supplied!=null&&supplied.StartsWith("res://test-output/")&&!supplied.Contains(".."))location=supplied;
-        SaveDirectory=ProjectSettings.GlobalizePath(location);Saves=new(SaveDirectory);ManualSaves=new(SaveDirectory,"manual");
-        Preferences=new(System.IO.Path.Combine(SaveDirectory,"preferences"));Options=Preferences.Load();Snapshot=Snapshot with {Settings=Options};Recorder=new(System.IO.Path.Combine(SaveDirectory,"behavior"),Options.RecordEventsEnabled);
+        SaveDirectory=ProjectSettings.GlobalizePath(testing?location+"/v2":location);
+        LegacyDirectory=ProjectSettings.GlobalizePath(testing?location+"/v1":"user://saves/vs01");
+        ISaveCodec codec;
+        try{Navigation=NavigationSceneReader.LoadCatalog();codec=new SaveV2Codec(Navigation);}
+        catch(Exception ex) when(ex is ArgumentException or InvalidOperationException or System.IO.IOException)
+        {ContentError+="\n导航加载失败："+ex.Message;Catalog=null;codec=new UnavailableSaveCodec();}
+        Saves=new(SaveDirectory,"auto",codec);ManualSaves=new(SaveDirectory,"manual",codec);
+        InitializePreferences();Snapshot=SaveV2Codec.CreateNew(Options);
+        Recorder=new(System.IO.Path.Combine(SaveDirectory,"behavior"),Options.RecordEventsEnabled);
     }
-    public void NewGame(){Snapshot=new(){Settings=Options};activeSeconds.Clear();PendingRestore=null;Flow=FlowState.Field;SaveMessage="";}
+    private void InitializePreferences()
+    {
+        var directory=System.IO.Path.Combine(SaveDirectory,"preferences");
+        Preferences=new(directory);Options=Preferences.Load();EventWarning=Preferences.Message;
+        if(!System.IO.File.Exists(System.IO.Path.Combine(directory,"settings.json")))
+        {
+            var old=new SettingsRepository(System.IO.Path.Combine(LegacyDirectory,"preferences"));var oldOptions=old.Load();
+            if(old.HasValidFile){Options=oldOptions;var copied=Preferences.Save(Options);if(!copied.Success)EventWarning=copied.Message;}
+        }
+        Snapshot=Snapshot with {Settings=Options};
+    }
+    private sealed class UnavailableSaveCodec:ISaveCodec
+    {
+        public string? Validate(WorldSnapshot snapshot)=>"导航数据不可用，未保存；原档保留。";
+        public LoadResult Read(string json)=>new(LoadStatus.Corrupt,null,"导航数据不可用，原档保留。");
+    }
+    public void NewGame(){Snapshot=SaveV2Codec.CreateNew(Options);activeSeconds.Clear();PendingRestore=null;Flow=FlowState.Field;SaveMessage="";}
     public RestoreResult Restore(WorldSnapshot snapshot)
     {
-        var error=SaveRepository.Validate(snapshot);if(error!=null)return new(false,error);
+        var error=Saves.ValidateSnapshot(snapshot);if(error!=null)return new(false,error);
         Snapshot=ResumePolicy.Normalize(snapshot) with {Settings=Options};activeSeconds.Clear();foreach(var time in Snapshot.SceneActiveMilliseconds)activeSeconds[time.Key]=time.Value/1000.0;
         Flow=Snapshot.SceneId=="memory_soup_table"?FlowState.Memory:FlowState.Field;PendingRestore=null;return new(true);
     }

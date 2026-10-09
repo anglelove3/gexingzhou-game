@@ -7,7 +7,7 @@ public partial class SmokeHarness
     {
         var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
         s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
-        var context=new SceneReturnContext("soup_shop",new(440,280),"soup.return",true);
+        var context=new SceneReturnContext("soup_shop",new(400,430),"soup.return",true);
         var state=MemorySession.Begin(s.Snapshot,context,false);
         for(int i=0;i<count;i++)state=MemorySession.PushCoin(state,"c"+(i+1));
         s.Restore(s.Snapshot with {Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",MemoryOrdinal=1,MemoryState=state,ReturnContext=context});s.Flow=FlowState.Memory;

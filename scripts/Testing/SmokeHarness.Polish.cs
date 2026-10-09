@@ -159,7 +159,7 @@ public partial class SmokeHarness
             window.Size=size;await Frames(3);var main=await NewPolishMain();
             foreach(var id in new[]{"community_gate","convenience_street","soup_shop"})
             {
-                if(main.World.SceneId!=id)Require(main.ChangeWorld(id,new(320,280)),"Map change failed");await Frames(3);
+                if(main.World.SceneId!=id)Require(main.ChangeWorld(id,id=="soup_shop"?new(120,480):new(320,280)),"Map change failed");await Frames(3);
                 var display=main.GetNode<SubViewportContainer>("WorldDisplay");
                 Require(display.GetGlobalRect().IsEqualApprox(main.GetGlobalRect()),"WindowCoverage: display leaves game margins "+size);
                 Require(main.GetNode<PanelContainer>("HUD/TaskCard").Size.X<main.Size.X*.65f,"Full-width task bar remains");

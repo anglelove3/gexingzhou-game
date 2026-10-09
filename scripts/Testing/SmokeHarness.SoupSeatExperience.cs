@@ -28,7 +28,7 @@ public partial class SmokeHarness
         var main=await NewPolishMain();s.AdvanceClock(53);
         Require(s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1")).Applied,"Soup seed meeting");
         Require(s.TryDispatch(new("candy.hey.delivered","delivered","hey-1")).Applied,"Soup seed candy");
-        Require(main.ChangeWorld("soup_shop",new(350,280)),"Soup seed world");await Frames(3);return main;
+        Require(main.ChangeWorld("soup_shop",new(400,430)),"Soup seed world");await Frames(3);return main;
     }
     private async Task ExperienceSoupSeatChecks()
     {
@@ -41,7 +41,7 @@ public partial class SmokeHarness
             Require(seat.Begin(()=>callbacks++),"Seat rejected legitimate begin");Require(!seat.Begin(()=>callbacks+=100),"Repeated begin accepted");
             await WaitUntil(()=>!seat.IsActing,"Soup sitting");Require(seat.IsActive&&callbacks==1,"Sit callback count");
             var art=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");Require(art.Animation=="seated","Not seated pose");
-            Require(main.World.GetNode<Sprite2D>("TableForeground").Visible,"Missing leg occlusion");Require(main.SafeSavePosition.Y==280,"Unsafe soup save");
+            Require(main.World.GetNode<Sprite2D>("Foreground/TableEdge").Visible,"Missing leg occlusion");Require(main.SafeSavePosition==new GeXingzhou.Domain.Position2(400,430),"Unsafe soup save");
             await Capture("soup-seated"+(reduced?"-reduced":""));
             foreach(var code in new[]{"eat","set_chopsticks","check_phone"})
             {
@@ -56,18 +56,18 @@ public partial class SmokeHarness
                 Require(art.Animation=="seated"&&s.Snapshot.CandyCount==0,"Action changed candy or resting pose");
             }
             s.UpdatePosition(main.SafeSavePosition);s.SaveManual();var saved=s.ManualSaves.Load();
-            Require(saved.Status==LoadStatus.Loaded&&saved.Snapshot!.PlayerPosition.Y==280,"Safe save rejected");
+            Require(saved.Status==LoadStatus.Loaded&&saved.Snapshot!.PlayerPosition==new Position2(400,430),"Safe save rejected");
             callbacks=0;Require(seat.PlayAction("eat",()=>callbacks++),"Cancel test action");seat.Cancel();
-            Require(!seat.IsActive&&art.Animation=="idle","Cancel did not unlock");
+            Require(!seat.IsActive&&art.Animation.ToString().StartsWith("idle"),"Cancel did not unlock");
             Require(seat.Begin(()=>{}),"New seat generation rejected");await WaitUntil(()=>!seat.IsActing,"New seat generation");await Frames(120);
             Require(callbacks==0,"Stale action callback committed");seat.Stand();await WaitUntil(()=>!seat.IsActive,"Soup standing");
-            Require(art.Animation=="idle"&&!main.World.GetNode<Sprite2D>("TableForeground").Visible,"Stand did not clear pose");
+            Require(art.Animation.ToString().StartsWith("idle")&&!main.World.GetNode<Sprite2D>("Foreground/TableEdge").Visible,"Stand did not clear pose");
             await Capture("soup-risen"+(reduced?"-reduced":""));
             Require(seat.Begin(()=>callbacks++),"Transition cancel seed");Require(main.ChangeWorld("community_gate",new(960,280)),"Change world rejected");await Frames(100);Require(callbacks==0&&!seat.IsActive,"World retained old callback");
             var bench=main.World.GetNode<BenchView>("Bench");Require(main.Rest.Begin(bench),"Bench seed failed");Require(!seat.Begin(()=>callbacks++),"Soup and bench simultaneously active");main.Rest.Cancel();
             main.Free();await Frames(2);
             s.PendingRestore=saved.Snapshot;var restored=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(restored);await Frames(4);
-            Require(!restored.SoupSeat.IsActive&&restored.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation=="idle","Saved soup restored transient pose");restored.Free();await Frames(2);
+            Require(!restored.SoupSeat.IsActive&&restored.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation.ToString().StartsWith("idle"),"Saved soup restored transient pose");restored.Free();await Frames(2);
         }
         var transfer=await NewSoupMain(false);var stale=0;Require(transfer.SoupSeat.Begin(()=>stale++),"Transition begin");
         Require((await transfer.SceneFlow.TryEnter("convenience_street",new(600,280))).Success,"Transition failed");await Frames(100);Require(stale==0&&!transfer.SoupSeat.IsActive,"SceneFlow retained old seat");transfer.Free();await Frames(2);
@@ -75,7 +75,7 @@ public partial class SmokeHarness
         Require(read.SoupSeat.PlayAction("eat",()=>stale++),"F9 action");KeyPress(Key.F5);await Frames(2);
         var savedAction=s.ManualSaves.Load();Require(savedAction.Status==LoadStatus.Loaded&&savedAction.Snapshot!.PlayerPosition==read.SafeSavePosition,"F5 mid-action unsafe");
         GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(6);var reopened=GetTree().CurrentScene as MainView;
-        Require(reopened!=null&&reopened!=read&&!reopened.SoupSeat.IsActive&&reopened.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation=="idle","F9 retained transient soup pose");
+        Require(reopened!=null&&reopened!=read&&!reopened.SoupSeat.IsActive&&reopened.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation.ToString().StartsWith("idle"),"F9 retained transient soup pose");
         read.Free();await Frames(100);Require(stale==0,"F9 delayed callback committed");reopened!.Free();await Frames(2);
         var delivery=await NewPolishMain();s.AdvanceClock(53);s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1"));delivery.ChangeWorld("convenience_street",new(600,280));await Frames(3);
         delivery.World.GetTarget("hey")!.TryInteract(s);await Finish(delivery);delivery.Choices.Close();await Frames(2);await Capture("candy-handover");

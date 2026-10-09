@@ -15,9 +15,9 @@ public partial class SoupSeatController : Node
         if(IsActive||main.Rest.IsActive||main.World.SceneId!="soup_shop"||main.World.HasMeta("binding_error")||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field)return false;
         try
         {
-            seat=SceneBindings.Require<Marker2D>(main.World,"SeatAnchor");stand=SceneBindings.Require<Marker2D>(main.World,"StandAnchor");
-            front=SceneBindings.Require<Sprite2D>(main.World,"TableForeground");props=SceneBindings.Require<Node2D>(main.World,"ActionProps");
-            if(front.Texture==null||!seat.Position.IsFinite()||!stand.Position.IsFinite()||stand.Position.Y!=280)throw new InvalidOperationException("汤店座位图像或站位基准无效。");
+            seat=main.World.GetAnchor("seat");stand=main.World.GetAnchor("stand");
+            front=SceneBindings.Require<Sprite2D>(main.World,"Foreground/TableEdge");props=SceneBindings.Require<Node2D>(main.World,"ActionProps");
+            if(front.Texture==null||!seat.Position.IsFinite()||!stand.Position.IsFinite()||!NavigationGeometry.CanStand(main.World.Navigation,new(stand.Position.X,stand.Position.Y)))throw new InvalidOperationException("汤店座位图像或站位基准无效。");
             player=main.World.Player;art=player.GetNode<AnimatedSprite2D>("Artwork");player.GlobalPosition=stand.GlobalPosition;generation++;front.Visible=true;
             StartPose("sit_down",()=>{SetSeated();seated();});return true;
         }

@@ -5,7 +5,7 @@ public partial class SmokeHarness
     private async Task<MainView> NewDepthSoupMain(Position2 foot)
     {
         var session=GetNode<GameSession>("/root/GameSession");session.NewGame();
-        Require(session.Restore(new(){Stage=SliceStage.CandyHeyDelivered}).Success,"Depth fixture stage rejected");
+        Require(session.Restore(SaveV2Codec.CreateNew(session.Options) with {Stage=SliceStage.CandyHeyDelivered}).Success,"Depth fixture stage rejected");
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         Require(main.ChangeWorld("soup_shop",foot),"Depth fixture map failed");await Frames(3);
         if(main.Dialogue.IsOpen)main.Dialogue.HandleKey(Key.Escape);session.Flow=FlowState.Field;

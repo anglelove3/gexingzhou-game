@@ -68,6 +68,21 @@ text="继续手动存档"
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="保留原档副本，恢复上次有效备份"
+[node name="LegacyAutoUpgradeButton" type="Button" parent="Menu"]
+visible=false
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="复制旧自动档并继续"
+[node name="LegacyManualUpgradeButton" type="Button" parent="Menu"]
+visible=false
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="复制旧手动档并继续"
+[node name="ManualRecoveryButton" type="Button" parent="Menu"]
+visible=false
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="保留原手动档副本，恢复备份"
 [node name="SettingsButton" type="Button" parent="Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)

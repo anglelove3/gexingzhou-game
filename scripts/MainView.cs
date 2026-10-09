@@ -44,11 +44,14 @@ public partial class MainView : Control
             if(FindChildren("*","",true,false).Any(n=>n.HasMeta("binding_error")))
                 throw new InvalidOperationException("界面或世界引用不完整，请查看场景错误提示。");
             var s=GetNode<GameSession>("/root/GameSession");var candidate=s.PendingRestore??s.Snapshot;
+            if(s.Saves.ValidateSnapshot(candidate) is {} invalid)throw new InvalidOperationException("无法读取进度："+invalid);
             var worldScene=candidate.SceneId=="memory_soup_table"?"soup_shop":candidate.SceneId;
+            var worldPosition=candidate.SceneId=="memory_soup_table"?candidate.ReturnContext!.Position:candidate.PlayerPosition;
             World=viewport.GetChildren().OfType<WorldView>().Single();
-            if(World.SceneId!=worldScene&&!ChangeWorld(worldScene,new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y)))
+            if(World.SceneId!=worldScene&&!ChangeWorld(worldScene,worldPosition))
                 throw new InvalidOperationException("无法加载存档中的场景。");
             if(World.HasMeta("binding_error"))throw new InvalidOperationException(World.GetMeta("binding_error").AsString());
+            World.Player.Position=new(worldPosition.X,worldPosition.Y);
             if(s.PendingRestore!=null)
             {
                 World.Player.Position=candidate.SceneId=="memory_soup_table"?new Vector2(candidate.ReturnContext!.Position.X,candidate.ReturnContext.Position.Y):new(candidate.PlayerPosition.X,candidate.PlayerPosition.Y);
@@ -102,7 +105,7 @@ public partial class MainView : Control
             if(SoupSeat.IsActing)return;
             if(SoupSeat.IsActive)OpenSoupMeeting();else SoupSeat.Begin(OpenSoupMeeting);
         }
-        else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else _=SceneFlow.TryEnter(id,new(120,280));}
+        else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else if(s.Navigation.Profiles.TryGetValue(id,out var nav))_=SceneFlow.TryEnter(id,nav.Anchors["entry"]);}
         else if(target.ActionId=="observe")ShowObservation(target);
         else ShowNotice(target.Caption,target.Description);
     }
@@ -145,7 +148,10 @@ public partial class MainView : Control
     public bool EnterMemoryView()
     {
         var packed=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn");if(packed==null)return false;
-        Memory=packed.Instantiate<SoupMemoryController>();Memory.Main=this;AddChild(Memory);World.Visible=false;Audio.SetScene("memory_soup_table");return true;
+        var next=packed.Instantiate<SoupMemoryController>();next.Main=this;next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;AddChild(next);
+        if(next.HasMeta("binding_error")){next.Free();return false;}
+        Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();Memory?.Free();Memory=next;
+        next.ProcessMode=ProcessModeEnum.Inherit;next.Visible=true;World.Visible=false;Audio.SetScene("memory_soup_table");return true;
     }
     public async Task ReturnMemory(bool complete)
     {
@@ -181,22 +187,46 @@ public partial class MainView : Control
         }
         ShowDialogue("soup.tomorrow",()=>{if(s.TryDispatch(new("slice.complete","completed","slice-1")).Applied)SliceEnd.ShowCompleted();});
     }
-    public bool ChangeWorld(string sceneId,Position2 position)
+    public WorldView? PrepareWorld(string sceneId,Position2 position)
     {
-        var path=ScenePath(sceneId);if(path==null)return false;
-        var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return false;
-        Rest?.Cancel();SoupSeat?.Cancel();Audio.StopTransient();
-        var next=packed.Instantiate<WorldView>();World.Free();World=next;viewport.AddChild(World);
-        if(World.HasMeta("binding_error")){SceneBindings.ReportFailure(this,World.GetMeta("binding_error").AsString());return false;}
-        World.Player.Position=new(position.X,position.Y);display.Configure(World);GetNode<GameSession>("/root/GameSession").UpdateScene(sceneId,position);Audio.SetScene(sceneId);return true;
+        WorldView? next=null;
+        try
+        {
+            var s=GetNode<GameSession>("/root/GameSession");var path=ScenePath(sceneId);
+            if(path==null||s.Navigation==null||!s.Navigation.Profiles.TryGetValue(sceneId,out var nav)||!NavigationGeometry.CanStand(nav,position))return null;
+            var packed=GD.Load<PackedScene>("res://scenes/world/"+path+".tscn");if(packed==null)return null;
+            next=packed.Instantiate<WorldView>();
+            if(!NavigationSceneReader.Matches(NavigationSceneReader.Read(next),nav)){next.Free();return null;}
+            next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;return next;
+        }
+        catch(InvalidOperationException){next?.Free();return null;}
     }
+    public bool CommitWorld(WorldView next,Position2 position)
+    {
+        viewport.AddChild(next);
+        if(next.HasMeta("binding_error")){next.Free();return false;}
+        Rest?.Cancel();SoupSeat?.Cancel();Audio.StopTransient();
+        World.Free();World=next;next.Name=ScenePath(next.SceneId)!;
+        World.Player.Position=new(position.X,position.Y);World.Player.SetInputLocked(false);
+        next.ProcessMode=ProcessModeEnum.Inherit;next.Visible=Memory==null;display.Configure(World);
+        GetNode<GameSession>("/root/GameSession").UpdateScene(next.SceneId,position);Audio.SetScene(next.SceneId);return true;
+    }
+    public bool ChangeWorld(string sceneId,Position2 position)=>PrepareWorld(sceneId,position) is {} next&&CommitWorld(next,position);
     private static string? ScenePath(string id)=>id switch{"convenience_street"=>"ConvenienceStreet","community_gate"=>"CommunityGate","soup_shop"=>"SoupShop",_=>null};
     private void LoadManual()
     {
         var s=GetNode<GameSession>("/root/GameSession");
-        if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();
         var loaded=s.ManualSaves.Load();
-        if(loaded.Status==LoadStatus.Loaded){s.PendingRestore=loaded.Snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");}
+        if(loaded.Status==LoadStatus.Loaded)
+        {
+            var snapshot=loaded.Snapshot!;var scene=snapshot.SceneId=="memory_soup_table"?"soup_shop":snapshot.SceneId;
+            var position=snapshot.SceneId=="memory_soup_table"?snapshot.ReturnContext!.Position:snapshot.PlayerPosition;
+            var candidate=PrepareWorld(scene,position);if(candidate==null){ShowNotice("手动存档","场景或导航暂不能加载；原进度保留。");return;}
+            viewport.AddChild(candidate);var invalid=candidate.HasMeta("binding_error");candidate.Free();
+            if(invalid){GetNode<Label>("StartupError").Visible=false;ShowNotice("手动存档","场景资源暂不能加载；原进度保留。");return;}
+            if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();
+            s.PendingRestore=snapshot;GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+        }
         else ShowNotice("手动存档",loaded.Message);
     }
     public override void _Input(InputEvent ev)

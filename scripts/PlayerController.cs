@@ -149,7 +149,7 @@ public partial class PlayerController : CharacterBody2D
         if(restActive)
         {
             MainView? main=null;for(Node? pnode=GetParent();pnode!=null;pnode=pnode.GetParent())if(pnode is MainView m){main=m;break;}
-            session.UpdatePosition(main?.SafeSavePosition??new(Position.X,Position.Y));return;
+            if(session.Snapshot.SceneId==navigation?.SceneId)session.UpdatePosition(main?.SafeSavePosition??new(Position.X,Position.Y));return;
         }
         if(!blocked&&(axis!=0||vertical!=0))
         {
@@ -160,11 +160,14 @@ public partial class PlayerController : CharacterBody2D
         artwork.SpeedScale=walking?Math.Clamp(Velocity.Length()/120f,.6f,1.6f):1;
         var animation=(walking?"walk":"idle")+(depth?"_"+Facing:"");if(artwork.Animation!=animation)artwork.Play(animation);
         if(session.Options.ReducedMotion&&!walking){artwork.Stop();artwork.Frame=0;}else if(!artwork.IsPlaying())artwork.Play(animation);
-        session.UpdatePosition(new(Position.X,Position.Y));
+        if(session.Snapshot.SceneId==navigation?.SceneId)session.UpdatePosition(new(Position.X,Position.Y));
     }
     private void AnchorArtwork()
     {
+        // SpriteFrames emits AnimationChanged while the previous pose name is being replaced.
+        if(!artwork.SpriteFrames.HasAnimation(artwork.Animation))return;
         var texture=artwork.SpriteFrames.GetFrameTexture(artwork.Animation,artwork.Frame);
+        if(texture==null)return;
         if(restActive&&texture is AtlasTexture atlas)
         {
             float scaleRest=soupActive?(float)atlas.GetMeta("pose_scale").AsDouble():68f/RestStandingPixels;artwork.Scale=Vector2.One*scaleRest;

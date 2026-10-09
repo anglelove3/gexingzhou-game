@@ -2,6 +2,7 @@ param([string]$Suite,[string]$GodotExe)
 . "$PSScriptRoot/Common.ps1"
 $known=@('Movement','Invitation','Hey','Soup','Memory','Slice','Resume','ResumeSeed','ResumeRead','Accessibility','Recovery','Narrative','Art','EditableWorld','EditableUi','ResponsiveUi','PolishedUi','Rest','ExperienceDialogue','ExperienceGuidance','ExperienceSoupSeat','ExperienceCoins','ExperienceAudio','ExperiencePause','ExperienceEnd','DepthMovement')
 try {
+    $known+='SaveUpgrade'
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -16,6 +17,7 @@ try {
         Invoke-Checked $context.GodotExe @('--headless','--editor','--path',$script:ProjectRoot,'--import') 'import'
         if($Suite){$suites=@($Suite)}else{$suites=@('Movement','Invitation','Hey','Soup','Memory','Slice','ResumeSeed','ResumeRead','Accessibility','Recovery','Narrative','Art','EditableWorld','EditableUi','ResponsiveUi','PolishedUi','Rest','ExperienceDialogue','ExperienceGuidance','ExperienceSoupSeat','ExperienceCoins','ExperienceAudio','ExperiencePause','ExperienceEnd','DepthMovement')}
         $resumeRoot='res://test-output/verify-resume-'+[Guid]::NewGuid().ToString('N')
+        if(!$Suite){$suites+='SaveUpgrade'}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
             if($name -in @('ResumeSeed','ResumeRead')){$arguments+="--test-save-root=$resumeRoot"}

@@ -26,7 +26,7 @@ public partial class SmokeHarness
         var exit=main.World.GetNodeOrNull<Label>("StreetExit/NameLabel");Require(exit is {Visible:true}&&exit.Text.Contains("便利店街"),"Missing exit destination");Require(!cannon!.Visible,"Distant actor name stayed visible");await Capture("guidance-exit");
         main.World.Player.Position=new(800,280);await Frames(3);Require(!exit!.Visible,"Distant exit name stayed visible");
         main.ChangeWorld("convenience_street",new(600,280));await Frames(3);Require(main.World.GetNode<Label>("Hey/NameLabel").Visible,"Hey name absent");
-        main.ChangeWorld("soup_shop",new(440,280));await Frames(3);Require(main.World.GetNode<Label>("Seat/NameLabel").Visible,"Soup actor name absent");
+        main.ChangeWorld("soup_shop",new(400,430));await Frames(3);Require(main.World.GetNode<Label>("DepthLayers/Actors/Cannon/NameLabel").Visible,"Soup actor name absent");
         main.Free();await Frames(2);
     }
     private async Task ExperienceDialogueChecks()
