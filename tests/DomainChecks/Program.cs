@@ -4,6 +4,7 @@ ContentChecks.Register(tests);
 DialogueMetadataChecks.Register(tests);
 MovementChecks.Register(tests);
 NavigationChecks.Register(tests);
+DiscoveryChecks.Register(tests);
 RestChecks.Register(tests);
 StoryChecks.Register(tests);
 SoupChecks.Register(tests);

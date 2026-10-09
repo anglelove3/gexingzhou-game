@@ -9,7 +9,7 @@ public partial class InteractionController : Node
     public override void _Ready(){var p=GetNode<GameSession>("/root/GameSession").Catalog!.Parameters;policy=new((float)p["interact.radius"],(float)p["interact.hysteresis"],p["interact.repeat_guard"]);}
     private bool Reachable(WorldView world,Interactable target)
     {
-        if(world.Mode==WorldMode.Depth2D)return NavigationGeometry.CanTraverse(world.Navigation,new(Player.Position.X,Player.Position.Y),new(target.Position.X,target.Position.Y));
+        if(world.Mode==WorldMode.Depth2D){var p=world.ToLocal(Player.GlobalPosition);var t=world.ToLocal(target.GlobalPosition);return NavigationGeometry.CanTraverse(world.Navigation,new(p.X,p.Y),new(t.X,t.Y));}
         using var query=PhysicsRayQueryParameters2D.Create(Player.GlobalPosition+new Vector2(0,-30),target.GlobalPosition+new Vector2(0,-30),1);
         return Player.GetWorld2D().DirectSpaceState.IntersectRay(query).Count==0;
     }
@@ -20,7 +20,7 @@ public partial class InteractionController : Node
         elapsed+=delta;var world=(WorldView)GetParent();
         var targets=world.GetTargets().Where(t=>t.IsInsideTree()&&t.IsActive&&t.IsVisibleInTree()).ToArray();
         if(world.Mode==WorldMode.Depth2D)
-            selected=depthPolicy.Select(targets.Select(t=>new Interaction2DCandidate(t.Id,new(t.Position.X,t.Position.Y),Reachable(world,t))).ToArray(),selected,new(Player.Position.X,Player.Position.Y));
+            selected=depthPolicy.Select(targets.Select(t=>{var p=world.ToLocal(t.GlobalPosition);return new Interaction2DCandidate(t.Id,new(p.X,p.Y),Reachable(world,t));}).ToArray(),selected,new(Player.Position.X,Player.Position.Y));
         else
             selected=policy.Select(targets.Select(t=>new InteractionCandidate(t.Id,t.GlobalPosition.X,Reachable(world,t))).ToArray(),selected,Player.GlobalPosition.X);
         Prompt=selected==null?(world.Mode==WorldMode.Depth2D?"WASD / 方向键探索 · Shift 加快":"A/D 移动 · Shift 加快"):"E · "+targets.First(t=>t.Id==selected).Caption;

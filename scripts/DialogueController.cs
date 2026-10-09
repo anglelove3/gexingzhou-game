@@ -9,6 +9,7 @@ public partial class DialogueController : Control
     private double elapsed;private Action? finish;
     private FlowState source;private Control? previousFocus;
     private DialogueLineKind? presentedKind;
+    private ScrollContainer body=null!;
     public bool IsOpen {get;private set;}
     public override void _Ready()
     {
@@ -17,6 +18,7 @@ public partial class DialogueController : Control
             panel=SceneBindings.Require<PanelContainer>(this,"Panel");authoredStyle=panel.GetThemeStylebox("panel");
             nameLabel=SceneBindings.Require<Label>(this,"Panel/Content/NameLabel");
             text=SceneBindings.Require<Label>(this,"Panel/Content/Body/Text");
+            body=SceneBindings.Require<ScrollContainer>(this,"Panel/Content/Body");
             SceneBindings.Require<Label>(this,"Panel/Content/ContinueHint");Visible=false;
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
@@ -55,18 +57,47 @@ public partial class DialogueController : Control
             panel.AddThemeStyleboxOverride("panel",lighter);
         }
         else panel.AddThemeStyleboxOverride("panel",authoredStyle);
+        if(dialogue.Kind!=DialogueLineKind.Spoken&&authoredStyle is StyleBoxFlat flat)
+        {
+            var style=(StyleBoxFlat)flat.Duplicate();var tint=style.BgColor;
+            if(dialogue.Kind!=DialogueLineKind.Spoken)tint.A*=dialogue.Kind==DialogueLineKind.Thought?Math.Clamp(MonologueOpacity,.5f,1):.94f;
+            style.BgColor=tint;panel.AddThemeStyleboxOverride("panel",style);
+        }
     }
     public override void _Process(double delta)
     {
         if(!IsOpen||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Dialogue)return;
         elapsed+=delta;dialogue.Tick(delta,GetNode<GameSession>("/root/GameSession").Options.TextSpeed);
         ApplyLinePresentation();text.Text=dialogue.Text;
+        UpdateLayout();
+    }
+    private void UpdateLayout()
+    {
+        var font=GetNode<GameSession>("/root/GameSession").Options.SubtitleSize;
+        float height=Math.Clamp(font*4+44,124,188);
+        panel.OffsetTop=-16-height;panel.OffsetBottom=-16;
+        if(GetParent() is MainView main&&main.World?.SceneId=="soup_shop"&&main.SoupSeat.IsActive)
+        {
+            // Use the actual SubViewport/camera transform, never world pixels as screen pixels.
+            var a=main.WorldToUi(main.World.ToGlobal(new Vector2(408,326)));
+            var b=main.WorldToUi(main.World.ToGlobal(new Vector2(604,410)));
+            var safe=new Rect2(a,b-a).Abs().Grow(8);
+            if(panel.GetRect().Intersects(safe))
+            {panel.OffsetTop=-Size.Y+140;panel.OffsetBottom=panel.OffsetTop+height;}
+        }
     }
     public void HandleKey(Key key)
     {
         if(!IsOpen)return;
+        if(key is Key.Up or Key.Down or Key.Pageup or Key.Pagedown)
+        {body.ScrollVertical+=(key is Key.Up or Key.Pageup?-1:1)*(key is Key.Pageup or Key.Pagedown?Math.Max(24,(int)body.Size.Y-12):32);return;}
         if(key==Key.Escape){dialogue.Cancel();Close(false);}
         else if(key==Key.E||key==Key.Enter){if(dialogue.Advance(elapsed).Finished)Close(true);}
+    }
+    public override void _GuiInput(InputEvent ev)
+    {
+        if(IsOpen&&ev is InputEventMouseButton{Pressed:true} button&&button.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
+        {body.ScrollVertical+=button.ButtonIndex==MouseButton.WheelUp?-48:48;AcceptEvent();}
     }
     private void Close(bool completed)
     {

@@ -4,6 +4,7 @@ $known=@('Movement','Invitation','Hey','Soup','Memory','Slice','Resume','ResumeS
 try {
     $known+='SaveUpgrade'
     $known+='DepthSeat'
+    $known+='ExplorationUi'
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -20,6 +21,7 @@ try {
         $resumeRoot='res://test-output/verify-resume-'+[Guid]::NewGuid().ToString('N')
         if(!$Suite){$suites+='SaveUpgrade'}
         if(!$Suite){$suites+='DepthSeat'}
+        if(!$Suite){$suites+='ExplorationUi'}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
             if($name -in @('ResumeSeed','ResumeRead')){$arguments+="--test-save-root=$resumeRoot"}

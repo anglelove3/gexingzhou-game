@@ -9,6 +9,7 @@ public partial class SmokeHarness : Node
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="DepthMovement"){await DepthMovementChecks();GD.Print("GODOT_CHECKS_PASS DepthMovement");await DrainAudio();GetTree().Quit();return;}
             if(suite=="DepthSeat"){await DepthSeatChecks();GD.Print("GODOT_CHECKS_PASS DepthSeat");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="ExplorationUi"){await ExplorationUiChecks();GD.Print("GODOT_CHECKS_PASS ExplorationUi");await DrainAudio();GetTree().Quit();return;}
             if(suite=="SaveUpgrade"){await SaveUpgradeChecks();GD.Print("GODOT_CHECKS_PASS SaveUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperienceEnd"){await ExperienceEndChecks();GD.Print("GODOT_CHECKS_PASS ExperienceEnd");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExperiencePause"){await ExperiencePauseChecks();GD.Print("GODOT_CHECKS_PASS ExperiencePause");await DrainAudio();GetTree().Quit();return;}

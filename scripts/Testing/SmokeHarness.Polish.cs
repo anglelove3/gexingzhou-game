@@ -131,9 +131,9 @@ public partial class SmokeHarness
             Require(body.Text==expected,"Story truncated to fit artwork");
             var scroll=main.Dialogue.GetNode<ScrollContainer>("Panel/Content/Body");scroll.ScrollVertical=10000;
             Require(main.GetGlobalRect().Encloses(main.Dialogue.GetNode<Label>("Panel/Content/ContinueHint").GetGlobalRect()),"Continue hint clipped");
-            Require(main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel") is StyleBoxTexture,"Dialogue has no raster frame");
-            var monologueStyle=(StyleBoxTexture)main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel");
-            Require(monologueStyle.ModulateColor.A<1,"Monologue does not use lighter presentation");
+            Require(main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel") is StyleBoxFlat,"Dialogue lacks compact style");
+            var monologueStyle=(StyleBoxFlat)main.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel");
+            Require(monologueStyle.BgColor.A<.85f,"Monologue does not use lighter presentation");
             await Capture("polish-dialogue-"+font);
             main.Phone.Open("messages");await Frames(3);
             var answer=main.Phone.GetNode<Button>("Frame/Content/AnswerButton");var close=main.Phone.GetNode<Button>("Frame/Content/CloseButton");
@@ -145,7 +145,7 @@ public partial class SmokeHarness
             Require(main.Dialogue.IsOpen&&main.Dialogue.Visible,"PhoneOverDialogueRestoration lost dialogue");
             main.Dialogue.HandleKey(Key.Escape);main.Free();await Frames(2);
             var spoken=await NewPolishMain();spoken.Dialogue.ShowText("张大炮",expected);await Frames(2);
-            Require(((StyleBoxTexture)spoken.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel")).ModulateColor.A==1,"Monologue tint leaked into spoken dialogue");
+            Require(((StyleBoxFlat)spoken.Dialogue.GetNode<PanelContainer>("Panel").GetThemeStylebox("panel")).BgColor.A>.85f,"Monologue tint leaked into spoken dialogue");
             spoken.Dialogue.HandleKey(Key.Escape);spoken.Free();await Frames(2);
         }
         GD.Print("POLISHED_UI_PASS FrameArtwork FontAndFocus PhoneOverDialogueRestoration");
@@ -236,7 +236,7 @@ public partial class SmokeHarness
         foreach(var (file,paths) in new[] {
             ("CommunityGate",new[]{"OldSign","Bench/SeatAnchor","Bench/StandAnchor","Cannon","StreetExit"}),
             ("ConvenienceStreet",new[]{"CommunityExit","Hey","SoupExit"}),
-            ("SoupShop",new[]{"Targets/StreetExit","Targets/Seat","Targets/Sign","Targets/Menu","Targets/Note","DepthLayers/Props/Counter","DepthLayers/Actors/Shopkeeper","DepthLayers/Props/Table/SoupBowl","Navigation/GroundBoundary/CollisionPolygon2D"}) })
+            ("SoupShop",new[]{"Targets/StreetExit","Targets/Seat","DepthLayers/Props/Sign","DepthLayers/Props/Menu","DepthLayers/Props/CounterNote","DepthLayers/Props/Counter","DepthLayers/Actors/Shopkeeper","DepthLayers/Props/Table/SoupBowl","Navigation/GroundBoundary/CollisionPolygon2D"}) })
         {
             var world=GD.Load<PackedScene>($"res://scenes/world/{file}.tscn").Instantiate<WorldView>();
             try

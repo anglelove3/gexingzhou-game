@@ -21,7 +21,7 @@ public partial class GuidanceController : Node
         foreach(var target in targets)
             if(target.GetNodeOrNull<Label>("NameLabel") is {} name)
                 name.Visible=field&&target.IsActive&&target.IsVisibleInTree()&&Math.Abs(target.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=140;
-        var nearbyObservation=field&&targets.Any(t=>t.ActionId=="observe"&&t.IsActive&&Math.Abs(t.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=40);
+        var nearbyObservation=field&&targets.Any(t=>t.ActionId=="observe"&&t.IsActive&&(main.World.Mode==WorldMode.Depth2D?t.GlobalPosition.DistanceTo(main.World.Player.GlobalPosition)<=40:Math.Abs(t.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=40));
         var invitation=s.Snapshot.Stage<=SliceStage.InvitationResolved;
         if(field&&invitation&&!messageShown&&s.Snapshot.InvitationState.VoiceReceived)
         {messageShown=true;current="Tab 打开旧手机 · 张大炮发来了消息";remaining=6;}

@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=19 format=3]
 [ext_resource type="PackedScene" path="res://scenes/ui/SliceEnd.tscn" id="SliceEnd"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Pause.tscn" id="Pause"]
 [ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Audio"]
@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/RestOptions.tscn" id="RestOptions"]
 [ext_resource type="Script" path="res://scripts/GuidanceController.cs" id="Guidance"]
 [ext_resource type="Script" path="res://scripts/SoupSeatController.cs" id="SoupSeat"]
+[ext_resource type="Script" path="res://scripts/ObservationController.cs" id="Observations"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ObservationHover.tscn" id="Hover"]
 [node name="Main" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -80,6 +82,16 @@ layout_mode=2
 text="葛行舟 · 安置小区\n走走，看看搬迁后的故乡"
 autowrap_mode=3
 mouse_filter=2
+[node name="TaskFold" type="Button" parent="HUD"]
+offset_left=578.0
+offset_top=20.0
+offset_right=622.0
+offset_bottom=64.0
+text="＋"
+tooltip_text="展开/收起当前目标"
+[node name="Observations" type="Node" parent="."]
+script=ExtResource("Observations")
+[node name="ObservationHover" parent="." instance=ExtResource("Hover")]
 [node name="InteractionHint" type="Label" parent="HUD"]
 layout_mode=1
 anchor_top=1.0

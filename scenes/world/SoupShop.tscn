@@ -1,9 +1,10 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-background.png" id="Bg"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
 [ext_resource type="Script" path="res://scripts/InteractionController.cs" id="Interactions"]
 [ext_resource type="Script" path="res://scripts/Interactable.cs" id="Target"]
+[ext_resource type="Script" path="res://scripts/ObservationHotspot.cs" id="Observation"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-table.png" id="Table"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-table-front.png" id="Front"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v4/soup-chair.png" id="Chair"]
@@ -139,27 +140,78 @@ script=ExtResource("Target")
 Id="seat"
 Caption="张大炮 · 桌边坐下"
 ActionId="soup.meet"
-[node name="Sign" type="Node2D" parent="Targets"]
+[node name="Sign" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(200,380)
-script=ExtResource("Target")
+script=ExtResource("Observation")
 Id="sign"
+DiscoveryId="soup.sign"
+VisualTarget=NodePath("Visual")
+HitPolygon=NodePath("Visual/Shape")
 Caption="旧招牌"
 Description="店换了地方，招牌搬了过来。边角的油烟擦不掉。"
 ActionId="observe"
-[node name="Menu" type="Node2D" parent="Targets"]
+[node name="Visual" type="Node2D" parent="DepthLayers/Props/Sign"]
+position=Vector2(0,-135)
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/Sign/Visual"]
+polygon=PackedVector2Array(-61,-18,60,-20,63,16,-60,18)
+color=Color(0.25,0.17,0.12,1)
+[node name="Title" type="Label" parent="DepthLayers/Props/Sign/Visual"]
+offset_left=-57.0
+offset_top=-12.0
+offset_right=58.0
+offset_bottom=14.0
+theme_override_font_sizes/font_size=14
+theme_override_colors/font_color=Color(0.85,0.77,0.57,1)
+text="老店 · 鸭血粉丝汤"
+mouse_filter=2
+[node name="Menu" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(700,380)
-script=ExtResource("Target")
+script=ExtResource("Observation")
 Id="menu"
+DiscoveryId="soup.menu"
+VisualTarget=NodePath("Visual")
+HitPolygon=NodePath("Visual/Shape")
 Caption="看看菜单"
 Description="鸭血粉丝汤。记忆里便宜，现在也够吃顿热乎的。"
 ActionId="observe"
-[node name="Note" type="Node2D" parent="Targets"]
+[node name="Visual" type="Node2D" parent="DepthLayers/Props/Menu"]
+position=Vector2(0,-135)
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/Menu/Visual"]
+polygon=PackedVector2Array(-52,-30,52,-30,52,30,-52,30)
+color=Color(0.19,0.22,0.20,1)
+[node name="Title" type="Label" parent="DepthLayers/Props/Menu/Visual"]
+offset_left=-46.0
+offset_top=-25.0
+offset_right=46.0
+offset_bottom=25.0
+theme_override_font_sizes/font_size=13
+theme_override_colors/font_color=Color(0.88,0.83,0.67,1)
+text="今日菜单\n鸭血粉丝汤\n来碗热乎的"
+mouse_filter=2
+[node name="CounterNote" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(740,430)
-script=ExtResource("Target")
-Id="note"
+script=ExtResource("Observation")
+Id="soup.note"
+DiscoveryId="soup.note"
+VisualTarget=NodePath("Visual")
+HitPolygon=NodePath("Visual/Shape")
 Caption="柜台便条"
 Description="先坐，汤马上好。"
 ActionId="observe"
+[node name="Visual" type="Node2D" parent="DepthLayers/Props/CounterNote"]
+position=Vector2(20,-80)
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/CounterNote/Visual"]
+polygon=PackedVector2Array(-19,-16,20,-15,18,16,-20,15)
+color=Color(0.84,0.79,0.61,1)
+[node name="Title" type="Label" parent="DepthLayers/Props/CounterNote/Visual"]
+offset_left=-17.0
+offset_top=-14.0
+offset_right=18.0
+offset_bottom=14.0
+theme_override_font_sizes/font_size=10
+theme_override_colors/font_color=Color(0.22,0.23,0.20,1)
+text="先坐，汤\n马上好。"
+mouse_filter=2
 [node name="Navigation" type="Node2D" parent="."]
 [node name="GroundBoundary" type="StaticBody2D" parent="Navigation"]
 collision_layer=1

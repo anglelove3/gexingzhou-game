@@ -1,0 +1,19 @@
+[gd_scene format=3]
+[node name="ObservationHover" type="Control"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+mouse_filter=2
+z_index=15
+visible=false
+[node name="Outline" type="Line2D" parent="."]
+width=1.5
+closed=true
+default_color=Color(0.93,0.84,0.60,0.65)
+[node name="Title" type="Label" parent="."]
+mouse_filter=2
+text="旧招牌 · 点击看看"
+theme_override_font_sizes/font_size=18
+theme_override_constants/outline_size=3
+theme_override_colors/font_outline_color=Color(0.04,0.07,0.09,0.9)

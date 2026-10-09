@@ -11,6 +11,8 @@ public partial class MainView : Control
     public SettingsController Settings {get;private set;}=null!;private int lastFont;
     public RestController Rest {get;private set;}=null!;
     public GuidanceController Guidance {get;private set;}=null!;
+    public ObservationController Observations {get;private set;}=null!;
+    private bool goalExpanded;
     public SoupSeatController SoupSeat {get;private set;}=null!;
     public AudioDirector Audio {get;private set;}=null!;
     public PauseController Pause {get;private set;}=null!;
@@ -34,12 +36,14 @@ public partial class MainView : Control
             Rest=SceneBindings.Require<RestController>(this,"Rest");
             Guidance=SceneBindings.Require<GuidanceController>(this,"Guidance");
             Guidance.Configure(this);
+            Observations=SceneBindings.Require<ObservationController>(this,"Observations");Observations.Configure(this);
             SoupSeat=SceneBindings.Require<SoupSeatController>(this,"SoupSeat");SoupSeat.Configure(this);
             Pause=SceneBindings.Require<PauseController>(this,"Pause");Pause.Configure(this);
             SliceEnd=SceneBindings.Require<SliceEndController>(this,"SliceEnd");SliceEnd.Configure(this);
             SceneBindings.Require<Button>(this,"HUD/PauseButton").Pressed+=()=>Pause.Open();
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
+            SceneBindings.Require<Button>(this,"HUD/TaskFold").Pressed+=()=>goalExpanded=!goalExpanded;
             prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
             if(FindChildren("*","",true,false).Any(n=>n.HasMeta("binding_error")))
                 throw new InvalidOperationException("界面或世界引用不完整，请查看场景错误提示。");
@@ -79,7 +83,9 @@ public partial class MainView : Control
         if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
         prompt.Visible=s.Flow==FlowState.Field;
         var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
-        status.Text="葛行舟 · "+place+"\n"+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
+        status.Text=(goalExpanded?"葛行舟 · "+place+"\n":"")+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
+        var card=GetNode<PanelContainer>("HUD/TaskCard");card.OffsetBottom=goalExpanded||s.SaveMessage.Length>0?116:78;
+        GetNode<Button>("HUD/TaskFold").Text=goalExpanded?"－":"＋";
         World.RefreshQuestActors(s.Snapshot);
         Guidance.Refresh();
         var pauseButton=GetNode<Button>("HUD/PauseButton");pauseButton.Visible=CanPause;pauseButton.Disabled=!CanPause;
@@ -111,6 +117,7 @@ public partial class MainView : Control
     }
     public void ShowObservation(Interactable target)
     {
+        if(target is ObservationHotspot hotspot){Observations.TryObserve(hotspot);return;}
         var s=GetNode<GameSession>("/root/GameSession");
         if(World.SceneId=="community_gate"&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
         {
@@ -120,6 +127,17 @@ public partial class MainView : Control
             else ShowNotice(target.Caption,target.Description);
         }
         else ShowNotice(target.Caption,target.Description);
+    }
+    public Vector2 WorldToUi(Vector2 point)
+    {
+        var canvas=viewport.GetCanvasTransform()*point;
+        var global=display.GetGlobalTransformWithCanvas()*(canvas*display.Size/(Vector2)viewport.Size);
+        return GetGlobalTransformWithCanvas().AffineInverse()*global;
+    }
+    public Vector2 UiToWorld(Vector2 global)
+    {
+        var local=display.GetGlobalTransformWithCanvas().AffineInverse()*global;
+        return viewport.GetCanvasTransform().AffineInverse()*(local*(Vector2)viewport.Size/display.Size);
     }
     private void OfferHey()=>Choices.Open("糖已经收好。接下来你怎么做？",new (string,Action)[]{("收起手机，站一会儿",()=>ShowDialogue("hey.stay")),("看一眼手机",()=>ShowDialogue("hey.phone")),("转身去汤店",()=>ShowDialogue("hey.leave"))});
     private void OpenSoupMeeting()

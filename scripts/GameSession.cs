@@ -114,6 +114,11 @@ public partial class GameSession : Node
         Snapshot=Snapshot with {CompletedActions=new HashSet<string>(Snapshot.CompletedActions){"observation.community.first"}};
         SaveCheckpoint();
     }
+    public bool MarkDiscovery(string id)
+    {
+        var next=DiscoveryPolicy.Mark(Snapshot,id);if(ReferenceEquals(next,Snapshot))return false;
+        Snapshot=next;SaveCheckpoint();return true;
+    }
     public void AdvanceClock(double delta)
     {
         if(!double.IsFinite(delta)||delta<0)return;
