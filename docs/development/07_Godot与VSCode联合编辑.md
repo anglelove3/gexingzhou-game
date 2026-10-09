@@ -1,5 +1,5 @@
 # Godot 与 VS Code 联合编辑：第一轮练习
-更新：2026-10-05。工程唯一根目录 E:\游戏创作\顾行舟；Godot.NET4.7.2、C#、.NET8。
+更新：2026-10-09。工程唯一根目录 E:\游戏创作\顾行舟；Godot.NET4.7.2、C#、.NET8。
 
 ## 两个工具分别负责什么
 
@@ -17,7 +17,7 @@ Godot负责场景位置、图片、容器布局、主题、SpriteFrames、碰撞
 ## 练习2：修改手机或对白外观
 
 打开scenes/ui/Phone.tscn或Dialogue.tscn：编辑器中完整显示，运行Main时默认隐藏，由Tab/对白控制显示。
-手机Frame使用assets/ui/vs01-v2/phone.tres，Dialogue的Panel使用dialogue.tres。这是StyleBoxTexture九宫格，不是烘焙文字；可改ContentMargin或换边框纹理。先记录值，将对白左内容边距30改为34，保存资源，F5触发对白核对，再恢复。
+手机Frame仍使用assets/ui/vs01-v2/phone.tres九宫格，微信式改造留后续；Dialogue的Panel现在是场景内StyleBoxFlat轻字幕，不再用旧金属图框。可在主题覆盖改内容边距/色彩，保留节点路径。运行时按字号和坐姿安全区调整高度/位置，不缩小字体；若改布局要跑ExplorationUi和EditableUi。
 姓名、正文、提示是独立节点；对白正文位于Panel/Content/Body/Text，可滚动，提示不随正文滚走。手机消息位于Frame/Content/MessageScroll/Messages；接听/收起按钮仍是真实Button。容器管理的控件位置应改父容器/边距，而不是和容器抢offset。
 
 ## 练习3：修改一条C#提示并构建
@@ -32,7 +32,20 @@ Godot F5运行完整Boot→Main，有GameSession和交互协调。F6仅运行当
 
 长椅E：真实坐下，再默认焦点“坐一会儿”。↑↓选择，E/Enter或鼠标确认；Tab始终打开手机。“来一根”是有限动作，播放完回到坐稳；不会自动循环，本轮没有buff或烟草库存。
 菜单开着时Esc先收起，菜单关闭时再Esc起身；Tab打开手机暂停动作，回来坐稳，切场清理暂态。坐一会儿可以触发首次故乡观察；Esc取消对白不消耗线索。
-F5保存站立安全落点；F9加载后站立。休息暂态不写入schema1旧档。减少动效版本省略烟雾帧，但保留动作和状态反馈。
+F5保存站立安全落点；F9加载后站立。休息暂态不写入新schema2或只读schema1旧档。减少动效版本省略烟雾帧，但保留动作和状态反馈。
+
+## 汤店二维探索：同源编辑练习
+
+停止游戏，打开scenes/world/SoupShop.tscn本地树。DepthLayers包含静态后景/Props/Actors；Foreground只负责前景遮挡；Navigation/GroundBoundary和Obstacles是脚圆可走区域，Anchors包含entry/exit/stand/safe/memory_return。NPC/主角脚点在Actors，左椅面在Props/Chairs/LeftChair/SeatSurface。椅面是视觉基准，不是把角色缩小后塞进家具；不可把碰撞脚点跟着臀部抬高。
+
+移动家具图片时同步其Navigation障碍；改变合法地面/障碍/站位后：
+
+1. `./tools/bake-navigation.ps1 -GodotExe '实际引擎路径'`导出到test-output/navigation-bake/navigation.json，不自动覆盖正式内容。
+2. 比对该文件与content/vs01/navigation.json，确认是预期作者修改后复制替换正式导航JSON。
+3. 加`-Check`再跑；忘导出会在验证和运行入口诊断不一致，阻止交互，而非偷偷沿用旧碰撞。
+4. VS Code构建C#，跑DepthMovement/DepthSeat/ExplorationUi，再全量verify。练习后恢复原场景和JSON并再次Check。
+
+三个可见热点在Props/Sign、Menu、CounterNote；Visual/HitPolygon决定可点击区域，根脚位置决定靠近E范围。保持soup.sign/menu/note发现ID与“先坐，汤马上好。”原文。UI点击/前景遮住时不能穿透观察，取消不能提前记发现。动画Frames/seat_pivot/contact_point metadata对应正式图像，换图后必须重新检查臀/脚/手接触点，而不是只改数值。
 
 ## 学到的知识与求职证据
 

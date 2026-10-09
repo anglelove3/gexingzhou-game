@@ -3,6 +3,7 @@ using GeXingzhou.Domain;
 public partial class ObservationController : Node
 {
     private MainView main=null!;private Control hover=null!;private Line2D outline=null!;private Label title=null!;
+    private Vector2 pointer;private bool hasPointer;
     public void Configure(MainView owner)
     {main=owner;hover=SceneBindings.Require<Control>(main,"ObservationHover");outline=hover.GetNode<Line2D>("Outline");title=hover.GetNode<Label>("Title");}
     private bool Available()=>GodotObject.IsInstanceValid(main)&&GodotObject.IsInstanceValid(main.World)&&main.World.SceneId=="soup_shop"&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!main.SoupSeat.IsActing;
@@ -37,7 +38,7 @@ public partial class ObservationController : Node
     public override void _Process(double delta)
     {
         if(main==null)return;
-        var point=main.GetViewport().GetMousePosition();var target=Hit(point);hover.Visible=target!=null;if(target==null)return;
+        var point=hasPointer?pointer:main.GetViewport().GetMousePosition();var target=Hit(point);hover.Visible=target!=null;if(target==null)return;
         var points=target.OutlineWorld().Select(main.WorldToUi).ToArray();outline.Points=points;
         title.Text=target.Caption+" · 点击看看";
         var x=Math.Clamp(points.Min(p=>p.X),12,Math.Max(12,main.Size.X-240));
@@ -45,6 +46,7 @@ public partial class ObservationController : Node
     }
     public override void _Input(InputEvent ev)
     {
+        if(ev is InputEventMouseMotion motion){pointer=motion.Position;hasPointer=true;}
         if(main!=null&&ev is InputEventMouseButton{Pressed:true,ButtonIndex:MouseButton.Left} button&&Hit(button.Position) is {} target&&TryObserve(target))GetViewport().SetInputAsHandled();
     }
 }

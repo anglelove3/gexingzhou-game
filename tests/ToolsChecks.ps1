@@ -51,5 +51,30 @@ try {
     if(Get-ChildItem -LiteralPath $destination -File -Recurse -Force | Where-Object {$_.FullName -match 'references|test-output|environment\.local\.json|\.docx$|\.zip$'}){throw 'PRIVATE_SOURCE_BUNDLE_CONTENT'}
     Write-Output 'PASS PolishDependencyWhitelist SourceBundleTeachingAndHashes'
 } catch {$failures++;Write-Output "FAIL PolishDependencyWhitelist $_"}
+try {
+    $exploration=@('content/vs01/navigation.json','tools/bake-navigation.ps1','tests/integration/NavigationBake.tscn','scripts/Testing/NavigationBake.cs','assets/art/vs01-v4/player-soup.png','assets/art/vs01-v4/player-soup-phone.png','assets/animations/player-soup-v4.tres','docs/project/2026-10-09_探索资源记录.json','docs/superpowers/specs/2026-10-09-二维探索汤店样板-design.md','docs/superpowers/plans/2026-10-09-二维探索汤店样板-实施计划.md','docs/reviews/2026-10-09_二维探索汤店样板验收记录.md')
+    foreach($path in $exploration){
+        $target=Join-Path $destination $path;$source=Join-Path $projectRoot $path
+        if(!(Test-Path -LiteralPath $target) -or !(Test-Path -LiteralPath $source) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "EXPLORATION_PACKAGE_MISMATCH $path"}
+    }
+    foreach($path in @('docs/reviews/2026-10-05_首段试玩评估与待确认润色建议.md','references','test-output','游戏人物图片','tools/environment.local.json')){if(Test-Path -LiteralPath (Join-Path $destination $path)){throw "EXPLORATION_PRIVATE_PACKAGE $path"}}
+    if($preset -notmatch 'assets/art/vs01-v4/\*\.png'){throw 'DYNAMIC_EXPLORATION_DEPENDENCY_MISSING'}
+    Write-Output 'PASS ExplorationDependencyWhitelist SourceBundleHashesPrivateExclusions'
+} catch {$failures++;Write-Output "FAIL ExplorationDependencyWhitelist $_"}
+try {
+    $original=Join-Path $projectRoot 'content/vs01/navigation.json';$hash=(Get-FileHash -LiteralPath $original).Hash
+    $copyRelative='test-output/navigation-mismatch-copy.json';$copy=Join-Path $projectRoot $copyRelative
+    Copy-Item -LiteralPath $original -Destination $copy
+    $before=Get-Content -LiteralPath $copy -Raw
+    $after=$before.Replace('"x": 24,','"x": 25,')
+    if($after -eq $before){throw 'NAVIGATION_MUTATION_MISSING'}
+    # Runtime test artifact only; the canonical project file is never rewritten.
+    [IO.File]::WriteAllText($copy,$after,[Text.UTF8Encoding]::new($false))
+    $context=Get-ToolContext
+    $output=& $shellExe -NoProfile -File "$projectRoot/tools/bake-navigation.ps1" -Check -GodotExe $context.GodotExe -ExpectedFile $copyRelative 2>&1
+    if($LASTEXITCODE -eq 0 -or ($output -join "`n") -notmatch 'NAVIGATION_EXPORT_FAIL'){throw "NAVIGATION_MISMATCH_NOT_REJECTED $output"}
+    if((Get-FileHash -LiteralPath $original).Hash -ne $hash){throw 'CANONICAL_NAVIGATION_CHANGED'}
+    Write-Output 'PASS NavigationBakeMismatchRejected OriginalHashUnchanged'
+} catch {$failures++;Write-Output "FAIL NavigationBakeMismatchRejected $_"}
 Write-Output "TOOLS_FAILURES $failures"
 if($failures -gt 0){exit 1}else{exit 0}

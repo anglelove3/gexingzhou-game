@@ -16,6 +16,13 @@ public partial class SmokeHarness
                 await Capture("depth-sit-"+label+suffix);
             }
             session.Flow=FlowState.Field;seat.Resume();await WaitUntil(()=>!seat.IsActing,"Depth keyframe seated");
+            foreach(var (code,label,frame) in new[]{("eat","eat",1),("set_chopsticks","chopsticks",3),("check_phone","phone",1)})
+            {
+                Require(seat.PlayAction(code,()=>{}),"Depth contact capture rejected");
+                session.Flow=FlowState.Phone;seat.Suspend();art.Frame=frame;art.FrameProgress=0;
+                await Capture("depth-"+label+suffix);
+                session.Flow=FlowState.Field;seat.Resume();await WaitUntil(()=>!seat.IsActing,"Depth contact capture complete");
+            }
             seat.Stand();
             foreach(var (frame,label) in new[]{(0,"start"),(1,"mid"),(3,"end")})
             {

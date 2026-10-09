@@ -2,6 +2,38 @@ using Godot;
 using GeXingzhou.Domain;
 public partial class SmokeHarness
 {
+    private async Task CaptureExplorationChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");var main=await NewDepthSoupMain(new(500,480));
+        var player=main.World.Player;var art=player.GetNode<AnimatedSprite2D>("Artwork");
+        foreach(var (facing,action) in new[]{("front","move_down"),("back","move_up"),("side","move_right")})
+        {
+            player.Position=new(500,480);player.Velocity=Vector2.Zero;
+            Input.ActionPress(action);await DepthPhysics(6);Input.ActionRelease(action);await DepthPhysics(12);
+            Require(player.Facing==facing&&art.Animation=="idle_"+facing,"Depth facing capture does not show actual input result");
+            await Capture("depth-"+facing);
+        }
+        player.Position=new(510,405);await Frames(3);await Capture("depth-table-occlusion");
+        player.Position=new(500,480);await Frames(3);
+        foreach(var (id,label) in new[]{("sign","sign"),("menu","menu"),("soup.note","note")})
+        {
+            var target=main.World.GetTargets().OfType<ObservationHotspot>().Single(t=>t.Id==id);
+            Require(main.Observations.TryObserve(target),"Observation capture failed");await Frames(3);await Capture("observation-"+label);main.Dialogue.HandleKey(Key.Escape);await Frames(2);
+        }
+        var note=main.World.GetTargets().OfType<ObservationHotspot>().Single(t=>t.Id=="soup.note");
+        var point=main.GetGlobalTransformWithCanvas()*main.WorldToUi(note.Shape.GlobalPosition);
+        // ParseInputEvent takes native window pixels, then Godot applies content scaling.
+        point*=new Vector2(GetWindow().Size.X,GetWindow().Size.Y)/GetViewport().GetVisibleRect().Size;
+        using(var move=new InputEventMouseMotion{Position=point,GlobalPosition=point})Input.ParseInputEvent(move);
+        await Frames(3);Require(main.GetNode<Control>("ObservationHover").Visible,"Mouse hover missing from actual capture");await Capture("observation-hover");
+        foreach(var font in new[]{20,24,32})
+        {
+            s.SetOptions(s.Options with{SubtitleSize=font,TextSpeed=0},false);
+            main.Dialogue.ShowText("张大炮","先坐，汤马上好。");await Frames(3);AssertDialogueFits(main);await Capture("compact-short-"+font);main.Dialogue.HandleKey(Key.Escape);
+        }
+        main.Dialogue.ShowText("葛行舟",string.Join('\n',Enumerable.Repeat("我看着熟悉的店，却没有急着说什么。",24)),kind:DialogueLineKind.Thought);await Frames(3);await Capture("compact-long-32");main.Dialogue.HandleKey(Key.Escape);
+        main.Free();await Frames(3);
+    }
     private async Task ExplorationUiChecks()
     {
         var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(new(){TextSpeed=0,SubtitleSize=24,ReducedMotion=true},false);

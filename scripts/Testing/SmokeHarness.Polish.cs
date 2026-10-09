@@ -49,9 +49,7 @@ public partial class SmokeHarness
     }
     private async Task WaitForPhase(MainView main,RestPhase phase)
     {
-        for(int i=0;i<300&&main.Rest.Phase!=phase;i++)await Frames();
-        Require(main.Rest.Phase==phase,"Timed out rest phase "+phase+" actual="+main.Rest.Phase);
-        await Frames(2);
+        await WaitUntil(()=>main.Rest.Phase==phase,"rest phase "+phase+" actual="+main.Rest.Phase);
     }
     private async Task RestIntegrationChecks()
     {
@@ -73,7 +71,7 @@ public partial class SmokeHarness
         inputViewport.PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=true},true);
         inputViewport.PushInput(new InputEventMouseButton{Position=clickPosition,GlobalPosition=clickPosition,ButtonIndex=MouseButton.Left,Pressed=false},true);await Frames(2);
         Require(main.Rest.Phase==RestPhase.Smoking,"Mouse smoke option ignored");
-        for(int i=0;i<90&&art.Frame<4;i++)await Frames();
+        await WaitUntil(()=>art.Frame>=4,"rest smoke visible frame");
         await Capture("rest-smoke");await WaitForPhase(main,RestPhase.Seated);
         Require(!menu.IsOpen&&art.Animation=="seated","Smoking autolooped or reopened menu");
         Require(s.Snapshot.Stage==stage&&s.Snapshot.CandyCount==candy,"Rest changed quest/reward");
@@ -100,7 +98,7 @@ public partial class SmokeHarness
         main.Free();main=reloaded!;await Frames(2);bench=main.World.GetNode<BenchView>("Bench");
         Require(main.Rest.Begin(bench),"Reloaded bench rejected");await WaitForPhase(main,RestPhase.Seated);
         main.Rest.HandleKey(Key.Escape);main.Rest.HandleKey(Key.Escape);await WaitForPhase(main,RestPhase.Standing);
-        var x=main.World.Player.Position.X;Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});await Frames(30);
+        var x=main.World.Player.Position.X;Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});await DepthPhysics(30);
         Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});Require(main.World.Player.Position.X>x+5,"Rise left movement locked");
         await Capture("rest-risen");Require(main.Rest.Begin(bench),"Repeated bench rejected");await WaitForPhase(main,RestPhase.Seated);
         main.Rest.HandleKey(Key.Escape);KeyPress(Key.E);await Frames(2);smoke=main.GetNode<Button>("RestOptions/Panel/Options/Smoke");smoke.EmitSignal(Button.SignalName.Pressed);await Frames(2);
