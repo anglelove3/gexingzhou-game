@@ -5,16 +5,21 @@ public partial class SoupSeatController : Node
 {
     private MainView main=null!;private PlayerController? player;private AnimatedSprite2D? art;
     private Marker2D? seat,stand;private Sprite2D? front;private Node2D? props;
-    private Action? finished,approached;private int generation;private string pose="";private bool suspended;
+    private Action? finished,approached;private int generation;private string pose="";private bool suspended,focused=true;
     public bool IsActive=>player!=null;
     public bool IsApproaching=>IsActive&&pose=="approach";
     public bool IsActing=>IsActive&&pose!="seated";
     public Position2 SavePosition=>!IsApproaching&&stand!=null&&GodotObject.IsInstanceValid(stand)?WorldPoint(stand.GlobalPosition):new(main.World.Player.Position.X,main.World.Player.Position.Y);
     private Position2 WorldPoint(Vector2 point){var local=main.World.ToLocal(point);return new(local.X,local.Y);}
     public void Configure(MainView owner)=>main=owner;
+    public override void _Notification(int what)
+    {
+        if(what==NotificationApplicationFocusOut){focused=false;if(IsActive){suspended=true;Sync();}}
+        else if(what==NotificationApplicationFocusIn){focused=true;if(IsActive){suspended=GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field;Sync();}}
+    }
     public bool Begin(Action seated)
     {
-        if(IsActive||main.Rest.IsActive||main.World.SceneId!="soup_shop"||main.World.HasMeta("binding_error")||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field)return false;
+        if(!focused||IsActive||main.Rest.IsActive||main.World.SceneId!="soup_shop"||main.World.HasMeta("binding_error")||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field)return false;
         try
         {
             seat=SceneBindings.Require<Marker2D>(main.World,"DepthLayers/Props/Chairs/LeftChair/SeatSurface");stand=main.World.GetAnchor("stand");
@@ -30,7 +35,7 @@ public partial class SoupSeatController : Node
     private void StartSit(){front!.Visible=true;var callback=approached;approached=null;StartPose("sit_down",()=>{SetSeated();callback?.Invoke();});}
     public override void _PhysicsProcess(double delta)
     {
-        if(!IsApproaching||suspended||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field)return;
+        if(!IsApproaching||!focused||suspended||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field)return;
         var current=new Position2(player!.Position.X,player.Position.Y);var destination=WorldPoint(stand!.GlobalPosition);
         var next=player.Position.MoveToward(new(destination.X,destination.Y),112*(float)delta);
         if(!NavigationGeometry.CanTraverse(main.World.Navigation,current,destination)||!NavigationGeometry.CanTraverse(main.World.Navigation,current,new(next.X,next.Y)))
@@ -69,12 +74,12 @@ public partial class SoupSeatController : Node
         return false;
     }
     public void Suspend(){if(IsActive){suspended=true;Sync();}}
-    public void Resume(){if(IsActive){suspended=false;Sync();}}
+    public void Resume(){if(IsActive){suspended=!focused;Sync();}}
     public override void _Process(double delta)
     {
         if(!IsActive)return;
         if(!GodotObject.IsInstanceValid(player)||!GodotObject.IsInstanceValid(seat)||!GodotObject.IsInstanceValid(front)){Cancel();return;}
-        suspended=GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field;Sync();
+        suspended=!focused||GetNode<GameSession>("/root/GameSession").Flow!=FlowState.Field;Sync();
     }
     private void Sync()
     {

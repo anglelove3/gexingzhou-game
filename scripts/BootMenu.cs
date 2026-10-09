@@ -10,10 +10,10 @@ public partial class BootMenu : Control
         {
             Audio=SceneBindings.Require<AudioDirector>(this,"Audio");
             gameplayScene=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/Main.tscn")??throw new InvalidOperationException("主场景资源缺失。");
-            var start=SceneBindings.Require<Button>(this,"Menu/StartButton");
-            var settings=SceneBindings.Require<Button>(this,"Menu/SettingsButton");
-            var quit=SceneBindings.Require<Button>(this,"Menu/QuitButton");
-            var message=SceneBindings.Require<Label>(this,"Menu/Message");
+            var start=SceneBindings.Require<Button>(this,"MenuScroll/Menu/StartButton");
+            var settings=SceneBindings.Require<Button>(this,"MenuScroll/Menu/SettingsButton");
+            var quit=SceneBindings.Require<Button>(this,"MenuScroll/Menu/QuitButton");
+            var message=SceneBindings.Require<Label>(this,"MenuScroll/Menu/Message");
             var preferences=SceneBindings.Require<SettingsController>(this,"Settings");
             var choices=SceneBindings.Require<ChoiceController>(this,"Choices");
             var s=GetNode<GameSession>("/root/GameSession");Theme=s.CreateUiTheme();Audio.SetScene("boot");
@@ -26,9 +26,9 @@ public partial class BootMenu : Control
             }
             void BindSlot(bool manual)
             {
-                var resume=SceneBindings.Require<Button>(this,"Menu/"+(manual?"ManualResumeButton":"AutoResumeButton"));
-                var upgrade=SceneBindings.Require<Button>(this,"Menu/"+(manual?"LegacyManualUpgradeButton":"LegacyAutoUpgradeButton"));
-                var recovery=SceneBindings.Require<Button>(this,"Menu/"+(manual?"ManualRecoveryButton":"RecoveryButton"));
+                var resume=SceneBindings.Require<Button>(this,"MenuScroll/Menu/"+(manual?"ManualResumeButton":"AutoResumeButton"));
+                var upgrade=SceneBindings.Require<Button>(this,"MenuScroll/Menu/"+(manual?"LegacyManualUpgradeButton":"LegacyAutoUpgradeButton"));
+                var recovery=SceneBindings.Require<Button>(this,"MenuScroll/Menu/"+(manual?"ManualRecoveryButton":"RecoveryButton"));
                 var offer=s.ProbeResume(manual);var backup=s.ProbeResume(manual,true);var slot=manual?"手动":"自动";
                 resume.Disabled=offer.Source!=ResumeSource.V2;resume.Visible=offer.Source!=ResumeSource.Legacy;
                 resume.Text=resume.Disabled?"继续（暂无有效"+slot+"档）":"继续"+slot+"存档";
@@ -63,7 +63,7 @@ public partial class BootMenu : Control
             settings.Pressed+=preferences.Open;quit.Pressed+=()=>GetTree().Quit();
             if(s.ContentError.Length>0||s.Catalog==null)
             {
-                foreach(var b in GetNode("Menu").GetChildren().OfType<Button>())if(b!=settings&&b!=quit)b.Disabled=true;
+                foreach(var b in GetNode("MenuScroll/Menu").GetChildren().OfType<Button>())if(b!=settings&&b!=quit)b.Disabled=true;
                 message.Text="内容加载失败："+s.ContentError;
             }
             if(s.FontWarning.Length>0)message.Text+="\n"+s.FontWarning;

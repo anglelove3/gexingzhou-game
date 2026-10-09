@@ -18,10 +18,13 @@ public partial class MainView : Control
     public PauseController Pause {get;private set;}=null!;
     public SliceEndController SliceEnd {get;private set;}=null!;
     public bool CanPause=>World!=null&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!Rest.IsActive&&!SoupSeat.IsActive&&!Phone.IsOpen&&!Dialogue.IsOpen&&!Choices.IsOpen&&Memory==null;
-    public Position2 SafeSavePosition=>SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
+    public Position2 SafeSavePosition=>GetNode<GameSession>("/root/GameSession").Snapshot.SceneId=="memory_soup_table"?
+        GetNode<GameSession>("/root/GameSession").Snapshot.PlayerPosition:
+        SoupSeat?.IsActive==true?SoupSeat.SavePosition:Rest?.IsActive==true?Rest.SavePosition:new(World.Player.Position.X,World.Player.Position.Y);
+    public string WorldLoadError {get;private set;}="";
     public int PaymentFeedbackCount {get;private set;}
     private Label prompt=null!;private Label status=null!;private SubViewport viewport=null!;
-    private WorldDisplayController display=null!;private bool heardVoice,heardRing;
+    private WorldDisplayController display=null!;private bool heardVoice,heardRing;private double noticeSeconds;
     public override void _Ready()
     {
         try
@@ -45,6 +48,7 @@ public partial class MainView : Control
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
             SceneBindings.Require<Button>(this,"HUD/TaskFold").Pressed+=()=>goalExpanded=!goalExpanded;
             prompt=SceneBindings.Require<Label>(this,"HUD/InteractionHint");
+            SceneBindings.Require<Label>(this,"Notice");
             if(FindChildren("*","",true,false).Any(n=>n.HasMeta("binding_error")))
                 throw new InvalidOperationException("界面或世界引用不完整，请查看场景错误提示。");
             var s=GetNode<GameSession>("/root/GameSession");var candidate=s.PendingRestore??s.Snapshot;
@@ -73,6 +77,7 @@ public partial class MainView : Control
     public override void _Process(double delta)
     {
         var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(delta);
+        noticeSeconds=Math.Max(0,noticeSeconds-delta);GetNode<Label>("Notice").Visible=noticeSeconds>0;
         var invitation=s.Snapshot.InvitationState;
         if(invitation.VoiceReceived&&!heardVoice)Audio.PlayCue(AudioCue.PhoneMessage);
         if(invitation.PhoneRinging&&!heardRing)Audio.PlayCue(AudioCue.PhoneRing);
@@ -94,6 +99,10 @@ public partial class MainView : Control
     {
         Dialogue.ShowText(title,body);
     }
+    public void ShowNonBlockingNotice(string title,string body)
+    {
+        var label=GetNode<Label>("Notice");label.Text=title+"："+body;label.Visible=true;noticeSeconds=8;
+    }
     public void ShowDialogue(string id,Action? done=null){if(!Dialogue.Open(id,done))ShowNotice("内容提示","这段内容暂时无法加载。按E或Esc回到自由走动。");}
     public void HandleInteraction(Interactable target)
     {
@@ -111,7 +120,7 @@ public partial class MainView : Control
             if(SoupSeat.IsActing)return;
             if(SoupSeat.IsActive)OpenSoupMeeting();else SoupSeat.Begin(OpenSoupMeeting);
         }
-        else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else if(s.Navigation.Profiles.TryGetValue(id,out var nav))_=SceneFlow.TryEnter(id,nav.Anchors["entry"]);}
+        else if(target.ActionId.StartsWith("scene:")){var id=target.ActionId[6..];if(id=="soup_shop"&&s.Snapshot.Stage<SliceStage.CandyHeyDelivered)ShowNotice("去汤店之前","先把喜糖送到Hey哥手里，别让他等着。");else if(s.Navigation.Profiles.TryGetValue(id,out var nav))_=EnterWorld(id,nav.Anchors["entry"]);else ShowNonBlockingNotice("切场失败","目标场景导航不可用，当前进度保留。");}
         else if(target.ActionId=="observe")ShowObservation(target);
         else ShowNotice(target.Caption,target.Description);
     }
@@ -166,7 +175,9 @@ public partial class MainView : Control
     public bool EnterMemoryView()
     {
         var packed=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/world/MemorySoupTable.tscn");if(packed==null)return false;
-        var next=packed.Instantiate<SoupMemoryController>();next.Main=this;next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;AddChild(next);
+        var next=packed.Instantiate<SoupMemoryController>();
+        try{next.ValidateBindings();}catch(InvalidOperationException){next.Free();return false;}
+        next.Main=this;next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;AddChild(next);
         if(next.HasMeta("binding_error")){next.Free();return false;}
         Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();Memory?.Free();Memory=next;
         next.ProcessMode=ProcessModeEnum.Inherit;next.Visible=true;World.Visible=false;Audio.SetScene("memory_soup_table");return true;
@@ -207,17 +218,18 @@ public partial class MainView : Control
     }
     public WorldView? PrepareWorld(string sceneId,Position2 position)
     {
+        WorldLoadError="";
         WorldView? next=null;
         try
         {
             var s=GetNode<GameSession>("/root/GameSession");var path=ScenePath(sceneId);
-            if(path==null||s.Navigation==null||!s.Navigation.Profiles.TryGetValue(sceneId,out var nav)||!NavigationGeometry.CanStand(nav,position))return null;
-            var packed=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/world/"+path+".tscn");if(packed==null)return null;
+            if(path==null||s.Navigation==null||!s.Navigation.Profiles.TryGetValue(sceneId,out var nav)||!NavigationGeometry.CanStand(nav,position)){WorldLoadError="场景或导航站位无效，当前进度保留。";return null;}
+            var packed=GetNode<GameSession>("/root/GameSession").GetScene("res://scenes/world/"+path+".tscn");if(packed==null){WorldLoadError="场景资源缺失，当前进度保留。";return null;}
             next=packed.Instantiate<WorldView>();
-            if(!NavigationSceneReader.Matches(NavigationSceneReader.Read(next),nav)){next.Free();return null;}
+            if(!NavigationSceneReader.Matches(NavigationSceneReader.Read(next),nav)){WorldLoadError="导航数据与编辑场景不一致，请检查并重新导出；当前进度保留。";next.Free();return null;}
             next.ProcessMode=ProcessModeEnum.Disabled;next.Visible=false;return next;
         }
-        catch(InvalidOperationException){next?.Free();return null;}
+        catch(InvalidOperationException ex){WorldLoadError=ex.Message;next?.Free();return null;}
     }
     public bool CommitWorld(WorldView next,Position2 position)
     {
@@ -230,6 +242,11 @@ public partial class MainView : Control
         GetNode<GameSession>("/root/GameSession").UpdateScene(next.SceneId,position);Audio.SetScene(next.SceneId);return true;
     }
     public bool ChangeWorld(string sceneId,Position2 position)=>PrepareWorld(sceneId,position) is {} next&&CommitWorld(next,position);
+    private async Task EnterWorld(string id,Position2 position)
+    {
+        var result=await SceneFlow.TryEnter(id,position);
+        if(!result.Success)ShowNonBlockingNotice("切场失败",WorldLoadError.Length>0?WorldLoadError:"场景暂不能加载，当前进度保留，请重试。");
+    }
     private static string? ScenePath(string id)=>id switch{"convenience_street"=>"ConvenienceStreet","community_gate"=>"CommunityGate","soup_shop"=>"SoupShop",_=>null};
     private void LoadManual()
     {
@@ -239,13 +256,25 @@ public partial class MainView : Control
         {
             var snapshot=loaded.Snapshot!;var scene=snapshot.SceneId=="memory_soup_table"?"soup_shop":snapshot.SceneId;
             var position=snapshot.SceneId=="memory_soup_table"?snapshot.ReturnContext!.Position:snapshot.PlayerPosition;
-            var candidate=PrepareWorld(scene,position);if(candidate==null){ShowNotice("手动存档","场景或导航暂不能加载；原进度保留。");return;}
+            var candidate=PrepareWorld(scene,position);if(candidate==null){ShowNonBlockingNotice("手动存档",WorldLoadError);return;}
             viewport.AddChild(candidate);var invalid=candidate.HasMeta("binding_error");candidate.Free();
-            if(invalid){GetNode<Label>("StartupError").Visible=false;ShowNotice("手动存档","场景资源暂不能加载；原进度保留。");return;}
+            if(invalid){GetNode<Label>("StartupError").Visible=false;ShowNonBlockingNotice("手动存档","场景资源暂不能加载；原进度保留。");return;}
+            if(snapshot.SceneId=="memory_soup_table")
+            {
+                SoupMemoryController? memoryCandidate=null;
+                try
+                {
+                    var packed=s.GetScene("res://scenes/world/MemorySoupTable.tscn")??throw new InvalidOperationException("回忆场景资源缺失。");
+                    memoryCandidate=packed.Instantiate<SoupMemoryController>();memoryCandidate.ValidateBindings();
+                }
+                catch(InvalidOperationException ex){ShowNonBlockingNotice("手动存档",ex.Message+" 原进度保留。");return;}
+                finally{memoryCandidate?.Free();}
+            }
+            if(Pause.IsOpen)Pause.Close();
             if(Phone.IsOpen)Phone.Close();Rest.Cancel();SoupSeat.Cancel();Audio.StopTransient();
             s.PendingRestore=snapshot;GetTree().ChangeSceneToPacked(s.GetScene("res://scenes/Main.tscn")!);
         }
-        else ShowNotice("手动存档",loaded.Message);
+        else ShowNonBlockingNotice("手动存档",loaded.Message);
     }
     public override void _Input(InputEvent ev)
     {
@@ -258,7 +287,7 @@ public partial class MainView : Control
         {
             if(code==Key.Escape)Pause.Close();
             else if(code==Key.F5)Pause.Save();
-            else if(code==Key.F9){Pause.Close();LoadManual();}
+            else if(code==Key.F9)LoadManual();
             else return;
         }
         else if(code==Key.F5){s.UpdatePosition(SafeSavePosition);s.SaveManual();}

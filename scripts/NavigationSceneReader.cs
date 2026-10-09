@@ -20,13 +20,20 @@ public static class NavigationSceneReader
         float radius=8;
         if(world.Mode==WorldMode.Depth2D)
         {
+            foreach(var path in new[]{"DepthLayers","DepthLayers/Actors"})
+                if(SceneBindings.Require<Node2D>(world,path).Transform!=Transform2D.Identity)
+                    throw new InvalidOperationException("Depth角色父层必须保持原点、无旋转缩放："+path);
+            var player=SceneBindings.Require<PlayerController>(world,"DepthLayers/Actors/Player");
+            if(player.CollisionMask!=1||player.CollisionLayer!=2||player.Transform.X!=Vector2.Right||player.Transform.Y!=Vector2.Down)
+                throw new InvalidOperationException("Depth角色必须使用layer2/mask1，不能旋转缩放脚圆。");
             var foot=SceneBindings.Require<CollisionShape2D>(world,"DepthLayers/Actors/Player/FootCollisionShape2D");
             if(foot.Shape is not CircleShape2D circle||circle.Radius!=8||foot.Position!=Vector2.Zero||foot.Scale!=Vector2.One)
                 throw new InvalidOperationException("Depth脚圆必须为原点半径8。");
             radius=circle.Radius;
             var boundary=SceneBindings.Require<CollisionPolygon2D>(world,"Navigation/GroundBoundary/CollisionPolygon2D");
-            if(boundary.BuildMode!=CollisionPolygon2D.BuildModeEnum.Segments)
-                throw new InvalidOperationException("地面外边界必须为Segments。");
+            var boundaryBody=SceneBindings.Require<StaticBody2D>(world,"Navigation/GroundBoundary");
+            if(boundary.Disabled||boundaryBody.CollisionLayer!=1||boundary.BuildMode!=CollisionPolygon2D.BuildModeEnum.Segments)
+                throw new InvalidOperationException("地面外边界必须启用layer1/Segments碰撞。");
             ground=Polygon(world,boundary);
             obstacles=SceneBindings.Require<Node2D>(world,"Navigation/Obstacles").GetChildren()
                 .OrderBy(n=>n.Name.ToString(),StringComparer.Ordinal).Select(n=>{

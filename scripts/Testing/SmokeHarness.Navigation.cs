@@ -130,7 +130,7 @@ public partial class SmokeHarness
         nav.Free();nav=manual!;Require(nav.Pause.Open(),"Pause after manual restore failed");
         GetTree().CurrentScene=null;Require(nav.Pause.TryReturnToMenu(),"Normal menu navigation failed");await Frames(8);
         var boot=GetTree().CurrentScene as BootMenu;Require(boot!=null,"Navigation did not show actual Boot");nav.Free();
-        GetTree().CurrentScene=null;boot!.GetNode<Button>("Menu/AutoResumeButton").EmitSignal(Button.SignalName.Pressed);await Frames(8);
+        GetTree().CurrentScene=null;boot!.GetNode<Button>("MenuScroll/Menu/AutoResumeButton").EmitSignal(Button.SignalName.Pressed);await Frames(8);
         var continued=GetTree().CurrentScene as MainView;Require(continued!=null&&continued.World.Player.Position.X==900&&s.Flow==FlowState.Field,"Menu continue failed safe restore");
         GetTree().CurrentScene=null;boot.Free();continued!.Free();await Frames(2);
     }

@@ -188,7 +188,7 @@ public partial class SmokeHarness
             var resource=ResourceLoader.Load("res://"+path);Require(ResourceLoader.Exists("res://"+path)&&resource!=null,"BundleDependencies "+path);retained.Add(resource!);
         }
         var saved=new (string File,string[] Paths)[]{
-            ("Boot",new[]{"Background","Menu/Title","Menu/StartButton","Menu/AutoResumeButton","Menu/ManualResumeButton","Menu/RecoveryButton","Menu/SettingsButton","Menu/QuitButton","StartupError","Choices","Settings"}),
+            ("Boot",new[]{"Background","MenuScroll/Menu/Title","MenuScroll/Menu/StartButton","MenuScroll/Menu/AutoResumeButton","MenuScroll/Menu/ManualResumeButton","MenuScroll/Menu/RecoveryButton","MenuScroll/Menu/SettingsButton","MenuScroll/Menu/QuitButton","StartupError","Choices","Settings"}),
             ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
             ("ui/Phone",new[]{"Frame/Content/Contact","Frame/Content/MessageScroll/Messages","Frame/Content/Task","Frame/Content/AnswerButton","Frame/Content/CloseButton"}),
             ("ui/Dialogue",new[]{"Panel/Content/NameLabel","Panel/Content/Body","Panel/Content/ContinueHint","Portrait"}),

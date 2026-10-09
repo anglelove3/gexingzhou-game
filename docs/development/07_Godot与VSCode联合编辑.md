@@ -47,6 +47,10 @@ F5保存站立安全落点；F9加载后站立。休息暂态不写入新schema2
 
 三个可见热点在Props/Sign、Menu、CounterNote；Visual/HitPolygon决定可点击区域，根脚位置决定靠近E范围。保持soup.sign/menu/note发现ID与“先坐，汤马上好。”原文。UI点击/前景遮住时不能穿透观察，取消不能提前记发现。动画Frames/seat_pivot/contact_point metadata对应正式图像，换图后必须重新检查臀/脚/手接触点，而不是只改数值。
 
+同源导航还检查实际物理配置：DepthLayers与Actors保持原点、无旋转且scale=(1,1)；Player保持未旋转/未缩放，collision_layer=2、collision_mask=1；地面边界不得禁用，障碍和边界collision_layer=1。角色脚圆启停由ApplyNavigation按世界模式决定。不要只改外观而不改导航，也不要关闭检查来隐藏不一致。
+
+本轮菜单绑定路径从Menu改为MenuScroll/Menu，以便32字号双槽恢复错误可滚动。Main/Notice是保存失败/切场失败的非阻塞文字层，不代替剧情Dialogue。回忆场景的Table/Coin/DeliveryArea等必需具名节点在切入之前验证；改名时同步C#绑定和回归测试。
+
 ## 学到的知识与求职证据
 
 这轮实际涉及C#属性/导出引用、信号与回调、状态机、焦点/输入优先级、资源依赖、等比例视域数学、回归测试与版本管理。RestStateMachine的纯逻辑测试可以不启动Godot学习算法边界和幂等性。

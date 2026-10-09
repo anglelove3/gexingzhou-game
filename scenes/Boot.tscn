@@ -35,63 +35,72 @@ grow_horizontal=2
 grow_vertical=2
 color=Color(0.03,0.06,0.08,0.52)
 mouse_filter=2
-[node name="Menu" type="VBoxContainer" parent="."]
-offset_left=320.0
-offset_top=70.0
-offset_right=960.0
-offset_bottom=650.0
+[node name="MenuScroll" type="ScrollContainer" parent="."]
+layout_mode=1
+anchor_left=0.5
+anchor_right=0.5
+anchor_bottom=1.0
+offset_left=-320.0
+offset_top=40.0
+offset_right=320.0
+offset_bottom=-24.0
+horizontal_scroll_mode=0
+follow_focus=true
+[node name="Menu" type="VBoxContainer" parent="MenuScroll"]
+layout_mode=2
+size_flags_horizontal=3
 theme_override_constants/separation=12
-[node name="Title" type="Label" parent="Menu"]
+[node name="Title" type="Label" parent="MenuScroll/Menu"]
 layout_mode=2
 text="葛行舟"
 autowrap_mode=3
 horizontal_alignment=1
 theme_override_font_sizes/font_size=52
-[node name="Subtitle" type="Label" parent="Menu"]
+[node name="Subtitle" type="Label" parent="MenuScroll/Menu"]
 layout_mode=2
 text="首段试玩 · 故乡与一碗热汤"
 autowrap_mode=3
 horizontal_alignment=1
-[node name="StartButton" type="Button" parent="Menu"]
+[node name="StartButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="回到故乡"
-[node name="AutoResumeButton" type="Button" parent="Menu"]
+[node name="AutoResumeButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="继续自动存档"
-[node name="ManualResumeButton" type="Button" parent="Menu"]
+[node name="ManualResumeButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="继续手动存档"
-[node name="RecoveryButton" type="Button" parent="Menu"]
+[node name="RecoveryButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="保留原档副本，恢复上次有效备份"
-[node name="LegacyAutoUpgradeButton" type="Button" parent="Menu"]
+[node name="LegacyAutoUpgradeButton" type="Button" parent="MenuScroll/Menu"]
 visible=false
 layout_mode=2
 custom_minimum_size=Vector2(0,48)
 text="复制旧自动档并继续"
-[node name="LegacyManualUpgradeButton" type="Button" parent="Menu"]
+[node name="LegacyManualUpgradeButton" type="Button" parent="MenuScroll/Menu"]
 visible=false
 layout_mode=2
 custom_minimum_size=Vector2(0,48)
 text="复制旧手动档并继续"
-[node name="ManualRecoveryButton" type="Button" parent="Menu"]
+[node name="ManualRecoveryButton" type="Button" parent="MenuScroll/Menu"]
 visible=false
 layout_mode=2
 custom_minimum_size=Vector2(0,48)
 text="保留原手动档副本，恢复备份"
-[node name="SettingsButton" type="Button" parent="Menu"]
+[node name="SettingsButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="设置"
-[node name="QuitButton" type="Button" parent="Menu"]
+[node name="QuitButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="退出"
-[node name="Message" type="Label" parent="Menu"]
+[node name="Message" type="Label" parent="MenuScroll/Menu"]
 layout_mode=2
 text=""
 autowrap_mode=3

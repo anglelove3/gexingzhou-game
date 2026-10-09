@@ -1,6 +1,6 @@
 # GitHub 与跨设备继续开发
 
-更新记录：2026-10-08 23:30（北京时间；实际提交时间见Git）。独立仓库：[anglelove3/gexingzhou-game](https://github.com/anglelove3/gexingzhou-game)，已按用户决定改为公开；原来的`anglelove3/fangguoge-game`不改动。此工程的开发分支及远端默认分支均为`feature/vs01`，不要用另一个游戏的目录或分支覆盖它。用户已授权本轮完成后正常推送，不强推、不另建合并请求。更新内容见[10_更新日志](10_更新日志.md)，同步成功必须核对远端提交等于本机HEAD，而不是只看本地commit。
+更新记录：2026-10-09 23:29（北京时间；实际提交时间见Git）。独立仓库：[anglelove3/gexingzhou-game](https://github.com/anglelove3/gexingzhou-game)，已按用户决定改为公开；原来的`anglelove3/fangguoge-game`不改动。此工程的开发分支及远端默认分支均为`feature/vs01`，不要用另一个游戏的目录或分支覆盖它。用户已授权本轮完成后正常推送，不强推、不另建合并请求。更新内容见[10_更新日志](10_更新日志.md)，同步成功必须核对远端提交等于本机HEAD，而不是只看本地commit。
 
 ## 另一台 Windows 电脑首次准备
 

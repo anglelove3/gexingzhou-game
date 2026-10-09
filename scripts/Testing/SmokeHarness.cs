@@ -2,11 +2,18 @@ using Godot;
 public partial class SmokeHarness : Node
 {
     private string? captureDirectory;private readonly HashSet<string> captured=new();
+    private static object? DiagnosticField(object target,string name)=>target.GetType().GetField(name,System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)?.GetValue(target);
+    public override void _Notification(int what)
+    {
+        if(captureDirectory!=null&&(what==NotificationApplicationFocusIn||what==NotificationApplicationFocusOut))
+            GD.Print($"CAPTURE_FOCUS notification={what} ticks={Godot.Time.GetTicksMsec()}");
+    }
     public override async void _Ready()
     {
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="FinalBoundaries"){await FinalBoundariesChecks();GD.Print("GODOT_CHECKS_PASS FinalBoundaries");await DrainAudio();GetTree().Quit();return;}
             if(suite=="DepthMovement"){await DepthMovementChecks();GD.Print("GODOT_CHECKS_PASS DepthMovement");await DrainAudio();GetTree().Quit();return;}
             if(suite=="DepthSeat"){await DepthSeatChecks();GD.Print("GODOT_CHECKS_PASS DepthSeat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ExplorationUi"){await ExplorationUiChecks();GD.Print("GODOT_CHECKS_PASS ExplorationUi");await DrainAudio();GetTree().Quit();return;}
@@ -194,13 +201,13 @@ public partial class SmokeHarness : Node
             var start=main.World.Player.Position;
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});
             for(int i=0;i<12;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
-            if(!sprite.Animation.ToString().StartsWith("walk")||main.World.Player.Position.X<=start.X)throw new Exception("Art does not follow real movement");
+            if(!sprite.Animation.ToString().StartsWith("walk")||main.World.Player.Position.X<=start.X)throw new Exception($"Art does not follow real movement scene={scene} start={start} end={main.World.Player.Position} velocity={main.World.Player.Velocity} animation={sprite.Animation} flow={s.Flow} physical={Input.IsPhysicalKeyPressed(Key.D)} action={Input.IsActionPressed("move_right")} focused={DiagnosticField(main.World.Player,"focused")}");
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});
             for(int i=0;i<18;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
             if(!sprite.Animation.ToString().StartsWith("idle"))throw new Exception("Walking did not return to idle");
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.A,Pressed=true});
             for(int i=0;i<4;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
-            if(!sprite.FlipH)throw new Exception("Character art faces away from leftward movement");
+            if(!sprite.FlipH)throw new Exception($"Character art faces away from leftward movement scene={scene} pos={main.World.Player.Position} animation={sprite.Animation} flow={s.Flow} physical={Input.IsPhysicalKeyPressed(Key.A)} action={Input.IsActionPressed("move_left")} focused={DiagnosticField(main.World.Player,"focused")} osfocus={GetWindow().HasFocus()}");
             main.World.Player.SetInputLocked(true);var locked=main.World.Player.Position;
             for(int i=0;i<4;i++)await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
             if(main.World.Player.Position!=locked||!sprite.Animation.ToString().StartsWith("idle"))throw new Exception("Artwork broke input locking");
@@ -447,8 +454,8 @@ public partial class SmokeHarness : Node
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         foreach(var broken in new[]{false,true}) {
             if(broken){var testRoot=ProjectSettings.GlobalizePath("res://test-output/");if(!s.SaveDirectory.StartsWith(testRoot))throw new Exception("Unsafe test directory");System.IO.Directory.CreateDirectory(s.SaveDirectory);System.IO.File.WriteAllText(System.IO.Path.Combine(s.SaveDirectory,"manual.json"),"{broken");}
-            KeyPress(Key.F9);await Frames(2);Verify(main.Dialogue.IsOpen&&main.Dialogue.ZIndex>main.Memory!.ZIndex,"Visible memory F9 notice "+broken);
-            KeyPress(Key.Escape);await Frames(2);Verify(s.Flow==GeXingzhou.Domain.FlowState.Memory,"Memory flow restored "+broken);s.Flow=GeXingzhou.Domain.FlowState.Memory;
+            KeyPress(Key.F9);await Frames(2);var notice=main.GetNode<Label>("Notice");Verify(notice.Visible&&notice.ZIndex>main.Memory!.ZIndex&&!main.Dialogue.IsOpen,"Visible non-blocking memory F9 notice "+broken);
+            Verify(s.Flow==GeXingzhou.Domain.FlowState.Memory,"Memory flow preserved "+broken);
         }
         var previousFocus=GetViewport().GuiGetFocusOwner();KeyPress(Key.Tab);await Frames(2);
         Verify(main.Phone.IsOpen&&main.Phone.ZIndex>main.Memory!.ZIndex,"Phone above memory");KeyPress(Key.Escape);await Frames(2);Verify(s.Flow==GeXingzhou.Domain.FlowState.Memory,"Phone flow recovery");Verify(previousFocus!=null&&GetViewport().GuiGetFocusOwner()==previousFocus,"Phone keyboard focus recovery");

@@ -21,7 +21,9 @@ public partial class SmokeHarness
                 Require(seat.PlayAction(code,()=>{}),"Depth contact capture rejected");
                 session.Flow=FlowState.Phone;seat.Suspend();art.Frame=frame;art.FrameProgress=0;
                 await Capture("depth-"+label+suffix);
-                session.Flow=FlowState.Field;seat.Resume();await WaitUntil(()=>!seat.IsActing,"Depth contact capture complete");
+                session.Flow=FlowState.Field;seat.Resume();
+                try{await WaitUntil(()=>!seat.IsActing,"Depth contact capture complete");}
+                catch{GD.Print($"CONTACT_STALL code={code} pose={art.Animation} frame={art.Frame} progress={art.FrameProgress} playing={art.IsPlaying()} flow={session.Flow} focused={DiagnosticField(seat,"focused")} suspended={DiagnosticField(seat,"suspended")} osfocus={GetWindow().HasFocus()}");throw;}
             }
             seat.Stand();
             foreach(var (frame,label) in new[]{(0,"start"),(1,"mid"),(3,"end")})

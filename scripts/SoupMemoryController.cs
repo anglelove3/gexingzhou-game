@@ -16,10 +16,22 @@ public partial class SoupMemoryController : Control
     private bool foodReady;
     private MemoryState? shown;
     private GameSession Session=>GetNode<GameSession>("/root/GameSession");
+    public void ValidateBindings()
+    {
+        var surface=SceneBindings.Require<Control>(this,"Table");
+        SceneBindings.Require<Control>(surface,"DeliveryArea");SceneBindings.Require<TextureRect>(surface,"Bowl");
+        foreach(var name in new[]{"Status","Help"})SceneBindings.Require<Label>(this,name);
+        SceneBindings.Require<Button>(this,"HelpToggle");
+        foreach(var i in Enumerable.Range(1,4))
+        {SceneBindings.Require<Button>(surface,"Coin"+i);SceneBindings.Require<Marker2D>(surface,"Near"+i);SceneBindings.Require<Marker2D>(surface,"Far"+i);}
+        foreach(var name in new[]{"BowlNear","BowlFar"})SceneBindings.Require<Marker2D>(surface,name);
+        foreach(var name in new[]{"Take","Wait","Share"})SceneBindings.Require<Button>(surface,"Foods/"+name);
+    }
     public override void _Ready()
     {
         try
         {
+            ValidateBindings();
             table=SceneBindings.Require<Control>(this,"Table");
             Resized+=UpdateTableLayout;UpdateTableLayout();
             delivery=SceneBindings.Require<Control>(table,"DeliveryArea");

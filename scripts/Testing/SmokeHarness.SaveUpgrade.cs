@@ -74,9 +74,9 @@ public partial class SmokeHarness
         WriteLegacy(root,false);WriteLegacy(root,true,true);
         var legacyPath=System.IO.Path.Combine(root.LegacyDirectory,"save.json");var legacyBytes=System.IO.File.ReadAllBytes(legacyPath);
         var boot=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate<BootMenu>();AddChild(boot);await Frames(2);
-        var upgrade=boot.GetNodeOrNull<Button>("Menu/LegacyAutoUpgradeButton");
+        var upgrade=boot.GetNodeOrNull<Button>("MenuScroll/Menu/LegacyAutoUpgradeButton");
         Require(upgrade is {Visible:true,Disabled:false},"Explicit upgrade menu not connected");
-        var recovery=boot.GetNodeOrNull<Button>("Menu/ManualRecoveryButton");Require(recovery is {Visible:true,Disabled:false},"Legacy manual backup menu absent");
+        var recovery=boot.GetNodeOrNull<Button>("MenuScroll/Menu/ManualRecoveryButton");Require(recovery is {Visible:true,Disabled:false},"Legacy manual backup menu absent");
         upgrade!.EmitSignal(Button.SignalName.Pressed);await Frames(1);
         Require(boot.GetNode<ChoiceController>("Choices").IsOpen&&root.Saves.Load().Status==LoadStatus.NotFound,"Upgrade saved before confirmation");
         boot.GetNode<ChoiceController>("Choices").HandleKey(Key.Escape);await Frames(1);
@@ -101,7 +101,7 @@ public partial class SmokeHarness
             root.NewGame();WriteLegacy(root,manual,backup);
             var sourcePath=System.IO.Path.Combine(root.LegacyDirectory,(manual?"manual":"save")+(backup?".bak":"")+".json");var sourceBytes=System.IO.File.ReadAllBytes(sourcePath);
             var menu=GD.Load<PackedScene>("res://scenes/Boot.tscn").Instantiate<BootMenu>();AddChild(menu);await Frames(2);
-            var button=menu.GetNode<Button>("Menu/"+(backup?(manual?"ManualRecoveryButton":"RecoveryButton"):(manual?"LegacyManualUpgradeButton":"LegacyAutoUpgradeButton")));
+            var button=menu.GetNode<Button>("MenuScroll/Menu/"+(backup?(manual?"ManualRecoveryButton":"RecoveryButton"):(manual?"LegacyManualUpgradeButton":"LegacyAutoUpgradeButton")));
             Require(button.Visible&&!button.Disabled,"Slot upgrade menu unavailable");button.EmitSignal(Button.SignalName.Pressed);await Frames(1);
             Require(menu.GetNode<ChoiceController>("Choices").IsOpen&&(manual?root.ManualSaves:root.Saves).Load().Status==LoadStatus.NotFound,"Menu bypassed upgrade confirmation");
             GetTree().CurrentScene=null;menu.GetNode<ChoiceController>("Choices").HandleKey(Key.E);await Frames(8);
