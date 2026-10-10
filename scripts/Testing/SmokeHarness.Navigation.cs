@@ -48,7 +48,7 @@ public partial class SmokeHarness
         foreach(var font in new[]{20,24,32})
         {
             s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
-            var complete=SaveV2Codec.CreateNew(s.Options) with{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
+            var complete=SaveV3Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
                 MemoryState=new(){PushedCoinIds=new(){"c1","c2","c3","c4"},PushedTotal=5,FoodChoice=FoodChoice.Take,Completed=true},
                 CompletedActions=new(){"slice.complete:slice-1"},ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
             Require(s.Restore(complete).Success,"End visual snapshot invalid");
@@ -111,7 +111,7 @@ public partial class SmokeHarness
         main.Pause.Close();await Frames(2);Require(s.Flow==FlowState.Field,"Resume did not restore field");
         main.Phone.Open("messages");KeyPress(Key.Escape);await Frames(2);Require(!main.Phone.IsOpen&&!main.Pause.IsOpen,"Phone Esc also opened pause");
         main.ShowNotice("测试","关闭后仍回自由活动。");KeyPress(Key.Escape);await Frames(2);Require(!main.Dialogue.IsOpen&&!main.Pause.IsOpen,"Dialogue Esc also opened pause");
-        var memory=SaveV2Codec.CreateNew(s.Options) with{Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
+        var memory=SaveV3Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
         Require(s.Restore(memory).Success&&main.EnterMemoryView(),"Pause memory fixture failed");s.Flow=FlowState.Memory;
         KeyPress(Key.Escape);await WaitUntil(()=>main.Memory==null&&s.Flow==FlowState.Field,"Memory escape");
         Require(!main.Pause.IsOpen,"Memory Esc also paused");main.Free();await Frames(2);
@@ -122,8 +122,8 @@ public partial class SmokeHarness
         var soup=await NewSoupMain(true);soup.SoupSeat.Begin(()=>{});Require(!soup.CanPause,"Can pause in sit transition");
         await WaitUntil(()=>!soup.SoupSeat.IsActing,"Pause soup seated");Require(!soup.CanPause,"Can pause while soup seated");
         KeyPress(Key.Escape);await WaitUntil(()=>!soup.SoupSeat.IsActive,"Pause soup stand");Require(!soup.Pause.IsOpen,"Soup Esc also paused");soup.Free();await Frames(2);
-        var nav=await NewPolishMain();nav.World.Player.Position=new(900,280);nav.Pause.Open();KeyPress(Key.F5);await Frames(2);
-        Require(s.ManualSaves.Load().Snapshot?.PlayerPosition.Y==280,"Paused F5 lost safe position");
+        var nav=await NewPolishMain();nav.World.Player.Position=new(900,460);nav.Pause.Open();KeyPress(Key.F5);await Frames(2);
+        Require(s.ManualSaves.Load().Snapshot?.PlayerPosition.Y==460,"Paused F5 lost safe position");
         GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(8);
         var manual=GetTree().CurrentScene as MainView;
         Require(manual!=null&&s.Flow==FlowState.Field&&manual.World.Player.Position.X==900,"Paused F9 did not restore actual Main");

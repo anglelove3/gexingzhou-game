@@ -1,64 +1,115 @@
-[gd_scene load_steps=14 format=3]
-[ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
-[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/community-v1.png" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
-[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="4"]
-[ext_resource type="Script" path="res://scripts/Interactable.cs" id="5"]
-[ext_resource type="PackedScene" path="res://scenes/world/Bench.tscn" id="6"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="Npc0"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Npc1"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Npc2"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="Npc3"]
-[ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
-[sub_resource type="RectangleShape2D" id="Ground"]
-size=Vector2(1600,16)
-[sub_resource type="RectangleShape2D" id="Side"]
-size=Vector2(16,360)
+[gd_scene load_steps=11 format=3]
+[ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/community-background.png" id="Bg"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
+[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="Interactions"]
+[ext_resource type="Script" path="res://scripts/Interactable.cs" id="Target"]
+[ext_resource type="PackedScene" path="res://scenes/world/Bench.tscn" id="Bench"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="Npc"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/bench.png" id="BenchArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/planter.png" id="PlanterArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/bollard.png" id="BollardArt"]
 [node name="CommunityGate" type="Node2D"]
-script=ExtResource("1")
+script=ExtResource("World")
 SceneId="community_gate"
 Width=1600
-ViewBounds=Rect2(0,0,1600,360)
-[node name="Navigation" type="Node2D" parent="."]
-[node name="Anchors" type="Node2D" parent="Navigation"]
-[node name="EntryAnchor" type="Marker2D" parent="Navigation/Anchors"]
-position=Vector2(120,280)
-[node name="ExitAnchor" type="Marker2D" parent="Navigation/Anchors"]
-position=Vector2(1480,280)
-[node name="SafeAnchor" type="Marker2D" parent="Navigation/Anchors"]
-position=Vector2(320,280)
+ViewBounds=Rect2(0,0,1600,540)
+Mode=1
 [node name="Backdrop" type="Sprite2D" parent="."]
 texture_filter=2
 z_index=-10
-position=Vector2(0,-136.00000000000006)
-scale=Vector2(0.7366482504604052,0.7366482504604052)
-texture=ExtResource("2")
+scale=Vector2(0.74177052,0.74177052)
+texture=ExtResource("Bg")
 centered=false
-[node name="Player" parent="." instance=ExtResource("3")]
-position=Vector2(320,280)
+[node name="DepthLayers" type="Node2D" parent="."]
+y_sort_enabled=true
+[node name="Actors" type="Node2D" parent="DepthLayers"]
+y_sort_enabled=true
+[node name="Player" parent="DepthLayers/Actors" instance=ExtResource("Player")]
+position=Vector2(320,460)
+[node name="Cannon" type="Node2D" parent="DepthLayers/Actors"]
+visible=false
+position=Vector2(400,440)
+script=ExtResource("Target")
+Id="cannon"
+Caption="张大炮 · 见面"
+ActionId="invitation.meeting_complete"
+IsActive=false
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/Cannon"]
+texture_filter=2
+position=Vector2(0,-48)
+scale=Vector2(0.194726,0.194726)
+texture=ExtResource("Npc")
+flip_h=true
+[node name="NameLabel" type="Label" parent="DepthLayers/Actors/Cannon"]
+offset_left=-80.0
+offset_top=-120.0
+offset_right=80.0
+offset_bottom=-96.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=14
+text="张大炮"
+mouse_filter=2
+visible=false
+[node name="Marker" type="Label" parent="DepthLayers/Actors/Cannon"]
+offset_left=-8.0
+offset_top=-103.0
+offset_right=20.0
+offset_bottom=-79.0
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="Props" type="Node2D" parent="DepthLayers"]
+y_sort_enabled=true
+[node name="BenchArtwork" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(960,414)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/BenchArtwork"]
+texture_filter=2
+position=Vector2(-107.082,-79.85)
+scale=Vector2(0.108,0.108)
+texture=ExtResource("BenchArt")
+centered=false
+[node name="LeftPlanter" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(285,400)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/LeftPlanter"]
+texture_filter=2
+position=Vector2(-49.3,-66.94)
+scale=Vector2(0.069,0.069)
+texture=ExtResource("PlanterArt")
+centered=false
+[node name="RightPlanter" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(1115,412)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/RightPlanter"]
+texture_filter=2
+position=Vector2(-38.61,-52.434)
+scale=Vector2(0.054,0.054)
+texture=ExtResource("PlanterArt")
+centered=false
+[node name="LeftBollard" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(539,414)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/LeftBollard"]
+texture_filter=2
+position=Vector2(-20.636,-62.92)
+scale=Vector2(0.044,0.044)
+texture=ExtResource("BollardArt")
+centered=false
+[node name="RightBollard" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(669,414)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/RightBollard"]
+texture_filter=2
+position=Vector2(-20.636,-62.92)
+scale=Vector2(0.044,0.044)
+texture=ExtResource("BollardArt")
+centered=false
 [node name="Interactions" type="Node" parent="."]
-script=ExtResource("4")
-[node name="Floor" type="StaticBody2D" parent="."]
-position=Vector2(800,288)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
-shape=SubResource("Ground")
-[node name="LeftBoundary" type="StaticBody2D" parent="."]
-position=Vector2(-8,180)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
-shape=SubResource("Side")
-[node name="RightBoundary" type="StaticBody2D" parent="."]
-position=Vector2(1608,180)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RightBoundary"]
-shape=SubResource("Side")
+script=ExtResource("Interactions")
 [node name="OldSign" type="Node2D" parent="."]
-position=Vector2(160,280)
-script=ExtResource("5")
+position=Vector2(160,400)
+script=ExtResource("Target")
 Id="old_sign"
 Caption="看看旧路牌"
 Description="路是新的，牌还是旧的。以前闭着眼能走到家的地方，现在得看导航。"
@@ -69,82 +120,82 @@ offset_left=-8.0
 offset_top=-88.0
 offset_right=20.0
 offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
 theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
 text="◇"
 mouse_filter=2
-[node name="Cannon" type="Node2D" parent="."]
-visible=false
-position=Vector2(400,280)
-script=ExtResource("5")
-Id="cannon"
-Caption="张大炮 · 见面"
-Description=""
-ActionId="invitation.meeting_complete"
-IsActive=false
-[node name="NameLabel" type="Label" parent="Cannon"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
-horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="张大炮"
-mouse_filter=2
-visible=false
-[node name="Marker" type="Label" parent="Cannon"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="◇"
-mouse_filter=2
-[node name="Artwork" type="Sprite2D" parent="Cannon"]
-texture_filter=2
-position=Vector2(0,-34)
-scale=Vector2(0.13793103448275862,0.13793103448275862)
-texture=ExtResource("Npc0")
-flip_h=true
 [node name="StreetExit" type="Node2D" parent="."]
-position=Vector2(1480,280)
-script=ExtResource("5")
+position=Vector2(1480,460)
+script=ExtResource("Target")
 Id="street"
 Caption="去便利店街"
-Description=""
 ActionId="scene:convenience_street"
 IsActive=true
-[node name="NameLabel" type="Label" parent="StreetExit"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
-horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="去便利店街"
-mouse_filter=2
-visible=false
 [node name="Marker" type="Label" parent="StreetExit"]
 offset_left=-8.0
 offset_top=-88.0
 offset_right=20.0
 offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
 theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
 text="›"
 mouse_filter=2
-[node name="Bench" parent="." instance=ExtResource("6")]
-position=Vector2(960,280)
+[node name="NameLabel" type="Label" parent="StreetExit"]
+offset_left=-80.0
+offset_top=-111.0
+offset_right=80.0
+offset_bottom=-88.0
+horizontal_alignment=1
+text="去便利店街"
+mouse_filter=2
+visible=false
+[node name="Bench" parent="." instance=ExtResource("Bench")]
+position=Vector2(960,440)
+[node name="SeatAnchor" parent="Bench" index="1"]
+position=Vector2(0,-60)
+[node name="Foreground" type="Node2D" parent="."]
+[node name="Navigation" type="Node2D" parent="."]
+[node name="GroundBoundary" type="StaticBody2D" parent="Navigation"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/GroundBoundary"]
+build_mode=1
+polygon=PackedVector2Array(24,300,1576,300,1576,520,24,520)
+[node name="Obstacles" type="Node2D" parent="Navigation"]
+[node name="LeftPlanter" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/LeftPlanter"]
+polygon=PackedVector2Array(240,340,330,340,330,400,240,400)
+[node name="RightPlanter" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/RightPlanter"]
+polygon=PackedVector2Array(1080,340,1150,340,1150,412,1080,412)
+[node name="Bench" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Bench"]
+polygon=PackedVector2Array(870,340,1050,340,1050,414,870,414)
+[node name="LeftBollard" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/LeftBollard"]
+polygon=PackedVector2Array(530,386,548,386,548,414,530,414)
+[node name="RightBollard" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/RightBollard"]
+polygon=PackedVector2Array(660,386,678,386,678,414,660,414)
+[node name="Anchors" type="Node2D" parent="Navigation"]
+[node name="EntryAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(120,460)
+[node name="ExitAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(1480,460)
+[node name="SafeAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(320,460)
+[node name="StandAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(960,440)
+[node name="SeatAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(960,380)
+[editable path="Bench"]

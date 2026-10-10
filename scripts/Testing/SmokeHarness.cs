@@ -13,6 +13,8 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="Community"){await CommunityChecks();GD.Print("GODOT_CHECKS_PASS Community");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="CommunityUpgrade"){await CommunityUpgradeChecks();GD.Print("GODOT_CHECKS_PASS CommunityUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Journal"){await JournalChecks();GD.Print("GODOT_CHECKS_PASS Journal");await DrainAudio();GetTree().Quit();return;}
             if(suite=="PhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS PhoneChat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="FinalBoundaries"){await FinalBoundariesChecks();GD.Print("GODOT_CHECKS_PASS FinalBoundaries");await DrainAudio();GetTree().Quit();return;}
@@ -157,11 +159,11 @@ public partial class SmokeHarness : Node
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});
             for(int i=0;i<5;i++) await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
             if(player.Position.X!=x)throw new Exception("Input lock leaked movement");
-            controller.SetInputLocked(false);player.Position=new Vector2(1590,280);
+            controller.SetInputLocked(false);player.Position=new Vector2(1566,460);
             for(int i=0;i<30;i++) await ToSignal(GetTree(),SceneTree.SignalName.PhysicsFrame);
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});
-            if(player.Position.X>1592.1f)throw new Exception("Player crossed boundary");
-            player.Position=new Vector2(160,280);
+            if(player.Position.X>1568.02f)throw new Exception("Player crossed boundary");
+            player.Position=new Vector2(160,400);
             await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.E,Pressed=true});
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.E,Pressed=false});
@@ -196,7 +198,7 @@ public partial class SmokeHarness : Node
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         foreach(var scene in new[]{"community_gate","convenience_street","soup_shop"})
         {
-            main.ChangeWorld(scene,scene=="soup_shop"?new(120,480):new(320,280));await Frames(3);
+            main.ChangeWorld(scene,s.Navigation.Profiles[scene].Anchors["safe"]);await Frames(3);
             var bg=main.World.GetNodeOrNull<Sprite2D>("Backdrop");
             if(bg?.Texture==null)throw new Exception("Art background missing: "+scene);
             if(bg.Texture.GetWidth()<960||bg.Texture.GetHeight()<360)throw new Exception("Background is not a production raster: "+scene);
@@ -236,10 +238,10 @@ public partial class SmokeHarness : Node
                     main.World.Player.SetPhysicsProcess(false);await Capture("art-walk-"+frame);main.World.Player.SetPhysicsProcess(true);
                 }
             }
-            sprite.Play("idle");
+            sprite.Play(main.World.Mode==GeXingzhou.Domain.WorldMode.Depth2D?"idle_side":"idle");
             if(scene=="convenience_street"&&main.World.GetTargets().Single(t=>t.Id=="hey").GetNodeOrNull<Sprite2D>("Artwork")?.Texture==null)throw new Exception("Hey is still a placeholder");
             if(scene=="soup_shop"&&main.World.GetNodeOrNull<Sprite2D>("DepthLayers/Actors/Shopkeeper")?.Texture==null)throw new Exception("Soup shop owner raster missing");
-            if(scene=="community_gate"){s.AdvanceClock(65);await Frames(2);if(main.World.GetNodeOrNull<Interactable>("Cannon")?.GetNodeOrNull<Sprite2D>("Artwork")?.Texture==null)throw new Exception("Arriving friend is still a placeholder");}
+            if(scene=="community_gate"){s.AdvanceClock(65);await Frames(2);if(main.World.GetTarget("cannon")?.GetNodeOrNull<Sprite2D>("Artwork")?.Texture==null)throw new Exception("Arriving friend is still a placeholder");}
             if(scene=="soup_shop")main.World.Player.Position=new Vector2(720,480);
             await Capture("art-"+scene);
         }
@@ -273,7 +275,7 @@ public partial class SmokeHarness : Node
         else {KeyPress(Key.Escape);await Frames(2);}
         if(s.Snapshot.CandyCount!=0)throw new Exception("Phone gave candy early");
         s.AdvanceClock(30);await Frames(2);
-        var cannon=main.World.GetNodeOrNull<Interactable>("Cannon");
+        var cannon=main.World.GetTarget("cannon");
         if(cannon==null)throw new Exception($"Cannon missing: elapsed={s.Snapshot.InvitationState.Elapsed} arrived={s.Snapshot.InvitationState.CarArrived} flow={s.Flow} stage={s.Snapshot.Stage} scene={main.World.SceneId}");
         if(!cannon.TryInteract(s))throw new Exception("Cannot meet cannon");await Finish(main);
         if(s.Snapshot.CandyCount!=1)throw new Exception("Meeting did not give one candy");
@@ -281,7 +283,7 @@ public partial class SmokeHarness : Node
         if(suite=="Hey")
         {
             main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
-            main.ChangeWorld("community_gate",new(320,280));await Frames(2);
+            main.ChangeWorld("community_gate",s.Navigation.Profiles["community_gate"].Anchors["safe"]);await Frames(2);
             main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
             var hey=main.World.GetTargets().Single(t=>t.Id=="hey");hey.TryInteract(s);await Finish(main);
             if(s.Snapshot.CandyCount!=0||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.CandyHeyDelivered)throw new Exception("Hey delivery failed");
@@ -454,7 +456,7 @@ public partial class SmokeHarness : Node
         var failures=new List<string>();void Verify(bool ok,string name){if(!ok)failures.Add(name);GD.Print((ok?"RECOVERY_PASS ":"RECOVERY_FAIL ")+name);}
         var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
         var context=new GeXingzhou.Domain.SceneReturnContext("soup_shop",new(400,430),"soup.return",true);
-        s.PendingRestore=GeXingzhou.Domain.SaveV2Codec.CreateNew(s.Options) with {Stage=GeXingzhou.Domain.SliceStage.MemoryActive,SceneId="memory_soup_table",MemoryState=new(),MemoryOrdinal=1,ReturnContext=context};
+        s.PendingRestore=GeXingzhou.Domain.SaveV3Codec.CreateNew(s.Options,s.Navigation) with {Stage=GeXingzhou.Domain.SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryState=new(),MemoryOrdinal=1,ReturnContext=context};
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         foreach(var broken in new[]{false,true}) {
             if(broken){var testRoot=ProjectSettings.GlobalizePath("res://test-output/");if(!s.SaveDirectory.StartsWith(testRoot))throw new Exception("Unsafe test directory");System.IO.Directory.CreateDirectory(s.SaveDirectory);System.IO.File.WriteAllText(System.IO.Path.Combine(s.SaveDirectory,"manual.json"),"{broken");}

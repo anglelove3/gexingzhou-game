@@ -63,7 +63,7 @@ public partial class SmokeHarness
             Require(callbacks==0,"Stale action callback committed");seat.Stand();await WaitUntil(()=>!seat.IsActive,"Soup standing");
             Require(art.Animation.ToString().StartsWith("idle")&&!main.World.GetNode<Sprite2D>("Foreground/TableEdge").Visible,"Stand did not clear pose");
             await Capture("soup-risen"+(reduced?"-reduced":""));
-            Require(seat.Begin(()=>callbacks++),"Transition cancel seed");Require(main.ChangeWorld("community_gate",new(960,280)),"Change world rejected");await Frames(100);Require(callbacks==0&&!seat.IsActive,"World retained old callback");
+            Require(seat.Begin(()=>callbacks++),"Transition cancel seed");Require(main.ChangeWorld("community_gate",new(960,440)),"Change world rejected");await Frames(100);Require(callbacks==0&&!seat.IsActive,"World retained old callback");
             var bench=main.World.GetNode<BenchView>("Bench");Require(main.Rest.Begin(bench),"Bench seed failed");Require(!seat.Begin(()=>callbacks++),"Soup and bench simultaneously active");main.Rest.Cancel();
             main.Free();await Frames(2);
             s.PendingRestore=saved.Snapshot;var restored=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(restored);await Frames(4);

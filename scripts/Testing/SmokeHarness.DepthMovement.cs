@@ -5,7 +5,7 @@ public partial class SmokeHarness
     private async Task<MainView> NewDepthSoupMain(Position2 foot)
     {
         var session=GetNode<GameSession>("/root/GameSession");session.NewGame();
-        Require(session.Restore(SaveV2Codec.CreateNew(session.Options) with {Stage=SliceStage.CandyHeyDelivered}).Success,"Depth fixture stage rejected");
+        Require(session.Restore(SaveV3Codec.CreateNew(session.Options,session.Navigation) with {Stage=SliceStage.CandyHeyDelivered}).Success,"Depth fixture stage rejected");
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         Require(main.ChangeWorld("soup_shop",foot),"Depth fixture map failed");await Frames(3);
         if(main.Dialogue.IsOpen)main.Dialogue.HandleKey(Key.Escape);session.Flow=FlowState.Field;
@@ -60,7 +60,7 @@ public partial class SmokeHarness
             Require(art.Scale==scale,"Window aspect resized character");
         }
         window.Size=oldSize;window.ContentScaleMode=oldScale;await Frames(3);
-        foreach(var scene in new[]{"community_gate","convenience_street"}){
+        foreach(var scene in new[]{"convenience_street"}){
             Require(main.ChangeWorld(scene,new(320,280)),"Legacy scene lost");await Frames(3);Require(main.World.Mode==WorldMode.Horizontal,"Legacy scene converted early");
             Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.W,Pressed=true});await DepthPhysics(10);Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.W,Pressed=false});Require(main.World.Player.Position.Y==280,"Horizontal Y drifted");
         }

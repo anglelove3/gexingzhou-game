@@ -65,7 +65,7 @@ public sealed class NavigationCatalog
         if(p.Mode==WorldMode.Depth2D&&(!NavigationGeometry.IsSimplePolygon(p.Ground,p.Width,p.Height)||p.Obstacles.Any(o=>!NavigationGeometry.IsSimplePolygon(o,p.Width,p.Height))))
             throw new ArgumentException("Navigation polygon is empty, outside bounds or self-intersecting");
         if(p.Mode==WorldMode.Horizontal&&(p.Ground.Length!=0||p.Obstacles.Length!=0))throw new ArgumentException("Horizontal profile must retain legacy floor rules");
-        var required=p.SceneId=="soup_shop"&&p.Mode==WorldMode.Depth2D?new[]{"entry","exit","stand","memory_return","safe","seat"}:new[]{"entry","exit","safe"};
+        var required=p.Mode==WorldMode.Depth2D?p.SceneId=="soup_shop"?new[]{"entry","exit","stand","memory_return","safe","seat"}:new[]{"entry","exit","stand","safe","seat"}:new[]{"entry","exit","safe"};
         if(required.Any(key=>!p.Anchors.ContainsKey(key)))throw new ArgumentException("Missing navigation anchor");
         foreach(var (key,value) in p.Anchors){
             if(key is not ("entry" or "exit" or "stand" or "memory_return" or "safe" or "seat")||!float.IsFinite(value.X)||!float.IsFinite(value.Y)||value.X<0||value.X>p.Width||value.Y<0||value.Y>p.Height)

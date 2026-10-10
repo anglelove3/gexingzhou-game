@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-10",
+  "status": "资源已生成；地图、接触与最终渲染验收尚未完成。",
+  "tool": "built-in image_gen",
+  "reference": "assets/art/vs01-v1/community-v1.png（项目既有AI游戏素材；没有使用真人照片）",
+  "assets": [
+    {
+      "path": "assets/art/vs01-v5-community/community-background.png",
+      "sha256": "73BD9C10F4515CA2F089EEC7203730D82F2C2715EF1FBB7030DC7E62EEE21145",
+      "size": [
+        2157,
+        729
+      ],
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Asset type: production Godot 2D Chinese small-town community game background, no characters or UI. Input image: the referenced image is a style and architecture reference, not a target to preserve pixel-for-pixel. Create a new very wide approximately 3:1 landscape game environment matching its detailed painterly pixel-like warm autumn dusk palette, grey worn apartment blocks, low brick perimeter wall, street at right leading toward shops, trees and gentle window lights. Technical composition: image maps to a 1600 by 540 world. Wall meets the ground near y=300 (55% down); the entire lower 44% is a broad flat WALKABLE courtyard paved in weathered grey warm stone with only soft autumn leaves and subtle shadows, flat front-facing sidescroller-with-depth perspective, no strong vanishing-point ground slope. Keep all ground x=24..1576 y=300..520 empty and visibly traversable, including empty furniture placement areas around x=240..330 and x=870..1150. No bench, no planters, no bollards, no scooter, no car, no people, no railings blocking the courtyard, no freestanding signs in the floor, no text/sign lettering, no logos/watermark, no baked interaction markers. Upper half architecture and wall, lower half clear paved ground. Furniture will be separate sprites; do not include it. Professional polished raster illustration, not a mockup, no border.",
+      "revision_prompt": "Use case: precise-object-edit. Input image is the edit target. Keep the same warm painterly pixel-like small-town apartment architecture, wall, sunset lighting and no furniture. Change the composition: the bottom of the brick wall MUST be at 55% of image height, not 72%. Expand the empty grey paved courtyard to occupy the entire LOWER 45% of the image. Crop/compress the upper architecture framing to make room for this broad floor; do not add a strip or resize-stretch the old pavement. The wall meets courtyard along one horizontal line at y=400 in a 729px-tall canvas. Repaint a believable broad walkable courtyard across the lower portion, with quiet stone texture, light leaves and soft shadows only. No people, no benches, no planters, no bollards, no vehicles, no freestanding signage or text. About 3:1 wide landscape for 1600x540 game world, polished raster not mockup."
+    },
+    {
+      "path": "assets/art/vs01-v5-community/bench.png",
+      "sha256": "2ABEE44F97B7773AF8DAC74504C92339555FB09CA5DEFADD957D2CFD20B73CA3",
+      "size": [
+        1983,
+        793
+      ],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent production game furniture sprite. Supporting style reference: the attached community background, match detailed painterly pixel-like textures, warm golden autumn evening highlights and dark desaturated outlines. Draw one worn Chinese neighborhood public bench, weathered brown horizontal wooden slats on black iron legs and armrests. View: front view with a small amount of seat top visible (2D front-facing game with shallow depth), perfectly horizontal seat, no dramatic perspective or tilt. Entire bench visible, centered, wide approx 2.5:1 silhouette, wooden seat at about 63% down the bench silhouette, legs to its bottom. No people, no cigarette, no other furniture, no background scenery/floor/base plate, no logo/text/watermark, transparent alpha outside object including between legs. Small soft contact shadow only. The bench will be placed as a 180px-wide sprite, retain legibility and crisp silhouette, polished painted pixel-ish detail rather than a photorealistic product photograph."
+    },
+    {
+      "path": "assets/art/vs01-v5-community/planter.png",
+      "sha256": "BF735BFECBE72E232A5BC5F9136E9B68F9C1B9C7E83B7724B372258F8F1C9046",
+      "size": [
+        1430,
+        1100
+      ],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent game prop sprite. Input image supporting style reference: match detailed painterly pixel-like warm autumn Chinese neighborhood game, golden highlights and muted grey palette. One worn rectangular grey concrete planter box filled with small leafy green plants and a few yellow-orange chrysanthemum flowers. Front view with slightly visible top, flat horizontal bottom edge, shallow 2D depth, no dramatic perspective. Entire prop centered fully visible, silhouette approximately 1.3:1 wide, box lower half and flowers upper half. Weathered scuffed concrete, subtle earthy dirt rim, modest flowers not gigantic shrub. Actual transparent alpha outside sprite, no scenery/floor/base plate, no people, no text/logos/watermark, no extra props. Used as a 90px wide game obstacle, readable edges, tiny soft contact shadow only."
+    },
+    {
+      "path": "assets/art/vs01-v5-community/bollard.png",
+      "sha256": "F8C3961E264F1E904E007EFB2F50183FB8E76280EEF6B80B7486D51A49F83ABD",
+      "size": [
+        938,
+        1677
+      ],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: ONE transparent 2D game obstacle sprite. Supporting style reference: attached warm detailed painterly pixel-like Chinese town at sunset. Draw one short cylindrical grey stone/concrete bollard with a softly rounded cap, worn gritty surface, faint warm golden highlight from right and dark grey left. Front view with slight top visible, upright and straight, entire object visible, narrow approx 1:1.8 silhouette, a low stone stump NOT a giant pillar. Centered, transparent background with real alpha outside object, small soft contact shadow only, no floor/base plate, no plants/people/vehicles, no text/logos/watermark, no other objects. Intended 18px-wide footprint in a 96px-tall-character 2D game, crisp readable outline."
+    }
+  ],
+  "rights": "项目内AI生成素材，不引用第三方素材包授权；不承诺各司法辖区版权可登记性或独占性。商业发行前仍需人工审阅商标、相似性及平台规则。"
+}

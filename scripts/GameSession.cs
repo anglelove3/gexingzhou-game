@@ -11,23 +11,28 @@ public partial class GameSession : Node
     public WorldSnapshot Snapshot {get;private set;} = new();
     public ContentCatalog? Catalog {get;private set;}
     public NavigationCatalog Navigation {get;private set;}=null!;
+    public NavigationCatalog FrozenV2Navigation {get;private set;}=null!;
+    public string V2Directory {get;private set;}="";
     public string LegacyDirectory {get;private set;}="";
-    public ResumeOffer ProbeResume(bool manual,bool backup=false)
+    public VersionedResumeOffer ProbeResume(bool manual,bool backup=false)
     {
-        if(Navigation==null)return new(ResumeSource.Blocked,new(LoadStatus.Corrupt,null,ContentError));
-        return SaveUpgradePolicy.Probe(manual?ManualSaves:Saves,new SaveRepository(LegacyDirectory,manual?"manual":"auto"),backup);
+        if(Navigation==null||FrozenV2Navigation==null)return new(VersionedResumeSource.Blocked,new(LoadStatus.Corrupt,null,ContentError));
+        var slot=manual?"manual":"auto";
+        return SaveV3UpgradePolicy.Probe(manual?ManualSaves:Saves,new SaveRepository(V2Directory,slot,new SaveV2Codec(FrozenV2Navigation)),new SaveRepository(LegacyDirectory,slot),backup);
     }
-    public LoadResult TryUpgradeLegacy(bool manual,bool backup=false)
+    public LoadResult TryUpgradeLegacy(bool manual,bool backup=false)=>TryUpgradePrevious(manual,backup);
+    public LoadResult TryUpgradePrevious(bool manual,bool backup=false)
     {
         var offer=ProbeResume(manual,backup);
-        if(offer.Source!=ResumeSource.Legacy)return offer.Result.Status==LoadStatus.Loaded?
+        if(offer.Source is not (VersionedResumeSource.Legacy or VersionedResumeSource.V2))return offer.Result.Status==LoadStatus.Loaded?
             new(LoadStatus.Corrupt,null,"该槽已有新版本进度，请使用继续或恢复入口。"):offer.Result;
-        var upgraded=LegacySaveAdapter.Upgrade(offer.Result.Snapshot!,Navigation);
+        var upgraded=SaveV3Adapter.Upgrade(offer.Result.Snapshot!,FrozenV2Navigation,Navigation);
         if(upgraded.Status!=LoadStatus.Loaded)return upgraded;
         var snapshot=upgraded.Snapshot! with {Settings=Options};
+        if(RestoreCandidateValidator.Validate(this,snapshot) is {} invalid)return new(LoadStatus.Corrupt,null,invalid);
         var saved=(manual?ManualSaves:Saves).Save(snapshot);
         if(!saved.Success)return new(LoadStatus.IoError,null,saved.Message);
-        SaveMessage="旧进度可继续；汤店站位已适配新场景。";
+        SaveMessage="旧进度已复制至v3；小区与汤店站位已适配，原档未修改。";
         return new(LoadStatus.Loaded,snapshot,SaveMessage);
     }
     public string ContentError {get;private set;} = "";
@@ -59,26 +64,32 @@ public partial class GameSession : Node
         Catalog=result.Catalog; ContentError=string.Join("\n",result.Errors);
         var args=OS.GetCmdlineUserArgs();var supplied=args.FirstOrDefault(a=>a.StartsWith("--test-save-root="))?.Split('=',2)[1];
         var testing=args.Any(a=>a.StartsWith("--suite="));
-        var location=testing?"res://test-output/integration/"+Guid.NewGuid():"user://saves/vs01-explore-v2";
+        var location=testing?"res://test-output/integration/"+Guid.NewGuid():"user://saves/vs01-explore-v3";
         if(supplied!=null&&supplied.StartsWith("res://test-output/")&&!supplied.Contains(".."))location=supplied;
-        SaveDirectory=ProjectSettings.GlobalizePath(testing?location+"/v2":location);
+        SaveDirectory=ProjectSettings.GlobalizePath(testing?location+"/v3":location);
+        V2Directory=ProjectSettings.GlobalizePath(testing?location+"/v2":"user://saves/vs01-explore-v2");
         LegacyDirectory=ProjectSettings.GlobalizePath(testing?location+"/v1":"user://saves/vs01");
         ISaveCodec codec;
-        try{Navigation=NavigationSceneReader.LoadCatalog();codec=new SaveV2Codec(Navigation);}
+        try{Navigation=NavigationSceneReader.LoadCatalog();FrozenV2Navigation=NavigationCatalog.Parse(Godot.FileAccess.GetFileAsString("res://content/vs01/compat/navigation-v2.json"));codec=new SaveV3Codec(Navigation);}
         catch(Exception ex) when(ex is ArgumentException or InvalidOperationException or System.IO.IOException)
         {ContentError+="\n导航加载失败："+ex.Message;Catalog=null;codec=new UnavailableSaveCodec();}
         Saves=new(SaveDirectory,"auto",codec);ManualSaves=new(SaveDirectory,"manual",codec);
-        InitializePreferences();Snapshot=SaveV2Codec.CreateNew(Options);
+        InitializePreferences();Snapshot=Navigation!=null?SaveV3Codec.CreateNew(Options,Navigation):new(){SchemaVersion=3,ContentVersion="vs01-0.3",PlayerPosition=new(320,460),Settings=Options};
         Recorder=new(System.IO.Path.Combine(SaveDirectory,"behavior"),Options.RecordEventsEnabled);
     }
     private void InitializePreferences()
     {
         var directory=System.IO.Path.Combine(SaveDirectory,"preferences");
         Preferences=new(directory);Options=Preferences.Load();EventWarning=Preferences.Message;
-        if(!System.IO.File.Exists(System.IO.Path.Combine(directory,"settings.json")))
+        if(Preferences.IsMissing)
         {
-            var old=new SettingsRepository(System.IO.Path.Combine(LegacyDirectory,"preferences"));var oldOptions=old.Load();
-            if(old.HasValidFile){Options=oldOptions;var copied=Preferences.Save(Options);if(!copied.Success)EventWarning=copied.Message;}
+            foreach(var oldRoot in new[]{V2Directory,LegacyDirectory}){
+                var old=new SettingsRepository(System.IO.Path.Combine(oldRoot,"preferences"));var oldOptions=old.Load();
+                if(old.IsMissing)continue;
+                if(old.HasValidFile){Options=oldOptions;var copied=Preferences.Save(Options);if(!copied.Success)EventWarning=copied.Message;}
+                else EventWarning=old.Message;
+                break;
+            }
         }
         Snapshot=Snapshot with {Settings=Options};
     }
@@ -87,7 +98,7 @@ public partial class GameSession : Node
         public string? Validate(WorldSnapshot snapshot)=>"导航数据不可用，未保存；原档保留。";
         public LoadResult Read(string json)=>new(LoadStatus.Corrupt,null,"导航数据不可用，原档保留。");
     }
-    public void NewGame(){Snapshot=SaveV2Codec.CreateNew(Options);activeSeconds.Clear();PendingRestore=null;Flow=FlowState.Field;SaveMessage="";}
+    public void NewGame(){Snapshot=SaveV3Codec.CreateNew(Options,Navigation);activeSeconds.Clear();PendingRestore=null;Flow=FlowState.Field;SaveMessage="";}
     public RestoreResult Restore(WorldSnapshot snapshot)
     {
         var error=Saves.ValidateSnapshot(snapshot);if(error!=null)return new(false,error);

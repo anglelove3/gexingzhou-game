@@ -70,7 +70,7 @@ public partial class SmokeHarness
             Require(rejected,"Invalid physics authoring accepted: "+edit.Name);
         }
         var main=await NewDepthSoupMain(new(120,480));
-        foreach(var id in new[]{"community_gate","convenience_street"})Require(main.ChangeWorld(id,new(320,280)),"Physics rejection broke legacy scene");
+        foreach(var id in new[]{"community_gate","convenience_street"})Require(main.ChangeWorld(id,s.Navigation.Profiles[id].Anchors["safe"]),"Physics rejection broke scene");
         main.Free();await Frames(3);
     }
     private async Task MemoryCandidateBoundary()

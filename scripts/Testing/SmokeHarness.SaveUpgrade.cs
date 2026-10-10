@@ -22,36 +22,36 @@ public partial class SmokeHarness
     private async Task SaveUpgradeChecks()
     {
         var root=GetNode<GameSession>("/root/GameSession");root.NewGame();
-        Require(root.Snapshot.SchemaVersion==2&&root.Snapshot.ContentVersion=="vs01-0.2","Production NewGame still uses v1");
+        Require(root.Snapshot.SchemaVersion==3&&root.Snapshot.ContentVersion=="vs01-0.3","Production NewGame must use v3");
         Require(!root.Restore(new()).Success,"Production Restore silently upgrades v1");
         foreach(var manual in new[]{false,true})foreach(var backup in new[]{false,true})
         {
             var session=UpgradeFixture();WriteLegacy(session,manual,backup);
             var path=System.IO.Path.Combine(session.LegacyDirectory,(manual?"manual":"save")+(backup?".bak":"")+".json");
             var bytes=System.IO.File.ReadAllBytes(path);var play=session.Snapshot.PlaythroughId;
-            Require(session.ProbeResume(manual,backup).Source==ResumeSource.Legacy,"Explicit upgrade missing");
+            Require(session.ProbeResume(manual,backup).Source==VersionedResumeSource.Legacy,"Explicit upgrade missing");
             var loaded=session.TryUpgradeLegacy(manual,backup);
             Require(loaded.Status==LoadStatus.Loaded&&loaded.Snapshot!.PlayerPosition==session.Navigation.Profiles["soup_shop"].Anchors["safe"],"Legacy soup position not mapped");
             Require(System.IO.File.ReadAllBytes(path).SequenceEqual(bytes),"Migration rewrote source");
             Require((manual?session.ManualSaves:session.Saves).Load().Status==LoadStatus.Loaded,"Migration continued before new slot saved");
             Require(session.Snapshot.PlaythroughId==play,"Probe or upgrade silently restored gameplay");
-            Require(session.ProbeResume(manual).Source==ResumeSource.V2,"New slot not preferred");session.Free();
+            Require(session.ProbeResume(manual).Source==VersionedResumeSource.Current,"New slot not preferred");session.Free();
         }
         foreach(var condition in new[]{"corrupt","unknown","backup_only"})
         {
             var session=UpgradeFixture();WriteLegacy(session,false);System.IO.Directory.CreateDirectory(session.SaveDirectory);
             if(condition=="backup_only"){
-                Require(session.Saves.Save(SaveV2Codec.CreateNew(new())).Success,"V2 seed failed");
+                Require(session.Saves.Save(SaveV3Codec.CreateNew(new(),session.Navigation)).Success,"V3 seed failed");
                 System.IO.File.Move(System.IO.Path.Combine(session.SaveDirectory,"save.json"),System.IO.Path.Combine(session.SaveDirectory,"save.bak.json"));
-                Require(session.ProbeResume(false,true).Source==ResumeSource.V2,"V2 backup inaccessible");
+                Require(session.ProbeResume(false,true).Source==VersionedResumeSource.Current,"Current backup inaccessible");
             }else System.IO.File.WriteAllText(System.IO.Path.Combine(session.SaveDirectory,"save.json"),condition=="corrupt"?"{broken":"{\"schema_version\":999,\"content_version\":\"future\"}");
-            Require(session.ProbeResume(false).Source==ResumeSource.Blocked,"Bad v2 silently fell back to v1");
+            Require(session.ProbeResume(false).Source==VersionedResumeSource.Blocked,"Bad current silently fell back to v1");
             Require(session.TryUpgradeLegacy(false).Status!=LoadStatus.Loaded,"Upgrade overwrote existing v2 slot");session.Free();
         }
         {
             var session=UpgradeFixture();WriteLegacy(session,false);
             System.IO.File.WriteAllText(System.IO.Path.Combine(session.LegacyDirectory,"save.json"),"{\"schema_version\":999,\"content_version\":\"future\"}");
-            Require(session.ProbeResume(false).Source==ResumeSource.Blocked&&session.TryUpgradeLegacy(false).Status==LoadStatus.UnsupportedVersion,"Unknown legacy guessed");
+            Require(session.ProbeResume(false).Source==VersionedResumeSource.Blocked&&session.TryUpgradeLegacy(false).Status==LoadStatus.UnsupportedVersion,"Unknown legacy guessed");
             Require(!System.IO.File.Exists(System.IO.Path.Combine(session.SaveDirectory,"save.json")),"Unknown legacy wrote new slot");session.Free();
         }
         foreach(var condition in new[]{"missing","new_valid","new_corrupt","copy_failure"})
@@ -64,7 +64,7 @@ public partial class SmokeHarness
             if(condition=="new_corrupt"){System.IO.Directory.CreateDirectory(newDirectory);System.IO.File.WriteAllText(System.IO.Path.Combine(newDirectory,"settings.json"),"{broken");}
             if(condition=="copy_failure"){System.IO.Directory.CreateDirectory(session.SaveDirectory);System.IO.File.WriteAllText(newDirectory,"blocked");}
             typeof(GameSession).GetMethod("InitializePreferences",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.Invoke(session,null);
-            Require(session.Options.SubtitleSize==(condition=="new_valid"?20:condition=="new_corrupt"?24:32),"Preferences priority/fallback wrong "+condition);
+            Require(session.Options.SubtitleSize==(condition=="new_valid"?20:condition is "new_corrupt" or "copy_failure"?24:32),"Preferences priority/fallback wrong "+condition);
             Require(System.IO.File.ReadAllBytes(oldPath).SequenceEqual(oldBytes),"Preferences import changed old file");
             if(condition=="copy_failure")Require(session.EventWarning.Length>0,"Settings copy failure hidden");
             if(condition=="missing")Require(new SettingsRepository(newDirectory).Load().SubtitleSize==32,"Legacy settings not copied");

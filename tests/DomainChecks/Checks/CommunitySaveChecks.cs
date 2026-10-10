@@ -95,6 +95,10 @@ public static class CommunitySaveChecks
             Check.Equal(LoadStatus.UnsupportedVersion,Codec().Read("{\"schema_version\":4,\"content_version\":\"vs01-0.4\",\"future\":true}").Status);
             Check.Equal(LoadStatus.Corrupt,Codec().Read("{\"schema_version\":3,\"content_version\":\"vs01-0.3\"}").Status);
         });
+        tests.Add(("CommunityPreferences","ParentIsFile",()=>{
+            var root=CommunityFixtures.DirectoryFor("preferences");var occupied=Path.Combine(root,"preferences");File.WriteAllText(occupied,"do not overwrite");
+            var settings=new SettingsRepository(occupied);Check.Equal(24,settings.Load().SubtitleSize);Check.True(settings.Message.Length>0);Check.Equal("do not overwrite",File.ReadAllText(occupied));
+        }));
     }
     private static string Hash(string path)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
     private static WorldSnapshot Old()=>SaveV2Codec.CreateNew(new());

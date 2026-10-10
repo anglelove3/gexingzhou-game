@@ -20,8 +20,9 @@ public partial class BootMenu : Control
             void Continue(WorldSnapshot snapshot){s.PendingRestore=snapshot;GetTree().ChangeSceneToPacked(gameplayScene);}
             void Upgrade(bool manual,bool backup)
             {
-                choices.Open("将旧版进度复制到二维探索版本？旧文件只读保留，汤店站位会适配新场景。",new (string,Action)[]{
-                    ("复制并继续",()=>{var loaded=s.TryUpgradeLegacy(manual,backup);message.Text=loaded.Message;if(loaded.Status==LoadStatus.Loaded)Continue(loaded.Snapshot!);}),
+                var source=s.ProbeResume(manual,backup).Source;var version=source==VersionedResumeSource.V2?"v2":"v1";
+                choices.Open("将"+version+"进度复制到小区四向探索v3？旧文件只读保留，小区与汤店站位会适配新场景。",new (string,Action)[]{
+                    ("复制并继续",()=>{var loaded=s.TryUpgradePrevious(manual,backup);message.Text=loaded.Message;if(loaded.Status==LoadStatus.Loaded)Continue(loaded.Snapshot!);}),
                     ("返回",()=>{})});
             }
             void BindSlot(bool manual)
@@ -30,23 +31,23 @@ public partial class BootMenu : Control
                 var upgrade=SceneBindings.Require<Button>(this,"MenuScroll/Menu/"+(manual?"LegacyManualUpgradeButton":"LegacyAutoUpgradeButton"));
                 var recovery=SceneBindings.Require<Button>(this,"MenuScroll/Menu/"+(manual?"ManualRecoveryButton":"RecoveryButton"));
                 var offer=s.ProbeResume(manual);var backup=s.ProbeResume(manual,true);var slot=manual?"手动":"自动";
-                resume.Disabled=offer.Source!=ResumeSource.V2;resume.Visible=offer.Source!=ResumeSource.Legacy;
+                resume.Disabled=offer.Source!=VersionedResumeSource.Current;resume.Visible=offer.Source is not (VersionedResumeSource.Legacy or VersionedResumeSource.V2);
                 resume.Text=resume.Disabled?"继续（暂无有效"+slot+"档）":"继续"+slot+"存档";
-                resume.Pressed+=()=>{var fresh=s.ProbeResume(manual);if(fresh.Source==ResumeSource.V2)Continue(fresh.Result.Snapshot!);else message.Text=fresh.Result.Message;};
-                upgrade.Visible=offer.Source==ResumeSource.Legacy;upgrade.Pressed+=()=>Upgrade(manual,false);
-                recovery.Visible=(offer.Source is ResumeSource.Blocked or ResumeSource.Missing)&&backup.Result.Status==LoadStatus.Loaded;
+                resume.Pressed+=()=>{var fresh=s.ProbeResume(manual);if(fresh.Source==VersionedResumeSource.Current)Continue(fresh.Result.Snapshot!);else message.Text=fresh.Result.Message;};
+                upgrade.Visible=offer.Source is VersionedResumeSource.Legacy or VersionedResumeSource.V2;upgrade.Text="复制"+(offer.Source==VersionedResumeSource.V2?"v2":"v1")+slot+"进度并继续";upgrade.Pressed+=()=>Upgrade(manual,false);
+                recovery.Visible=(offer.Source is VersionedResumeSource.Blocked or VersionedResumeSource.Missing)&&backup.Result.Status==LoadStatus.Loaded;
                 recovery.Disabled=backup.Result.Status!=LoadStatus.Loaded;
-                recovery.Text=backup.Source==ResumeSource.Legacy?"复制旧"+slot+"档备份并继续":"保留原"+slot+"档副本，恢复备份";
+                recovery.Text=backup.Source is VersionedResumeSource.Legacy or VersionedResumeSource.V2?"复制旧"+slot+"档备份并继续":"保留原"+slot+"档副本，恢复备份";
                 recovery.Pressed+=()=>{
                     var fresh=s.ProbeResume(manual,true);
-                    if(fresh.Source==ResumeSource.Legacy){Upgrade(manual,true);return;}
-                    if(fresh.Source!=ResumeSource.V2){message.Text=fresh.Result.Message;return;}
+                    if(fresh.Source is VersionedResumeSource.Legacy or VersionedResumeSource.V2){Upgrade(manual,true);return;}
+                    if(fresh.Source!=VersionedResumeSource.Current){message.Text=fresh.Result.Message;return;}
                     var repository=manual?s.ManualSaves:s.Saves;var preserved=repository.PreserveForNewGame();
                     if(!preserved.Success){message.Text=preserved.Message;return;}
                     var snapshot=fresh.Result.Snapshot! with{Settings=s.Options};var saved=repository.Save(snapshot);
                     message.Text=saved.Message;if(saved.Success)Continue(snapshot);
                 };
-                if(offer.Source==ResumeSource.Blocked)message.Text+=slot+"档："+offer.Result.Message+"\n";
+                if(offer.Source==VersionedResumeSource.Blocked)message.Text+=slot+"档："+offer.Result.Message+"\n";
             }
             BindSlot(false);BindSlot(true);
             void BeginNew()
@@ -57,7 +58,7 @@ public partial class BootMenu : Control
             }
             start.Pressed+=()=>{
                 var a=s.ProbeResume(false);var m=s.ProbeResume(true);
-                if(a.Source is ResumeSource.V2 or ResumeSource.Blocked||m.Source is ResumeSource.V2 or ResumeSource.Blocked)
+                if(a.Source is VersionedResumeSource.Current or VersionedResumeSource.Blocked||m.Source is VersionedResumeSource.Current or VersionedResumeSource.Blocked)
                     choices.Open("开始新游戏？当前版本两槽会先保留副本，旧版文件不会改动。",new (string,Action)[]{("保留副本并开始",BeginNew),("返回",()=>{})});else BeginNew();
             };
             settings.Pressed+=preferences.Open;quit.Pressed+=()=>GetTree().Quit();

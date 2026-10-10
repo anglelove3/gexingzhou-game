@@ -10,7 +10,7 @@ public partial class SmokeHarness
         var context=new SceneReturnContext("soup_shop",new(400,430),"soup.return",true);
         var state=MemorySession.Begin(s.Snapshot,context,false);
         for(int i=0;i<count;i++)state=MemorySession.PushCoin(state,"c"+(i+1));
-        s.Restore(s.Snapshot with {Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",MemoryOrdinal=1,MemoryState=state,ReturnContext=context});s.Flow=FlowState.Memory;
+        Require(s.Restore(s.Snapshot with {Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryOrdinal=1,MemoryState=state,ReturnContext=context}).Success,"Memory fixture restore rejected");s.Flow=FlowState.Memory;
         var table=GD.Load<PackedScene>("res://scenes/world/MemorySoupTable.tscn").Instantiate<SoupMemoryController>();table.Theme=s.CreateUiTheme();AddChild(table);await Frames(3);return table;
     }
     private async Task CoinVisualChecks()

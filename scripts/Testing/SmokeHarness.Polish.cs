@@ -40,7 +40,7 @@ public partial class SmokeHarness
         var before=art.Position;bench.SeatAnchor.Position+=new Vector2(5,0);
         player.SetRestPose("seated",bench.SeatAnchor.GlobalPosition-player.GlobalPosition,false);
         Require(Math.Abs(art.Position.X-before.X-5)<.01,"Edited seat anchor not used");
-        player.ClearRestPose();Require(art.Animation=="idle","Walking pose not restored");main.Free();
+        player.ClearRestPose();Require(art.Animation.ToString().StartsWith("idle"),"Walking pose not restored");main.Free();
         var integrated=await NewPolishMain();
         Require(integrated.GetNodeOrNull("Rest")!=null&&integrated.GetNodeOrNull("RestOptions")!=null,"ActualSeatAndNoAutoplay: rest integration missing");
         integrated.Free();
@@ -157,7 +157,7 @@ public partial class SmokeHarness
             window.Size=size;await Frames(3);var main=await NewPolishMain();
             foreach(var id in new[]{"community_gate","convenience_street","soup_shop"})
             {
-                if(main.World.SceneId!=id)Require(main.ChangeWorld(id,id=="soup_shop"?new(120,480):new(320,280)),"Map change failed");await Frames(3);
+                if(main.World.SceneId!=id)Require(main.ChangeWorld(id,GetNode<GameSession>("/root/GameSession").Navigation.Profiles[id].Anchors["safe"]),"Map change failed");await Frames(3);
                 var display=main.GetNode<SubViewportContainer>("WorldDisplay");
                 Require(display.GetGlobalRect().IsEqualApprox(main.GetGlobalRect()),"WindowCoverage: display leaves game margins "+size);
                 Require(main.GetNode<PanelContainer>("HUD/TaskCard").Size.X<main.Size.X*.65f,"Full-width task bar remains");
@@ -233,21 +233,21 @@ public partial class SmokeHarness
     private async Task EditableWorldChecks()
     {
         foreach(var (file,paths) in new[] {
-            ("CommunityGate",new[]{"OldSign","Bench/SeatAnchor","Bench/StandAnchor","Cannon","StreetExit"}),
+            ("CommunityGate",new[]{"OldSign","Bench/SeatAnchor","Bench/StandAnchor","DepthLayers/Actors/Cannon","StreetExit"}),
             ("ConvenienceStreet",new[]{"CommunityExit","Hey","SoupExit"}),
             ("SoupShop",new[]{"Targets/StreetExit","Targets/Seat","DepthLayers/Props/Sign","DepthLayers/Props/Menu","DepthLayers/Props/CounterNote","DepthLayers/Props/Counter","DepthLayers/Actors/Shopkeeper","DepthLayers/Props/Table/SoupBowl","Navigation/GroundBoundary/CollisionPolygon2D"}) })
         {
             var world=GD.Load<PackedScene>($"res://scenes/world/{file}.tscn").Instantiate<WorldView>();
             try
             {
-                string playerPath=file=="SoupShop"?"DepthLayers/Actors/Player":"Player";
+                string playerPath=world.Mode==WorldMode.Depth2D?"DepthLayers/Actors/Player":"Player";
                 var shared=new[]{"Backdrop",playerPath+"/Artwork",playerPath+"/Camera2D",playerPath+"/CollisionShape2D","Interactions"};
-                var floor=file=="SoupShop"?new[]{"Navigation/Obstacles/Table/CollisionPolygon2D",playerPath+"/FootCollisionShape2D"}:new[]{"Floor/CollisionShape2D","LeftBoundary/CollisionShape2D","RightBoundary/CollisionShape2D"};
+                var floor=world.Mode==WorldMode.Depth2D?new[]{"Navigation/GroundBoundary/CollisionPolygon2D",playerPath+"/FootCollisionShape2D"}:new[]{"Floor/CollisionShape2D","LeftBoundary/CollisionShape2D","RightBoundary/CollisionShape2D"};
                 foreach(var path in paths.Concat(shared).Concat(floor))
                     Require(world.GetNodeOrNull(path)!=null,$"SavedWorldNodes: {file}/{path} not editable offline");
                 var before=world.GetNode<PlayerController>(playerPath);
                 var backdrop=world.GetNode<Sprite2D>("Backdrop");var authored=backdrop.Position+new Vector2(0,2);backdrop.Position=authored;
-                if(file=="CommunityGate")world.GetNode<Node2D>("Bench").Position=new Vector2(940,280);
+                if(file=="CommunityGate")world.GetNode<Label>("OldSign/Marker").Position+=new Vector2(2,0);
                 GetNode<GameSession>("/root/GameSession").NewGame();AddChild(world);await Frames(3);
                 Require(ReferenceEquals(before,world.Player),"InspectorChangesSurviveReady: player rebuilt");
                 Require(backdrop.Position==authored,"InspectorChangesSurviveReady: background reset");
@@ -255,8 +255,8 @@ public partial class SmokeHarness
                 Require(ids.Length==ids.Distinct().Count(),"Duplicate interaction IDs");
                 if(file=="CommunityGate")
                 {
-                    Require(world.GetNode<Node2D>("Bench").Position==new Vector2(940,280),"InspectorChangesSurviveReady: bench reset");
-                    var cannon=world.GetNode<Interactable>("Cannon");
+                    Require(world.GetNode<Node2D>("Bench").Position==new Vector2(960,440),"InspectorChangesSurviveReady: bench reset");
+                    var cannon=world.GetTarget("cannon")!;
                     Require(!cannon.Visible,"QuestActorActivation: cannon already visible");
                     var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(65);
                     var refresh=world.GetType().GetMethod("RefreshQuestActors");Require(refresh!=null,"QuestActorActivation: missing state binding");
@@ -273,12 +273,12 @@ public partial class SmokeHarness
             var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
             var host=new Control();var error=new Label{Name="StartupError",Visible=false};host.AddChild(error);AddChild(host);
             var bad=GD.Load<PackedScene>("res://scenes/world/CommunityGate.tscn").Instantiate<WorldView>();
-            if(invalid=="missing_artwork")bad.GetNode("Player/Artwork").Free();
+            if(invalid=="missing_artwork")bad.GetNode("DepthLayers/Actors/Player/Artwork").Free();
             else if(invalid=="duplicate_id")bad.GetNode<Interactable>("StreetExit").Id="old_sign";
             else if(invalid=="missing_bench_foreground")bad.GetNode("Bench/BenchForeground").Free();
             else
             {
-                var player=bad.GetNode<PlayerController>("Player");
+                var player=bad.GetNode<PlayerController>("DepthLayers/Actors/Player");
                 if(invalid=="missing_rest")player.RestFrames=null!;
                 else if(invalid=="missing_reduced_rest")player.ReducedRestFrames=null!;
                 else if(invalid=="invalid_rest_frames")player.RestFrames=new SpriteFrames();

@@ -23,9 +23,7 @@ public partial class PlayerController : CharacterBody2D
         SceneBindings.Require<CollisionShape2D>(this,"FootCollisionShape2D").Disabled=!depth;
         if(depth)
         {
-            foreach(var name in new[]{"idle_front","idle_back","idle_side","walk_front","walk_back","walk_side"})
-                if(DepthFrames==null||!DepthFrames.HasAnimation(name)||DepthFrames.GetFrameCount(name)==0)
-                    throw new InvalidOperationException("二维朝向资源缺失："+name);
+            ValidateDepthFrames();
             walkingFrames=DepthFrames;artwork.SpriteFrames=walkingFrames;Facing="side";artwork.Play("idle_side");AnchorArtwork();
         }
     }
@@ -48,18 +46,35 @@ public partial class PlayerController : CharacterBody2D
             SceneBindings.Require<CollisionShape2D>(this,"CollisionShape2D");
             SceneBindings.Require<Camera2D>(this,"Camera2D");
             artwork=SceneBindings.Require<AnimatedSprite2D>(this,"Artwork");
-            if(artwork.SpriteFrames==null||!artwork.SpriteFrames.HasAnimation("idle")||!artwork.SpriteFrames.HasAnimation("walk"))
-                throw new InvalidOperationException("主角缺少待机/行走动画资源。");
-            ValidateRestFrames(RestFrames,"休息");ValidateRestFrames(ReducedRestFrames,"减少动效休息");
-            ValidateSoupFrames(SoupFrames);ValidateSoupFrames(ReducedSoupFrames);
-            if(!float.IsFinite(RestStandingPixels)||RestStandingPixels<=0)
-                throw new InvalidOperationException("休息动作站立基准必须大于零。");
+            ValidateBindings();
             artwork.FrameChanged+=AnchorArtwork;artwork.AnimationChanged+=AnchorArtwork;
             walkingFrames=artwork.SpriteFrames;artwork.Play("idle");AnchorArtwork();
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }
     public void SetInputLocked(bool value) {locked=value;if(value){SuppressHeld();Velocity=Vector2.Zero;}}
+    public void ValidateBindings(WorldMode? mode=null)
+    {
+        var frames=SceneBindings.Require<AnimatedSprite2D>(this,"Artwork").SpriteFrames;
+        foreach(var name in new[]{"idle","walk"})
+            if(frames==null||!frames.HasAnimation(name)||frames.GetFrameCount(name)==0)
+                throw new InvalidOperationException("主角缺少待机/行走动画资源。");
+        ValidateRestFrames(RestFrames,"休息");ValidateRestFrames(ReducedRestFrames,"减少动效休息");
+        ValidateSoupFrames(SoupFrames);ValidateSoupFrames(ReducedSoupFrames);
+        if(!float.IsFinite(RestStandingPixels)||RestStandingPixels<=0)
+            throw new InvalidOperationException("休息动作站立基准必须大于零。");
+        if(mode==WorldMode.Depth2D)ValidateDepthFrames();
+    }
+    private void ValidateDepthFrames()
+    {
+        foreach(var name in new[]{"idle_front","idle_back","idle_side","walk_front","walk_back","walk_side"}){
+            if(DepthFrames==null||!DepthFrames.HasAnimation(name)||DepthFrames.GetFrameCount(name)==0)
+                throw new InvalidOperationException("二维朝向资源缺失："+name);
+            for(int i=0;i<DepthFrames.GetFrameCount(name);i++)
+                if(DepthFrames.GetFrameTexture(name,i) is not AtlasTexture frame||frame.Atlas==null||!frame.HasMeta("foot_pivot")||frame.GetMeta("foot_pivot").VariantType!=Variant.Type.Vector2||!frame.GetMeta("foot_pivot").AsVector2().IsFinite())
+                    throw new InvalidOperationException("二维角色缺少图像或脚底基准："+name);
+        }
+    }
     private static void ValidateRestFrames(SpriteFrames? frames,string label)
     {
         foreach(var (name,count) in new[]{("sit_down",3),("seated",1),("smoke",6),("stand_up",3)})

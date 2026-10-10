@@ -6,7 +6,7 @@ public partial class SmokeHarness
 {
     private const string JournalText="Panel/Content/BodyScroll/Body/Text";
     private const string JournalEmpty="Panel/Content/BodyScroll/Body/Empty";
-    private static WorldSnapshot JournalCompletedSnapshot(GameSettings options)=>SaveV2Codec.CreateNew(options) with{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
+    private static WorldSnapshot JournalCompletedSnapshot(GameSettings options)=>new(){SchemaVersion=3,ContentVersion="vs01-0.3",Settings=options.Normalize(),Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
         MemoryState=new(){PushedCoinIds=new(){"c1","c2","c3","c4"},PushedTotal=5,FoodChoice=FoodChoice.Take,Completed=true},
         CompletedActions=new(){"invitation.meeting_complete:invitation-1","candy.hey.delivered:hey-1","soup.meet:soup-seat-1","memory.return:soup-1","memory.food.resolve:soup-1","soup.payment:soup-payment-1","slice.complete:slice-1"},ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
     private static string SnapshotJson(WorldSnapshot snapshot)=>JsonSerializer.Serialize(snapshot,new JsonSerializerOptions{PropertyNamingPolicy=JsonNamingPolicy.SnakeCaseLower,Converters={new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower,false)}});

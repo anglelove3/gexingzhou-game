@@ -24,6 +24,7 @@ public partial class WorldView : Node2D
             Navigation=NavigationSceneReader.Read(this);
             if(!NavigationSceneReader.LoadCatalog().Profiles.TryGetValue(SceneId,out var baked)||!NavigationSceneReader.Matches(Navigation,baked))
                 throw new InvalidOperationException("导航数据与编辑场景不一致，请检查后重新导出："+SceneId);
+            if(HasMeta("binding_error"))throw new InvalidOperationException(GetMeta("binding_error").AsString());
             Player.ApplyNavigation(Navigation);
             if(GetNodeOrNull<Sprite2D>("PaymentCoin") is {} payment)paymentOrigin=payment.Position;
             if(HasMeta("binding_error"))throw new InvalidOperationException(GetMeta("binding_error").AsString());

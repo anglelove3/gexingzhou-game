@@ -43,6 +43,12 @@ public static class NavigationSceneReader
                     return Polygon(world,shape);
                 }).ToArray();
         }
+        if(world.SceneId=="community_gate"&&world.Mode==WorldMode.Depth2D){
+            var bench=world.GetTarget("bench") as BenchView??throw new InvalidOperationException("小区长椅缺失。");
+            foreach(var binding in new[]{(bench.StandAnchor,"stand"),(bench.SeatAnchor,"seat")})
+                if(binding.Item1==null||!anchors.TryGetValue(binding.Item2,out var expected)||Point(world,binding.Item1,Vector2.Zero)!=expected)
+                    throw new InvalidOperationException("长椅锚点与导航锚点不一致："+binding.Item2);
+        }
         var profile=new NavigationProfile(world.SceneId,world.Mode,world.Width,world.ViewBounds.Size.Y,radius,ground,obstacles,anchors);
         try{_ = new NavigationCatalog(new Dictionary<string,NavigationProfile>{{world.SceneId,profile}});}
         catch(ArgumentException ex){throw new InvalidOperationException("静态导航无效："+ex.Message,ex);}
