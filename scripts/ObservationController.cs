@@ -6,12 +6,13 @@ public partial class ObservationController : Node
     private Vector2 pointer;private bool hasPointer;
     public void Configure(MainView owner)
     {main=owner;hover=SceneBindings.Require<Control>(main,"ObservationHover");outline=hover.GetNode<Line2D>("Outline");title=hover.GetNode<Label>("Title");}
-    private bool Available()=>GodotObject.IsInstanceValid(main)&&GodotObject.IsInstanceValid(main.World)&&main.World.SceneId=="soup_shop"&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!main.SoupSeat.IsActing;
+    private bool Available()=>GodotObject.IsInstanceValid(main)&&GodotObject.IsInstanceValid(main.World)&&(main.World.SceneId is "soup_shop" or "community_gate")&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!main.SoupSeat.IsActing&&!main.Rest.IsActive;
+    public bool CanObserve(ObservationHotspot target)=>Available()&&GodotObject.IsInstanceValid(target)&&main.World.GetTargets().Contains(target)&&target.IsInsideTree()&&target.IsActive&&target.IsVisibleInTree()&&!target.HasMeta("binding_error");
     public bool TryObserve(ObservationHotspot target)
     {
-        if(!Available()||!main.World.GetTargets().Contains(target)||!target.IsActive||!target.IsVisibleInTree()||target.HasMeta("binding_error"))return false;
+        if(!CanObserve(target))return false;
         var s=GetNode<GameSession>("/root/GameSession");var id=target.DiscoveryId;
-        main.Dialogue.ShowText(target.Caption,target.Description,()=>s.MarkDiscovery(id),DialogueLineKind.Thought);hover.Visible=false;return true;
+        main.Dialogue.ShowText(target.Caption,target.Description,()=>{s.UpdatePosition(main.SafeSavePosition);s.MarkDiscovery(id);},DialogueLineKind.Thought);hover.Visible=false;return true;
     }
     private bool IsUiPoint(Vector2 point)=>main.FindChildren("*","",true,false).OfType<Control>().Any(c=>c!=main&&c!=main.GetNode<Control>("WorldDisplay")&&c.GetViewport()==main.GetViewport()&&c.IsVisibleInTree()&&c.MouseFilter==Control.MouseFilterEnum.Stop&&c.GetGlobalRect().HasPoint(point));
     private bool ForegroundBlocks(Vector2 point)
@@ -33,7 +34,7 @@ public partial class ObservationController : Node
     {
         if(!Available()||IsUiPoint(point)||!main.GetNode<Control>("WorldDisplay").GetGlobalRect().HasPoint(point))return null;
         var world=main.UiToWorld(point);if(ForegroundBlocks(world))return null;
-        return main.World.GetTargets().OfType<ObservationHotspot>().Where(t=>t.ContainsWorldPoint(world)).OrderBy(t=>t.Id,StringComparer.Ordinal).FirstOrDefault();
+        return main.World.GetTargets().OfType<ObservationHotspot>().Where(t=>CanObserve(t)&&t.ContainsWorldPoint(world)).OrderBy(t=>t.Id,StringComparer.Ordinal).FirstOrDefault();
     }
     public override void _Process(double delta)
     {
@@ -47,6 +48,6 @@ public partial class ObservationController : Node
     public override void _Input(InputEvent ev)
     {
         if(ev is InputEventMouseMotion motion){pointer=motion.Position;hasPointer=true;}
-        if(main!=null&&ev is InputEventMouseButton{Pressed:true,ButtonIndex:MouseButton.Left} button&&Hit(button.Position) is {} target&&TryObserve(target))GetViewport().SetInputAsHandled();
+        if(main!=null&&ev is InputEventMouseButton{Pressed:true,ButtonIndex:MouseButton.Left} button&&Hit(button.Position) is {} target){main.ShowObservation(target);GetViewport().SetInputAsHandled();}
     }
 }

@@ -125,6 +125,12 @@ public partial class GameSession : Node
         Snapshot=Snapshot with {CompletedActions=new HashSet<string>(Snapshot.CompletedActions){"observation.community.first"}};
         SaveCheckpoint();
     }
+    public void MarkCommunitySignObserved()
+    {
+        if(Snapshot.DiscoveredIds.Contains("community.sign")&&Snapshot.CompletedActions.Contains("observation.community.first"))return;
+        Snapshot=Snapshot with {DiscoveredIds=new HashSet<string>(Snapshot.DiscoveredIds){"community.sign"},CompletedActions=new HashSet<string>(Snapshot.CompletedActions){"observation.community.first"}};
+        SaveCheckpoint();
+    }
     public bool MarkDiscovery(string id)
     {
         var next=DiscoveryPolicy.Mark(Snapshot,id);if(ReferenceEquals(next,Snapshot))return false;

@@ -132,15 +132,16 @@ public partial class MainView : Control
     }
     public void ShowObservation(Interactable target)
     {
-        if(target is ObservationHotspot hotspot){Observations.TryObserve(hotspot);return;}
+        if(target is ObservationHotspot hotspot&&!Observations.CanObserve(hotspot))return;
         var s=GetNode<GameSession>("/root/GameSession");
-        if(World.SceneId=="community_gate"&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
+        if(World.SceneId=="community_gate"&&(target.Id=="old_sign"||target is BenchView)&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
         {
             var id=s.Snapshot.InvitationState.Resolution==InvitationResolution.Answered?"observation.community.answered":s.Snapshot.InvitationState.VoiceReceived?"observation.community.unanswered":"observation.community.quiet";
             if(s.Catalog!.Dialogues.TryGetValue(id,out var node)&&node is not null)
-                Dialogue.ShowText("葛行舟",target.Description+"\n"+string.Join("\n",node.Lines),s.MarkFirstCommunityObservation,DialogueLineKind.Thought);
+                Dialogue.ShowText("葛行舟",target.Description+"\n"+string.Join("\n",node.Lines),()=>{s.UpdatePosition(SafeSavePosition);if(target.Id=="old_sign")s.MarkCommunitySignObserved();else s.MarkFirstCommunityObservation();},DialogueLineKind.Thought);
             else ShowNotice(target.Caption,target.Description);
         }
+        else if(target is ObservationHotspot observed)Observations.TryObserve(observed);
         else ShowNotice(target.Caption,target.Description);
     }
     public Vector2 WorldToUi(Vector2 point)

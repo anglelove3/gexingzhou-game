@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=17 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/community-background.png" id="Bg"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
@@ -11,6 +11,9 @@
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/bollard.png" id="BollardArt"]
 [ext_resource type="SpriteFrames" path="res://assets/art/vs01-v5-community/community-rest.tres" id="Rest"]
 [ext_resource type="SpriteFrames" path="res://assets/art/vs01-v5-community/community-rest-reduced.tres" id="ReducedRest"]
+[ext_resource type="Script" path="res://scripts/ObservationHotspot.cs" id="Observation"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/old-sign.png" id="SignArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/notice-board.png" id="NoticeArt"]
 [sub_resource type="AtlasTexture" id="BenchLip"]
 atlas=ExtResource("BenchArt")
 region=Rect2(215,450,1556,40)
@@ -127,8 +130,11 @@ centered=false
 script=ExtResource("Interactions")
 [node name="OldSign" type="Node2D" parent="."]
 position=Vector2(160,400)
-script=ExtResource("Target")
+script=ExtResource("Observation")
 Id="old_sign"
+DiscoveryId="community.sign"
+VisualTarget=NodePath("Visual")
+HitPolygon=NodePath("Visual/Shape")
 Caption="看看旧路牌"
 Description="路是新的，牌还是旧的。以前闭着眼能走到家的地方，现在得看导航。"
 ActionId="observe"
@@ -142,6 +148,50 @@ theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
 theme_override_constants/outline_size=3
 text="◇"
 mouse_filter=2
+[node name="Visual" type="Node2D" parent="OldSign"]
+position=Vector2(0,-55)
+[node name="Artwork" type="Sprite2D" parent="OldSign/Visual"]
+position=Vector2(-25.607,-48.356)
+scale=Vector2(0.058,0.058)
+texture=ExtResource("SignArt")
+texture_filter=2
+centered=false
+[node name="Shape" type="Polygon2D" parent="OldSign/Visual"]
+visible=false
+polygon=PackedVector2Array(-23,-34,0,-34,0,-29,23,-25,23,-14,3,-14,3,46,-5,46,-5,-22,-23,-22)
+[node name="CommunityNotice" type="Node2D" parent="."]
+position=Vector2(740,400)
+script=ExtResource("Observation")
+Id="community.notice"
+DiscoveryId="community.notice"
+Caption="小区公告"
+Description="请保持通道畅通。搬进来以后，连门口那点空地，也有人替你操心了。"
+ActionId="observe"
+[node name="Visual" type="Node2D" parent="CommunityNotice"]
+position=Vector2(0,-155)
+[node name="Artwork" type="Sprite2D" parent="CommunityNotice/Visual"]
+position=Vector2(-58.368,-38.912)
+scale=Vector2(0.076,0.076)
+texture=ExtResource("NoticeArt")
+texture_filter=2
+centered=false
+[node name="Shape" type="Polygon2D" parent="CommunityNotice/Visual"]
+visible=false
+polygon=PackedVector2Array(-41,-24,41,-24,41,24,-41,24)
+[node name="CommunityPlanter" type="Node2D" parent="."]
+position=Vector2(1100,460)
+script=ExtResource("Observation")
+Id="community.planter"
+DiscoveryId="community.planter"
+Caption="旧花箱"
+Description="花箱是旧的，花倒还长得挺精神。"
+ActionId="observe"
+VisualTarget=NodePath("../DepthLayers/Props/RightPlanter")
+HitPolygon=NodePath("../DepthLayers/Props/RightPlanter/Shape")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/RightPlanter"]
+visible=false
+position=Vector2(0,-24)
+polygon=PackedVector2Array(-34,-24,-18,-27,-5,-25,8,-24,30,-22,34,-8,35,14,32,24,-33,24,-36,8)
 [node name="StreetExit" type="Node2D" parent="."]
 position=Vector2(1480,460)
 script=ExtResource("Target")

@@ -23,6 +23,7 @@ public static class JournalProjection
         ("soup.payment:soup-payment-1","payment","张大炮结了这顿的账"),
         ("slice.complete:slice-1","slice","听过明天的安排，今天先到这里")};
     private static readonly (string Id,string Title)[] KnownDiscoveries={
+        ("community.sign","旧路牌"),("community.notice","小区公告"),("community.planter","旧花箱"),
         ("soup.sign","旧招牌"),("soup.menu","看看菜单"),("soup.note","柜台便条")};
     public static JournalView Build(WorldSnapshot snapshot)
     {
@@ -32,7 +33,7 @@ public static class JournalProjection
                 history.Add(new(id,title,""));
         var discoveries=new List<JournalEntry>();
         foreach(var (id,title) in KnownDiscoveries)
-            if(snapshot.DiscoveredIds.Contains(id))discoveries.Add(new(id,title,"在鸭血粉丝汤店看过，可回到场景再次观察"));
+            if(snapshot.DiscoveredIds.Contains(id))discoveries.Add(new(id,title,id.StartsWith("community.",StringComparison.Ordinal)?"在安置小区看过，可回到场景再次观察":"在鸭血粉丝汤店看过，可回到场景再次观察"));
         return new(CurrentGoal(snapshot),history.AsReadOnly(),discoveries.AsReadOnly());
     }
 }

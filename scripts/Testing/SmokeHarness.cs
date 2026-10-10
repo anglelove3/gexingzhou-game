@@ -16,6 +16,7 @@ public partial class SmokeHarness : Node
             if(suite=="Community"){await CommunityChecks();GD.Print("GODOT_CHECKS_PASS Community");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CommunityUpgrade"){await CommunityUpgradeChecks();GD.Print("GODOT_CHECKS_PASS CommunityUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CommunityRest"){await CommunityRestChecks();GD.Print("GODOT_CHECKS_PASS CommunityRest");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="CommunityObservation"){await CommunityObservationChecks();GD.Print("GODOT_CHECKS_PASS CommunityObservation");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Journal"){await JournalChecks();GD.Print("GODOT_CHECKS_PASS Journal");await DrainAudio();GetTree().Quit();return;}
             if(suite=="PhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS PhoneChat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="FinalBoundaries"){await FinalBoundariesChecks();GD.Print("GODOT_CHECKS_PASS FinalBoundaries");await DrainAudio();GetTree().Quit();return;}
