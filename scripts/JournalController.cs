@@ -26,6 +26,10 @@ public partial class JournalController : Control
             {
                 buttons[i].FocusNext=buttons[i].GetPathTo(buttons[(i+1)%buttons.Length]);
                 buttons[i].FocusPrevious=buttons[i].GetPathTo(buttons[(i+buttons.Length-1)%buttons.Length]);
+                buttons[i].FocusNeighborLeft=buttons[i].FocusPrevious;
+                buttons[i].FocusNeighborRight=buttons[i].FocusNext;
+                buttons[i].FocusNeighborTop=buttons[i].GetPathTo(i==tabs.Length?tabs[0]:buttons[i]);
+                buttons[i].FocusNeighborBottom=buttons[i].GetPathTo(close);
             }
             Resized+=LayoutPanel;LayoutPanel();Visible=false;
         }

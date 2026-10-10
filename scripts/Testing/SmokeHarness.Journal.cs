@@ -27,6 +27,7 @@ public partial class SmokeHarness
         await JournalOpenClose();GD.Print("JOURNAL_PASS OpenClose");
         await JournalModalIsolation();GD.Print("JOURNAL_PASS ModalIsolation");
         await JournalBlockedSources();GD.Print("JOURNAL_PASS BlockedSources");
+        await JournalDirectionalFocus();GD.Print("JOURNAL_PASS DirectionalFocus");
         await JournalFocusLifetime();GD.Print("JOURNAL_PASS FocusLifetime Scroll");
         await JournalReloadRefresh();GD.Print("JOURNAL_PASS ReloadRefresh");
         await JournalBindingFailure();GD.Print("JOURNAL_PASS BindingFailure");
@@ -89,6 +90,21 @@ public partial class SmokeHarness
         var seed=await NewCoinTable(1);var snapshot=s.Snapshot;seed.Free();await Frames(2);s.PendingRestore=snapshot;
         main=s.GetScene("res://scenes/Main.tscn")!.Instantiate<MainView>();AddChild(main);await Frames(4);Require(main.Memory!=null,"Memory block fixture failed");await JournalAssertBlocked(main,"memory");main.Free();await Frames(3);
         Require(s.Restore(JournalCompletedSnapshot(s.Options)).Success,"End fixture failed");main=s.GetScene("res://scenes/Main.tscn")!.Instantiate<MainView>();AddChild(main);await Frames(3);main.SliceEnd.ShowCompleted();await JournalAssertBlocked(main,"endcard");main.SliceEnd.Close();main.Free();await Frames(3);
+    }
+    private async Task JournalDirectionalFocus()
+    {
+        var main=await NewPolishMain();var journal=main.Journal;var fold=main.GetNode<Button>("HUD/TaskFold");var foldText=fold.Text;
+        KeyPress(Key.J);await Frames(3);KeyPress(Key.Tab);await Frames(2);KeyPress(Key.Up);await Frames(2);
+        Require(journal.IsAncestorOf(GetViewport().GuiGetFocusOwner()),"Journal Up escaped focus to "+GetViewport().GuiGetFocusOwner()?.GetPath());
+        foreach(var start in new[]{"Panel/Content/Tabs/Current","Panel/Content/Tabs/History","Panel/Content/Tabs/Discoveries","Panel/Content/CloseButton"})
+        foreach(var direction in new[]{Key.Up,Key.Down,Key.Left,Key.Right})
+        {
+            if(!journal.IsOpen){KeyPress(Key.J);await Frames(2);}
+            journal.GetNode<Button>(start).GrabFocus();KeyPress(direction);await Frames(2);
+            Require(journal.IsAncestorOf(GetViewport().GuiGetFocusOwner()),"Journal direction escaped focus "+start+" "+direction);
+            KeyPress(Key.Enter);await Frames(2);Require(fold.Text==foldText,"Journal Enter activated background HUD");
+        }
+        journal.Close();main.Free();await Frames(3);
     }
     private async Task JournalFocusLifetime()
     {
