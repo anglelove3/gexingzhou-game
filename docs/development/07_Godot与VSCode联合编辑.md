@@ -9,8 +9,11 @@ Godot负责场景位置、图片、容器布局、主题、SpriteFrames、碰撞
 
 ## 练习1：修改坐姿位置
 
-停止游戏，打开scenes/world/CommunityGate.tscn，本地树找到Bench。它是Bench.tscn实例，展开后选SeatAnchor（需要时开启可编辑子节点）。先记录原值，再将SeatAnchor的X增加5，保存场景，F5完整运行，走到长椅按E。
-主角坐稳后的位置应跟随锚点；碰撞体仍留在StandAnchor地面位置。请只移动SeatAnchor，不要随意删除其导出引用。练习后恢复原值并保存。可先单独打开Bench.tscn查看原锚点：SeatAnchor(0,-30)、StandAnchor(0,0)。
+停止游戏，打开scenes/world/CommunityGate.tscn，本地树找到DepthLayers/Props/Bench。它是Bench.tscn实例，根位置(960,414)，SeatAnchor局部(0,-34)代表世界臀部(960,380)，StandAnchor局部(0,26)代表世界脚底(960,440)。展开后选SeatAnchor（需要时开启可编辑子节点），先记录原值再将X增加5；同时将Navigation/Anchors/SeatAnchor的X增加5，保持两个Marker一致。
+
+保存场景后，在项目根目录运行 `& ./tools/bake-navigation.ps1`，将打印路径 test-output/navigation-bake/navigation.json 的结果复制到 content/vs01/navigation.json，再运行 `& ./tools/bake-navigation.ps1 -Check`。校验成功后F5完整运行，走到附近按E；角色先合法移动到站位再坐下，不瞬移穿过家具。不要删除导出引用。练习结束恢复两个Marker并重新导出、检查；仅改图片或仅改一个锚点会被拒绝载入。
+
+学习点：.tscn组织与导出属性、CharacterBody2D脚圆碰撞、四向向量归一化、Y排序、C#状态机与代次回调、有界Dijkstra就位、只读日志投影和v3旧档迁移。未加入大数据集群或在线AI服务；当前练习优先掌握可测试的算法与工程基础。
 
 场景移动NPC时，保留Id和ActionId。张大炮Cannon初始隐藏/不参与互动，到场由存档状态控制；不要用节点是否存在判断他是否到了。
 
@@ -35,8 +38,8 @@ VS Code打开整个根目录，不只打开一个.cs。打开scripts/MainView.cs
 Godot F5运行完整Boot→Main，有GameSession和交互协调。F6仅运行当前子场景：编辑器可看布局，但Phone/Dialogue在运行初态会隐藏，单独子场景不等于完整玩法试玩。VS Code F5默认含义是调试，不等于Godot运行；本轮提供的是构建任务，不声称已安装调试扩展。
 
 长椅E：真实坐下，再默认焦点“坐一会儿”。↑↓选择，E/Enter或鼠标确认；Tab始终打开手机。“来一根”是有限动作，播放完回到坐稳；不会自动循环，本轮没有buff或烟草库存。
-菜单开着时Esc先收起，菜单关闭时再Esc起身；Tab打开手机暂停动作，回来坐稳，切场清理暂态。坐一会儿可以触发首次故乡观察；Esc取消对白不消耗线索。
-F5保存站立安全落点；F9加载后站立。休息暂态不写入新schema2或只读schema1旧档。减少动效版本省略烟雾帧，但保留动作和状态反馈。
+菜单开着时Esc先收起，菜单关闭时再Esc起身；Tab打开手机冻结动作，回来保留原阶段/帧进度，切场清理暂态。坐一会儿可以触发首次故乡观察；Esc取消对白不消耗线索。
+F5保存合法世界脚底；坐起时保存站立安全落点，就位未完成时保存当前脚底。F9成功加载后站立，失败保持原动作。休息暂态不写入schema3，旧schema1/2只读升级。减少动效版本省略烟雾帧，但保留阶段和归一化进度。
 
 ## 汤店二维探索：同源编辑练习
 

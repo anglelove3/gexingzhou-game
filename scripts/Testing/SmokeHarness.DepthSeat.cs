@@ -18,7 +18,7 @@ public partial class SmokeHarness
             session.Flow=FlowState.Field;seat.Resume();await WaitUntil(()=>!seat.IsActing,"Depth keyframe seated");
             foreach(var (code,label,frame) in new[]{("eat","eat",1),("set_chopsticks","chopsticks",3),("check_phone","phone",1)})
             {
-                Require(seat.PlayAction(code,()=>{}),"Depth contact capture rejected");
+                if(!seat.PlayAction(code,()=>{}))throw new InvalidOperationException($"Depth contact capture rejected code={code} reduced={reduced} active={seat.IsActive} acting={seat.IsActing} pose={art.Animation} frame={art.Frame} flow={session.Flow} focused={DiagnosticField(seat,"focused")} suspended={DiagnosticField(seat,"suspended")} osfocus={GetWindow().HasFocus()}");
                 session.Flow=FlowState.Phone;seat.Suspend();art.Frame=frame;art.FrameProgress=0;
                 await Capture("depth-"+label+suffix);
                 session.Flow=FlowState.Field;seat.Resume();

@@ -1,6 +1,7 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal')][string]$Batch='All')
+param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
 . "$PSScriptRoot/Common.ps1"
 try {
+    if(!$Sizes -or $Sizes.Count -eq 0 -or @($Sizes|Where-Object {$_ -notin @('1280x720','1920x1080','1440x1080','1440x900','1024x768')}).Count -gt 0){throw 'INVALID_CAPTURE_SIZES: select nonempty supported dimensions'}
     $context=Get-ToolContext $GodotExe
     Add-Type -AssemblyName System.Drawing
     $required=@('menu','phone','soup','memory','memory-font-32','art-community_gate','art-convenience_street','art-soup_shop','art-walk-0','art-walk-1','art-walk-2','art-walk-3','observation-quiet','observation-answered','observation-unanswered','return-0-font-32','return-1-font-32','return-2-font-32','polish-dialogue-20','polish-dialogue-24','polish-dialogue-32','polish-phone-20','polish-phone-24','polish-phone-32','rest-seated','rest-options','rest-smoke','rest-risen')
@@ -19,6 +20,9 @@ try {
     $required+=$phoneChat
     $journal=@();foreach($font in @(20,24,32)){foreach($state in @('current','history','discoveries','empty-history','empty-discoveries','long')){$journal+='journal-'+$state+'-'+$font}}
     $required+=$journal
+    $community=@();foreach($font in @(20,24,32)){foreach($state in @('entry','explore','observation','seated','smoke','stand')){$community+='community-'+$state+'-'+$font}}
+    $required+=$community
+    if($Batch -eq 'CaptureCommunity'){$required=$community}
     if($Batch -eq 'CaptureJournal'){$required=$journal}
     if($Batch -eq 'CapturePhoneChat'){$required=$phoneChat}
     if($Batch -eq 'CaptureExploration'){$required=$exploration}
@@ -28,8 +32,8 @@ try {
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal')}else{@($Batch)}
-    foreach($size in @('1280x720','1920x1080','1440x1080')) {
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity')}else{@($Batch)}
+    foreach($size in $Sizes) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
         [IO.Directory]::CreateDirectory($outputDir)|Out-Null
         $combined=''
@@ -52,6 +56,6 @@ try {
             try {if($image.Width -ne [int]$dimensions[0] -or $image.Height -ne [int]$dimensions[1]){throw "CAPTURE_PIXEL_SIZE_MISMATCH $name $size"}} finally {$image.Dispose()}
         }
     }
-    Write-Output "CAPTURE_PASS $($required.Count*3) required real-rendered images; visual inspection still required"
+    Write-Output "CAPTURE_PASS $($required.Count*$Sizes.Count) required real-rendered images; visual inspection still required"
     exit 0
 } catch {Write-Output "CAPTURE_FAIL $_";exit 1}

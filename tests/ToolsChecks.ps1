@@ -77,8 +77,9 @@ try {
     $copyRelative='test-output/navigation-mismatch-copy.json';$copy=Join-Path $projectRoot $copyRelative
     Copy-Item -LiteralPath $original -Destination $copy
     $before=Get-Content -LiteralPath $copy -Raw
-    $after=$before.Replace('"x": 24,','"x": 25,')
-    if($after -eq $before){throw 'NAVIGATION_MUTATION_MISSING'}
+    $fixture=$before|ConvertFrom-Json
+    $fixture.profiles[0].ground[0].x+=1
+    $after=$fixture|ConvertTo-Json -Depth 30 -Compress
     # Runtime test artifact only; the canonical project file is never rewritten.
     [IO.File]::WriteAllText($copy,$after,[Text.UTF8Encoding]::new($false))
     $context=Get-ToolContext
@@ -87,5 +88,32 @@ try {
     if((Get-FileHash -LiteralPath $original).Hash -ne $hash){throw 'CANONICAL_NAVIGATION_CHANGED'}
     Write-Output 'PASS NavigationBakeMismatchRejected OriginalHashUnchanged'
 } catch {$failures++;Write-Output "FAIL NavigationBakeMismatchRejected $_"}
+try {
+    $community=@('content/vs01/compat/navigation-v2.json','assets/art/vs01-v5-community/community-background.png','assets/art/vs01-v5-community/bench.png','assets/art/vs01-v5-community/planter.png','assets/art/vs01-v5-community/bollard.png','assets/art/vs01-v5-community/old-sign.png','assets/art/vs01-v5-community/notice-board.png','assets/art/vs01-v5-community/community-rest.tres','assets/art/vs01-v5-community/community-rest-reduced.tres','docs/superpowers/specs/2026-10-10-安置小区四向探索-design.md','docs/superpowers/plans/2026-10-10-安置小区四向探索-实施计划.md','docs/project/2026-10-10_小区探索资源记录.json','docs/development/13_小区四向探索验收与接续.md')
+    foreach($path in $community){
+        $source=Join-Path $projectRoot $path;$target=Join-Path $destination $path
+        if(!(Test-Path -LiteralPath $source) -or !(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "COMMUNITY_PACKAGE_MISMATCH $path"}
+    }
+    if((Get-FileHash -LiteralPath (Join-Path $destination 'content/vs01/compat/navigation-v2.json')).Hash -ne '517BBC24C6CDC04F6186A7A699766DC5FA7D640417E12E4952CC421C3154E280'){throw 'FROZEN_PROTOCOL_HASH_CHANGED'}
+    $record=Get-Content -LiteralPath (Join-Path $destination 'docs/project/2026-10-10_小区探索资源记录.json') -Raw
+    if($record -match '(?i)Users[/\\]|Desktop|references[/\\]|\.docx'){throw 'PRIVATE_ART_REFERENCE_PATH'}
+    Write-Output 'PASS CommunityDependencyWhitelist FrozenProtocol Art Documents Hashes'
+} catch {$failures++;Write-Output "FAIL CommunityDependencyWhitelist $_"}
+foreach($probe in @(@{Name='CaptureSizesEmpty';Literal='@()'},@{Name='CaptureSizesPath';Literal="@('../escape')"})) {
+    $command="& '$projectRoot/tools/capture-smoke.ps1' -Sizes $($probe.Literal) -GodotExe '$projectRoot/test-output/no-godot.exe'"
+    $output=& $shellExe -NoProfile -Command $command 2>&1
+    if($LASTEXITCODE -eq 0 -or ($output -join "`n") -notmatch 'INVALID_CAPTURE_SIZES'){$failures++;Write-Output "FAIL $($probe.Name) $output"}else{Write-Output "PASS $($probe.Name)"}
+}
+if($args -contains '--check-capture-records'){
+    try {
+        foreach($size in @('1280x720','1920x1080','1440x1080')){foreach($batch in @('CapturePhoneChat','CaptureJournal','CaptureDepthSeat')){
+            $record=Get-Content -LiteralPath (Join-Path $projectRoot "test-output/captures/$size-$batch.stdout.log") -Raw
+            $count=if($batch -eq 'CapturePhoneChat'){16}else{18}
+            if($record -notmatch ("GODOT_CHECKS_PASS "+$batch) -or ([regex]::Matches($record,"(?m)^CAPTURE .+ $size ")).Count -ne $count){throw "DEFAULT_CAPTURE_MATRIX_CHANGED $size $batch"}
+        }
+        }
+        Write-Output 'PASS DefaultCaptureSizesUnchanged Phone48 Journal54 DepthSeat54 ActualRecords'
+    }catch{$failures++;Write-Output "FAIL DefaultCaptureSizesUnchanged $_"}
+}
 Write-Output "TOOLS_FAILURES $failures"
 if($failures -gt 0){exit 1}else{exit 0}

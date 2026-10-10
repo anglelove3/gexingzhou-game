@@ -2,6 +2,27 @@ using Godot;
 using GeXingzhou.Domain;
 public partial class SmokeHarness
 {
+    private async Task CaptureCommunityChecks()
+    {
+        var session=GetNode<GameSession>("/root/GameSession");
+        foreach(var font in new[]{20,24,32})
+        {
+            session.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=false},false);
+            var main=await NewPolishMain();Require(main.ChangeWorld("community_gate",new(120,460)),"Capture entry rejected");await Frames(4);
+            await Capture("community-entry-"+font);
+            Input.ActionPress("move_right");await DepthPhysics(15);Input.ActionRelease("move_right");Input.ActionPress("move_up");await DepthPhysics(20);Input.ActionRelease("move_up");await DepthPhysics(12);
+            Require(main.World.Player.Position.Y<450,"Capture explore did not show actual walking");await Capture("community-explore-"+font);
+            main.ShowObservation(main.World.GetTarget("old_sign")!);await Frames(3);Require(main.Dialogue.IsOpen,"Capture observation not active");AssertDialogueFits(main);await Capture("community-observation-"+font);KeyPress(Key.Escape);await Frames(3);
+            main.World.Player.Position=new(940,440);main.World.Player.Velocity=Vector2.Zero;await Frames(3);KeyPress(Key.E);await WaitForPhase(main,RestPhase.Seated);
+            main.Rest.HandleKey(Key.Escape);await Frames(3);AssertCommunityContact(main);await Capture("community-seated-"+font);
+            KeyPress(Key.E);await Frames(3);main.GetNode<Button>("RestOptions/Panel/Options/Smoke").EmitSignal(Button.SignalName.Pressed);
+            var art=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");await WaitUntil(()=>art.Animation=="smoke"&&art.Frame>=1,"Capture actual smoke");AssertCommunityContact(main);await Capture("community-smoke-"+font);
+            await WaitForPhase(main,RestPhase.Seated);main.Rest.HandleKey(Key.Escape);await WaitForPhase(main,RestPhase.Standing);await Frames(4);await Capture("community-stand-"+font);
+            Require(main.World.Player.Position==new Vector2(960,440)&&Math.Abs(art.Scale.Y-.24)<.001,"Capture stand not back to real depth");main.Free();await Frames(3);
+        }
+        await CommunityRestChecks();
+        GD.Print("COMMUNITY_RENDER_PASS Entry Explore Observation Seated Smoke Stand ThreeFonts ContactNormalReduced");
+    }
     private async Task CommunityChecks()
     {
         var problems=new List<string>();
