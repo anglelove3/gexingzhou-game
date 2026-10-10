@@ -5,6 +5,7 @@ public partial class SmokeHarness
 {
     private async Task OpenObservation(MainView main,Interactable target)
     {
+        if(target is BenchView bench&&!main.Rest.IsActive)main.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;
         target.TryInteract(GetNode<GameSession>("/root/GameSession"));await Frames(2);
         if(target is BenchView)
         {
@@ -32,7 +33,7 @@ public partial class SmokeHarness
             Require(regions.Count>=count,"Rest uses duplicated poses "+name);
         }
         GD.Print("REST_PASS AnimationResources");
-        var main=await NewPolishMain();var bench=main.World.GetNode<BenchView>("Bench");var player=main.World.Player;
+        var main=await NewPolishMain();var bench=(BenchView)main.World.GetTarget("bench")!;var player=main.World.Player;
         player.GlobalPosition=bench.StandAnchor.GlobalPosition;bench.GetNode<Sprite2D>("BenchForeground").Visible=true;
         var original=player.Position;var art=player.GetNode<AnimatedSprite2D>("Artwork");
         player.SetRestPose("seated",bench.SeatAnchor.GlobalPosition-player.GlobalPosition,false);await Frames(3);
@@ -54,7 +55,7 @@ public partial class SmokeHarness
     private async Task RestIntegrationChecks()
     {
         var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(new(){SubtitleSize=32,TextSpeed=0,ReducedMotion=false},false);
-        var main=await NewPolishMain();var bench=main.World.GetNode<BenchView>("Bench");main.World.Player.Position=bench.StandAnchor.Position+bench.Position;
+        var main=await NewPolishMain();var bench=(BenchView)main.World.GetTarget("bench")!;main.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;
         await Frames(3);KeyPress(Key.E);await WaitForPhase(main,RestPhase.Seated);
         var menu=main.GetNode<RestOptionsController>("RestOptions");var art=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");
         var rest=menu.GetNode<Button>("Panel/Options/Rest");var smoke=menu.GetNode<Button>("Panel/Options/Smoke");var rise=menu.GetNode<Button>("Panel/Options/Rise");
@@ -95,12 +96,12 @@ public partial class SmokeHarness
         // Keep the harness alive while exercising the real F9 scene replacement.
         GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(5);
         var reloaded=GetTree().CurrentScene as MainView;Require(reloaded!=null&&reloaded!=main&&reloaded.Rest.Phase==RestPhase.Standing,"F9 did not rebuild standing instance");
-        main.Free();main=reloaded!;await Frames(2);bench=main.World.GetNode<BenchView>("Bench");
+        main.Free();main=reloaded!;await Frames(2);bench=(BenchView)main.World.GetTarget("bench")!;
         Require(main.Rest.Begin(bench),"Reloaded bench rejected");await WaitForPhase(main,RestPhase.Seated);
         main.Rest.HandleKey(Key.Escape);main.Rest.HandleKey(Key.Escape);await WaitForPhase(main,RestPhase.Standing);
         var x=main.World.Player.Position.X;Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=true});await DepthPhysics(30);
         Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});Require(main.World.Player.Position.X>x+5,"Rise left movement locked");
-        await Capture("rest-risen");Require(main.Rest.Begin(bench),"Repeated bench rejected");await WaitForPhase(main,RestPhase.Seated);
+        await Capture("rest-risen");Require(!main.Rest.Begin(bench),"Distant bench bypassed approach limit");main.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;Require(main.Rest.Begin(bench),"Repeated bench rejected");await WaitForPhase(main,RestPhase.Seated);
         main.Rest.HandleKey(Key.Escape);KeyPress(Key.E);await Frames(2);smoke=main.GetNode<Button>("RestOptions/Panel/Options/Smoke");smoke.EmitSignal(Button.SignalName.Pressed);await Frames(2);
         var oldArt=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");var transition=main.SceneFlow.TryEnter("convenience_street",new(120,280));
         oldArt.EmitSignal(AnimatedSprite2D.SignalName.AnimationFinished);var result=await transition;await Frames(2);
@@ -233,7 +234,7 @@ public partial class SmokeHarness
     private async Task EditableWorldChecks()
     {
         foreach(var (file,paths) in new[] {
-            ("CommunityGate",new[]{"OldSign","Bench/SeatAnchor","Bench/StandAnchor","DepthLayers/Actors/Cannon","StreetExit"}),
+            ("CommunityGate",new[]{"OldSign","DepthLayers/Props/Bench/SeatAnchor","DepthLayers/Props/Bench/StandAnchor","DepthLayers/Actors/Cannon","StreetExit"}),
             ("ConvenienceStreet",new[]{"CommunityExit","Hey","SoupExit"}),
             ("SoupShop",new[]{"Targets/StreetExit","Targets/Seat","DepthLayers/Props/Sign","DepthLayers/Props/Menu","DepthLayers/Props/CounterNote","DepthLayers/Props/Counter","DepthLayers/Actors/Shopkeeper","DepthLayers/Props/Table/SoupBowl","Navigation/GroundBoundary/CollisionPolygon2D"}) })
         {
@@ -255,7 +256,7 @@ public partial class SmokeHarness
                 Require(ids.Length==ids.Distinct().Count(),"Duplicate interaction IDs");
                 if(file=="CommunityGate")
                 {
-                    Require(world.GetNode<Node2D>("Bench").Position==new Vector2(960,440),"InspectorChangesSurviveReady: bench reset");
+                    Require(world.GetTarget("bench")!.GlobalPosition==new Vector2(960,414),"InspectorChangesSurviveReady: bench reset");
                     var cannon=world.GetTarget("cannon")!;
                     Require(!cannon.Visible,"QuestActorActivation: cannon already visible");
                     var s=GetNode<GameSession>("/root/GameSession");s.AdvanceClock(65);
@@ -275,7 +276,7 @@ public partial class SmokeHarness
             var bad=GD.Load<PackedScene>("res://scenes/world/CommunityGate.tscn").Instantiate<WorldView>();
             if(invalid=="missing_artwork")bad.GetNode("DepthLayers/Actors/Player/Artwork").Free();
             else if(invalid=="duplicate_id")bad.GetNode<Interactable>("StreetExit").Id="old_sign";
-            else if(invalid=="missing_bench_foreground")bad.GetNode("Bench/BenchForeground").Free();
+            else if(invalid=="missing_bench_foreground")bad.GetTarget("bench")!.GetNode("BenchForeground").Free();
             else
             {
                 var player=bad.GetNode<PlayerController>("DepthLayers/Actors/Player");

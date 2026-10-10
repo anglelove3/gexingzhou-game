@@ -83,7 +83,7 @@ public partial class SmokeHarness
         main.Choices.Open("先做什么？",new(string,Action)[]{("继续走",()=>{})});await JournalAssertBlocked(main,"choices");main.Choices.Close();
         s.Flow=FlowState.Transition;await JournalAssertBlocked(main,"transition");s.Flow=FlowState.Field;
         Require(main.Pause.Open(),"Pause fixture failed");await JournalAssertBlocked(main,"pause");main.Settings.Open();await JournalAssertBlocked(main,"settings");main.Settings.Close();main.Pause.Close();
-        var bench=main.World.GetNode<BenchView>("Bench");main.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;main.Rest.Begin(bench);await WaitForPhase(main,RestPhase.Seated);await JournalAssertBlocked(main,"bench");main.Rest.Cancel();main.Free();await Frames(3);
+        var bench=(BenchView)main.World.GetTarget("bench")!;main.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;main.Rest.Begin(bench);await WaitForPhase(main,RestPhase.Seated);await JournalAssertBlocked(main,"bench");main.Rest.Cancel();main.Free();await Frames(3);
         main=await NewDepthSoupMain(new(380,430));Require(main.SoupSeat.Begin(()=>{}),"Soup seat fixture failed");
         await JournalAssertBlocked(main,"approaching soup seat");await WaitUntil(()=>main.SoupSeat.IsActive&&!main.SoupSeat.IsActing,"soup seated");await JournalAssertBlocked(main,"soup seated");
         Require(main.SoupSeat.PlayAction("eat",()=>{}),"Soup action fixture failed");await JournalAssertBlocked(main,"soup action");main.SoupSeat.Cancel();main.Free();await Frames(3);

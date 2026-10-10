@@ -46,5 +46,10 @@
       "prompt": "Use case: stylized-concept. Asset type: ONE transparent 2D game obstacle sprite. Supporting style reference: attached warm detailed painterly pixel-like Chinese town at sunset. Draw one short cylindrical grey stone/concrete bollard with a softly rounded cap, worn gritty surface, faint warm golden highlight from right and dark grey left. Front view with slight top visible, upright and straight, entire object visible, narrow approx 1:1.8 silhouette, a low stone stump NOT a giant pillar. Centered, transparent background with real alpha outside object, small soft contact shadow only, no floor/base plate, no plants/people/vehicles, no text/logos/watermark, no other objects. Intended 18px-wide footprint in a 96px-tall-character 2D game, crisp readable outline."
     }
   ],
+  "derived_resources": [
+    {"path":"assets/art/vs01-v5-community/community-rest.tres","source":"assets/animations/player-rest-v2.tres","sha256":"E5CDF30F1845F3FCA43451DCD4F0F9ABF5549CA0DE6BE97B661CBEABCFA68998","note":"复用项目既有正式主角动作图和逐帧基准；小区按RestWorldHeight=96，汤店与原水平资源不变。"},
+    {"path":"assets/art/vs01-v5-community/community-rest-reduced.tres","source":"assets/animations/player-rest-reduced-v2.tres","sha256":"9BB78EBD90F075C6034666096F59BB4E3AEB9490DA8A51638D748A65DBFC14DD","note":"减少动效版本，共用既有AI角色图，不使用真人照片。"}
+  ],
+  "bench_contact": "椅身常驻DepthLayers/Props/Bench；独立坐姿前沿裁自同一bench.png的Rect2(215,450,1556,40)，没有第二张椅子。",
   "rights": "项目内AI生成素材，不引用第三方素材包授权；不承诺各司法辖区版权可登记性或独占性。商业发行前仍需人工审阅商标、相似性及平台规则。"
 }

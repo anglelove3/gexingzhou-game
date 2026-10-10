@@ -28,7 +28,7 @@ public static class RestChecks
                 if(phase==RestPhase.StandingUp)r.TryChoose(RestChoice.Rise);
                 Check.Equal(phase,r.Phase);r.Suspend();Check.True(r.Suspended);Check.True(!r.MenuOpen);
                 Check.True(!r.TrySit());Check.True(!r.TryChoose(RestChoice.Smoke));r.AnimationFinished();Check.Equal(phase,r.Phase);
-                r.Resume();Check.Equal(phase is RestPhase.Standing or RestPhase.StandingUp?RestPhase.Standing:RestPhase.Seated,r.Phase);
+                r.Resume();Check.Equal(phase,r.Phase);
                 r.Cancel();r.AnimationFinished();Check.Equal(RestPhase.Standing,r.Phase);Check.True(!r.MenuOpen&&!r.Suspended);
             }
         }));

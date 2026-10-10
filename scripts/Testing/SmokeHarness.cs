@@ -15,6 +15,7 @@ public partial class SmokeHarness : Node
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="Community"){await CommunityChecks();GD.Print("GODOT_CHECKS_PASS Community");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CommunityUpgrade"){await CommunityUpgradeChecks();GD.Print("GODOT_CHECKS_PASS CommunityUpgrade");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="CommunityRest"){await CommunityRestChecks();GD.Print("GODOT_CHECKS_PASS CommunityRest");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Journal"){await JournalChecks();GD.Print("GODOT_CHECKS_PASS Journal");await DrainAudio();GetTree().Quit();return;}
             if(suite=="PhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS PhoneChat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="FinalBoundaries"){await FinalBoundariesChecks();GD.Print("GODOT_CHECKS_PASS FinalBoundaries");await DrainAudio();GetTree().Quit();return;}
@@ -66,7 +67,7 @@ public partial class SmokeHarness : Node
                 if(suite=="CaptureCoins"){await CoinVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureCoins");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePause"){await PauseVisualChecks();GD.Print("GODOT_CHECKS_PASS CapturePause");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureEnd"){await EndVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureEnd");await DrainAudio();GetTree().Quit();return;}
-                if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CapturePolish"){await PolishedUiChecks();await RestChecks();await CommunityRestChecks();GD.Print("GODOT_CHECKS_PASS CapturePolish");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureNarrative")
                 {
                     GetNode<GameSession>("/root/GameSession").SetOptions(new(){SubtitleSize=32,TextSpeed=0,ReducedMotion=true},false);

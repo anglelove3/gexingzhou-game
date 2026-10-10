@@ -88,7 +88,7 @@ public partial class MainView : Control
         heardVoice=invitation.VoiceReceived;heardRing=invitation.PhoneRinging;
         prompt.Text=(Rest.IsActive?(GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身"):World.Interactions.Prompt)+" · Tab 手机";
         if(SoupSeat.IsActive)prompt.Text=(SoupSeat.IsActing?"稍等一会儿":"E 桌边选项 · Esc 起身")+" · Tab 手机";
-        prompt.Text+=" · J 今日记事";
+        prompt.Text+=Rest.IsActive||SoupSeat.IsActive?" · 起身后 J 查看记事":" · J 今日记事";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
         if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
         prompt.Visible=s.Flow==FlowState.Field;

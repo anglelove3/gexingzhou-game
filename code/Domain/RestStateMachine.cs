@@ -6,6 +6,7 @@ public sealed class RestStateMachine
     public RestPhase Phase {get;private set;}=RestPhase.Standing;
     public bool MenuOpen {get;private set;}
     public bool Suspended {get;private set;}
+    private bool suspendedMenu;
     public bool TrySit()
     {if(Suspended||Phase!=RestPhase.Standing)return false;Phase=RestPhase.SittingDown;MenuOpen=false;return true;}
     public void AnimationFinished()
@@ -31,12 +32,11 @@ public sealed class RestStateMachine
     }
     public bool ReopenMenu()
     {if(Suspended||Phase!=RestPhase.Seated)return false;MenuOpen=true;return true;}
-    public void Suspend(){Suspended=true;MenuOpen=false;}
+    public void Suspend(){if(Suspended)return;suspendedMenu=MenuOpen;Suspended=true;MenuOpen=false;}
     public void Resume()
     {
         if(!Suspended)return;Suspended=false;
-        Phase=Phase is RestPhase.Standing or RestPhase.StandingUp?RestPhase.Standing:RestPhase.Seated;
-        MenuOpen=false;
+        MenuOpen=suspendedMenu&&Phase==RestPhase.Seated;suspendedMenu=false;
     }
-    public void Cancel(){Phase=RestPhase.Standing;MenuOpen=false;Suspended=false;}
+    public void Cancel(){Phase=RestPhase.Standing;MenuOpen=false;Suspended=false;suspendedMenu=false;}
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=14 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/community-background.png" id="Bg"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
@@ -9,6 +9,12 @@
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/bench.png" id="BenchArt"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/planter.png" id="PlanterArt"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/bollard.png" id="BollardArt"]
+[ext_resource type="SpriteFrames" path="res://assets/art/vs01-v5-community/community-rest.tres" id="Rest"]
+[ext_resource type="SpriteFrames" path="res://assets/art/vs01-v5-community/community-rest-reduced.tres" id="ReducedRest"]
+[sub_resource type="AtlasTexture" id="BenchLip"]
+atlas=ExtResource("BenchArt")
+region=Rect2(215,450,1556,40)
+filter_clip=true
 [node name="CommunityGate" type="Node2D"]
 script=ExtResource("World")
 SceneId="community_gate"
@@ -27,6 +33,9 @@ y_sort_enabled=true
 y_sort_enabled=true
 [node name="Player" parent="DepthLayers/Actors" instance=ExtResource("Player")]
 position=Vector2(320,460)
+RestFrames=ExtResource("Rest")
+ReducedRestFrames=ExtResource("ReducedRest")
+RestWorldHeight=96.0
 [node name="Cannon" type="Node2D" parent="DepthLayers/Actors"]
 visible=false
 position=Vector2(400,440)
@@ -65,9 +74,18 @@ text="◇"
 mouse_filter=2
 [node name="Props" type="Node2D" parent="DepthLayers"]
 y_sort_enabled=true
-[node name="BenchArtwork" type="Node2D" parent="DepthLayers/Props"]
+[node name="Bench" parent="DepthLayers/Props" instance=ExtResource("Bench")]
 position=Vector2(960,414)
-[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/BenchArtwork"]
+[node name="SeatAnchor" parent="DepthLayers/Props/Bench" index="1"]
+position=Vector2(0,-34)
+[node name="StandAnchor" parent="DepthLayers/Props/Bench" index="2"]
+position=Vector2(0,26)
+[node name="BenchForeground" parent="DepthLayers/Props/Bench" index="3"]
+position=Vector2(-83.862,-31.25)
+scale=Vector2(0.108,0.108)
+texture=SubResource("BenchLip")
+centered=false
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Bench"]
 texture_filter=2
 position=Vector2(-107.082,-79.85)
 scale=Vector2(0.108,0.108)
@@ -149,10 +167,6 @@ horizontal_alignment=1
 text="去便利店街"
 mouse_filter=2
 visible=false
-[node name="Bench" parent="." instance=ExtResource("Bench")]
-position=Vector2(960,440)
-[node name="SeatAnchor" parent="Bench" index="1"]
-position=Vector2(0,-60)
 [node name="Foreground" type="Node2D" parent="."]
 [node name="Navigation" type="Node2D" parent="."]
 [node name="GroundBoundary" type="StaticBody2D" parent="Navigation"]
@@ -198,4 +212,4 @@ position=Vector2(320,460)
 position=Vector2(960,440)
 [node name="SeatAnchor" type="Marker2D" parent="Navigation/Anchors"]
 position=Vector2(960,380)
-[editable path="Bench"]
+[editable path="DepthLayers/Props/Bench"]

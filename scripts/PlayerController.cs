@@ -11,6 +11,7 @@ public partial class PlayerController : CharacterBody2D
     public string Facing {get;private set;}="side";
     private MainView? owner;private float stepDistance;
     [Export] public float RestStandingPixels {get;set;}=307;
+    [Export] public float RestWorldHeight {get;set;}=68;
     private SpriteFrames walkingFrames=null!;private bool restActive;private Vector2 seatOffset;
     [Export] public SpriteFrames DepthFrames {get;set;}=null!;
     private NavigationProfile? navigation;private bool focused=true;
@@ -61,7 +62,7 @@ public partial class PlayerController : CharacterBody2D
                 throw new InvalidOperationException("主角缺少待机/行走动画资源。");
         ValidateRestFrames(RestFrames,"休息");ValidateRestFrames(ReducedRestFrames,"减少动效休息");
         ValidateSoupFrames(SoupFrames);ValidateSoupFrames(ReducedSoupFrames);
-        if(!float.IsFinite(RestStandingPixels)||RestStandingPixels<=0)
+        if(!float.IsFinite(RestStandingPixels)||RestStandingPixels<=0||!float.IsFinite(RestWorldHeight)||RestWorldHeight<=0)
             throw new InvalidOperationException("休息动作站立基准必须大于零。");
         if(mode==WorldMode.Depth2D)ValidateDepthFrames();
     }
@@ -95,10 +96,22 @@ public partial class PlayerController : CharacterBody2D
     }
     public void SetRestPose(string animation,Vector2 visualOffset,bool paused)
     {
-        soupActive=false;
+        soupActive=false;approachActive=false;
         restActive=true;seatOffset=visualOffset;Velocity=Vector2.Zero;artwork.FlipH=false;
         var frames=GetNode<GameSession>("/root/GameSession").Options.ReducedMotion?ReducedRestFrames:RestFrames;
-        if(artwork.SpriteFrames!=frames){artwork.SpriteFrames=frames;artwork.Animation=animation;artwork.Frame=0;}
+        if(artwork.SpriteFrames!=frames){
+            double progress=0;
+            if(artwork.Animation==animation&&artwork.SpriteFrames.HasAnimation(animation)){
+                var old=artwork.SpriteFrames;double total=0,elapsed=0;
+                for(int i=0;i<old.GetFrameCount(animation);i++){var duration=old.GetFrameDuration(animation,i);total+=duration;if(i<artwork.Frame)elapsed+=duration;else if(i==artwork.Frame)elapsed+=duration*artwork.FrameProgress;}
+                if(total>0)progress=elapsed/total;
+            }
+            artwork.SpriteFrames=frames;artwork.Animation=animation;
+            double newTotal=0;for(int i=0;i<frames.GetFrameCount(animation);i++)newTotal+=frames.GetFrameDuration(animation,i);
+            var remaining=Math.Clamp(progress,0,.999999)*newTotal;int frame=0;
+            while(frame<frames.GetFrameCount(animation)-1&&remaining>=frames.GetFrameDuration(animation,frame)){remaining-=frames.GetFrameDuration(animation,frame);frame++;}
+            artwork.SetFrameAndProgress(frame,(float)(remaining/frames.GetFrameDuration(animation,frame)));
+        }
         if(artwork.Animation!=animation){artwork.Play(animation);artwork.Frame=0;}
         artwork.SpeedScale=1;
         if(paused)artwork.Pause();else if(!artwork.IsPlaying())artwork.Play(animation);
@@ -194,7 +207,7 @@ public partial class PlayerController : CharacterBody2D
         if(texture==null)return;
         if(restActive&&texture is AtlasTexture atlas)
         {
-            float scaleRest=soupActive?(float)atlas.GetMeta("pose_scale").AsDouble():68f/RestStandingPixels;artwork.Scale=Vector2.One*scaleRest;
+            float scaleRest=soupActive?(float)atlas.GetMeta("pose_scale").AsDouble():RestWorldHeight/RestStandingPixels;artwork.Scale=Vector2.One*scaleRest;
             float t=artwork.Animation=="sit_down"?(float)artwork.Frame/(artwork.SpriteFrames.GetFrameCount(artwork.Animation)-1):
                 artwork.Animation=="stand_up"?1f-(float)artwork.Frame/(artwork.SpriteFrames.GetFrameCount(artwork.Animation)-1):1;
             var pivot=atlas.GetMeta("stand_pivot").AsVector2().Lerp(atlas.GetMeta("seat_pivot").AsVector2(),t);

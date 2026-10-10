@@ -115,7 +115,7 @@ public partial class SmokeHarness
         Require(s.Restore(memory).Success&&main.EnterMemoryView(),"Pause memory fixture failed");s.Flow=FlowState.Memory;
         KeyPress(Key.Escape);await WaitUntil(()=>main.Memory==null&&s.Flow==FlowState.Field,"Memory escape");
         Require(!main.Pause.IsOpen,"Memory Esc also paused");main.Free();await Frames(2);
-        var benchMain=await NewPolishMain();var bench=benchMain.World.GetNode<BenchView>("Bench");benchMain.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;
+        var benchMain=await NewPolishMain();var bench=(BenchView)benchMain.World.GetTarget("bench")!;benchMain.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;
         KeyPress(Key.E);await WaitForPhase(benchMain,RestPhase.Seated);Require(!benchMain.CanPause,"Bench can pause");
         KeyPress(Key.Escape);await Frames(2);Require(!benchMain.Pause.IsOpen&&benchMain.Rest.IsActive,"Bench menu Esc also paused");
         KeyPress(Key.Escape);await WaitForPhase(benchMain,RestPhase.Standing);Require(!benchMain.Pause.IsOpen,"Stand Esc also paused");benchMain.Free();await Frames(2);

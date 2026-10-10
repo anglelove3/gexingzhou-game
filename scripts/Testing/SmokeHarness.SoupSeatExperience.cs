@@ -64,7 +64,7 @@ public partial class SmokeHarness
             Require(art.Animation.ToString().StartsWith("idle")&&!main.World.GetNode<Sprite2D>("Foreground/TableEdge").Visible,"Stand did not clear pose");
             await Capture("soup-risen"+(reduced?"-reduced":""));
             Require(seat.Begin(()=>callbacks++),"Transition cancel seed");Require(main.ChangeWorld("community_gate",new(960,440)),"Change world rejected");await Frames(100);Require(callbacks==0&&!seat.IsActive,"World retained old callback");
-            var bench=main.World.GetNode<BenchView>("Bench");Require(main.Rest.Begin(bench),"Bench seed failed");Require(!seat.Begin(()=>callbacks++),"Soup and bench simultaneously active");main.Rest.Cancel();
+            var bench=(BenchView)main.World.GetTarget("bench")!;Require(main.Rest.Begin(bench),"Bench seed failed");Require(!seat.Begin(()=>callbacks++),"Soup and bench simultaneously active");main.Rest.Cancel();
             main.Free();await Frames(2);
             s.PendingRestore=saved.Snapshot;var restored=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(restored);await Frames(4);
             Require(!restored.SoupSeat.IsActive&&restored.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation.ToString().StartsWith("idle"),"Saved soup restored transient pose");restored.Free();await Frames(2);
