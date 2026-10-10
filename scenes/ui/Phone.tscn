@@ -223,7 +223,7 @@ vertical_alignment=1
 layout_mode=2
 theme_override_colors/font_color=Color(0.34,0.37,0.37,1)
 theme_override_font_sizes/font_size=20
-text="行程提醒\n走走，看看搬迁后的故乡"
+text="行程已记下，收起手机后按J查看"
 autowrap_mode=3
 [node name="AnswerButton" type="Button" parent="Frame/Content"]
 layout_mode=2

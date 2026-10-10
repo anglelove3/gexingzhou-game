@@ -1,0 +1,174 @@
+[gd_scene load_steps=6 format=3]
+[ext_resource type="Script" path="res://scripts/JournalController.cs" id="Script"]
+[sub_resource type="StyleBoxFlat" id="Paper"]
+bg_color=Color(0.97,0.94,0.86,1)
+border_width_left=1
+border_width_top=1
+border_width_right=1
+border_width_bottom=1
+border_color=Color(0.62,0.54,0.4,1)
+corner_radius_top_left=12
+corner_radius_top_right=12
+corner_radius_bottom_left=12
+corner_radius_bottom_right=12
+content_margin_left=24.0
+content_margin_right=24.0
+content_margin_top=20.0
+content_margin_bottom=20.0
+shadow_color=Color(0,0,0,0.25)
+shadow_size=8
+[sub_resource type="StyleBoxFlat" id="Tab"]
+bg_color=Color(0.9,0.86,0.77,1)
+corner_radius_top_left=6
+corner_radius_top_right=6
+corner_radius_bottom_left=6
+corner_radius_bottom_right=6
+content_margin_left=16.0
+content_margin_right=16.0
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="Selected"]
+bg_color=Color(0.77,0.82,0.69,1)
+corner_radius_top_left=6
+corner_radius_top_right=6
+corner_radius_bottom_left=6
+corner_radius_bottom_right=6
+content_margin_left=16.0
+content_margin_right=16.0
+content_margin_top=10.0
+content_margin_bottom=10.0
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color=Color(0,0,0,0)
+border_width_left=2
+border_width_top=2
+border_width_right=2
+border_width_bottom=2
+border_color=Color(0.3,0.4,0.24,1)
+corner_radius_top_left=6
+corner_radius_top_right=6
+corner_radius_bottom_left=6
+corner_radius_bottom_right=6
+[node name="Journal" type="Control"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+z_index=60
+script=ExtResource("Script")
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0.06,0.07,0.06,0.45)
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode=1
+anchor_left=0.5
+anchor_right=0.5
+anchor_top=0.5
+anchor_bottom=0.5
+offset_left=-450.0
+offset_right=450.0
+offset_top=-336.0
+offset_bottom=336.0
+grow_horizontal=2
+grow_vertical=2
+theme_override_styles/panel=SubResource("Paper")
+[node name="Content" type="VBoxContainer" parent="Panel"]
+layout_mode=2
+theme_override_constants/separation=16
+[node name="Title" type="Label" parent="Panel/Content"]
+layout_mode=2
+theme_override_colors/font_color=Color(0.2,0.22,0.18,1)
+text="今日记事"
+[node name="Tabs" type="HBoxContainer" parent="Panel/Content"]
+layout_mode=2
+theme_override_constants/separation=12
+[node name="Current" type="Button" parent="Panel/Content/Tabs"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(130,48)
+theme_override_colors/font_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_focus_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_hover_color=Color(0.15,0.25,0.14,1)
+theme_override_colors/font_pressed_color=Color(0.2,0.22,0.18,1)
+theme_override_styles/normal=SubResource("Tab")
+theme_override_styles/hover=SubResource("Selected")
+theme_override_styles/pressed=SubResource("Selected")
+theme_override_styles/focus=SubResource("Focus")
+toggle_mode=true
+text="当前"
+[node name="History" type="Button" parent="Panel/Content/Tabs"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(130,48)
+theme_override_colors/font_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_focus_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_hover_color=Color(0.15,0.25,0.14,1)
+theme_override_colors/font_pressed_color=Color(0.2,0.22,0.18,1)
+theme_override_styles/normal=SubResource("Tab")
+theme_override_styles/hover=SubResource("Selected")
+theme_override_styles/pressed=SubResource("Selected")
+theme_override_styles/focus=SubResource("Focus")
+toggle_mode=true
+text="经历"
+[node name="Discoveries" type="Button" parent="Panel/Content/Tabs"]
+layout_mode=2
+size_flags_horizontal=3
+custom_minimum_size=Vector2(130,48)
+theme_override_colors/font_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_focus_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_hover_color=Color(0.15,0.25,0.14,1)
+theme_override_colors/font_pressed_color=Color(0.2,0.22,0.18,1)
+theme_override_styles/normal=SubResource("Tab")
+theme_override_styles/hover=SubResource("Selected")
+theme_override_styles/pressed=SubResource("Selected")
+theme_override_styles/focus=SubResource("Focus")
+toggle_mode=true
+text="见闻"
+[node name="BodyScroll" type="ScrollContainer" parent="Panel/Content"]
+layout_mode=2
+size_flags_vertical=3
+horizontal_scroll_mode=0
+[node name="Body" type="VBoxContainer" parent="Panel/Content/BodyScroll"]
+layout_mode=2
+size_flags_horizontal=3
+[node name="Text" type="Label" parent="Panel/Content/BodyScroll/Body"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_colors/font_color=Color(0.2,0.22,0.18,1)
+text="走走，看看搬迁后的故乡"
+autowrap_mode=3
+[node name="Empty" type="Label" parent="Panel/Content/BodyScroll/Body"]
+visible=false
+layout_mode=2
+size_flags_horizontal=3
+theme_override_colors/font_color=Color(0.34,0.35,0.3,1)
+text="还没有记下已完成的事"
+autowrap_mode=3
+[node name="CloseButton" type="Button" parent="Panel/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,52)
+theme_override_colors/font_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_focus_color=Color(0.2,0.22,0.18,1)
+theme_override_colors/font_hover_color=Color(0.15,0.25,0.14,1)
+theme_override_colors/font_pressed_color=Color(0.2,0.22,0.18,1)
+theme_override_styles/normal=SubResource("Tab")
+theme_override_styles/hover=SubResource("Selected")
+theme_override_styles/pressed=SubResource("Selected")
+theme_override_styles/focus=SubResource("Focus")
+text="收起记事 · J / Esc"
+[node name="StartupError" type="Label" parent="."]
+visible=false
+z_index=110
+offset_left=40.0
+offset_top=40.0
+offset_right=1240.0
+offset_bottom=180.0
+autowrap_mode=3
+text="场景引用错误"

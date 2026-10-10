@@ -13,6 +13,7 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="Journal"){await JournalChecks();GD.Print("GODOT_CHECKS_PASS Journal");await DrainAudio();GetTree().Quit();return;}
             if(suite=="PhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS PhoneChat");await DrainAudio();GetTree().Quit();return;}
             if(suite=="FinalBoundaries"){await FinalBoundariesChecks();GD.Print("GODOT_CHECKS_PASS FinalBoundaries");await DrainAudio();GetTree().Quit();return;}
             if(suite=="DepthMovement"){await DepthMovementChecks();GD.Print("GODOT_CHECKS_PASS DepthMovement");await DrainAudio();GetTree().Quit();return;}

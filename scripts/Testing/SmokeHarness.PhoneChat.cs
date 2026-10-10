@@ -23,6 +23,7 @@ public partial class SmokeHarness
             var row=main.Phone.GetNode<Control>("Frame/Content/MessageScroll/Messages/Incoming");
             var body=main.Phone.GetNode<Label>("Frame/Content/MessageScroll/Messages/Incoming/Bubble/Text");
             var close=main.Phone.GetNode<Button>("Frame/Content/CloseButton");
+            Require(main.Phone.GetNode<Label>("Frame/Content/Task").Text=="行程已记下，收起手机后按J查看","Phone task hint still duplicates journal content");
             var focusedText=close.GetThemeColor("font_focus_color");
             Require(close.HasFocus()&&focusedText.R*.2126f+focusedText.G*.7152f+focusedText.B*.0722f<.5f,"Focused close button text disappears on white surface");
             Require(!row.IsVisibleInTree()&&!main.Phone.GetNode<Button>("Frame/Content/AnswerButton").IsVisibleInTree(),"Empty chat leaks future message/call");

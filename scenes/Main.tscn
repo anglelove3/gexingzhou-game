@@ -1,4 +1,5 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
+[ext_resource type="PackedScene" path="res://scenes/ui/Journal.tscn" id="Journal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SliceEnd.tscn" id="SliceEnd"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Pause.tscn" id="Pause"]
 [ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Audio"]
@@ -70,6 +71,16 @@ offset_top=24.0
 offset_right=-24.0
 offset_bottom=80.0
 text="暂停"
+[node name="JournalButton" type="Button" parent="HUD"]
+layout_mode=1
+anchor_left=1.0
+anchor_right=1.0
+offset_left=-302.0
+offset_top=24.0
+offset_right=-172.0
+offset_bottom=72.0
+text="今日记事"
+tooltip_text="J 打开今日记事"
 [node name="TaskCard" type="PanelContainer" parent="HUD"]
 offset_left=24.0
 offset_top=20.0
@@ -139,6 +150,8 @@ visible=false
 [node name="SliceEnd" parent="." instance=ExtResource("SliceEnd")]
 visible=false
 [node name="Settings" parent="." instance=ExtResource("Settings")]
+visible=false
+[node name="Journal" parent="." instance=ExtResource("Journal")]
 visible=false
 [node name="SceneFlow" type="Node" parent="."]
 script=ExtResource("Flow")

@@ -189,7 +189,8 @@ public partial class SmokeHarness
         }
         var saved=new (string File,string[] Paths)[]{
             ("Boot",new[]{"Background","MenuScroll/Menu/Title","MenuScroll/Menu/StartButton","MenuScroll/Menu/AutoResumeButton","MenuScroll/Menu/ManualResumeButton","MenuScroll/Menu/RecoveryButton","MenuScroll/Menu/SettingsButton","MenuScroll/Menu/QuitButton","StartupError","Choices","Settings"}),
-            ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
+            ("Main",new[]{"WorldDisplay/WorldViewport","HUD/TaskCard","HUD/InteractionHint","HUD/JournalButton","Journal","Phone","Dialogue","Choices","Settings","SceneFlow","TransitionOverlay","StartupError"}),
+            ("ui/Journal",new[]{"Dim","Panel/Content/Title","Panel/Content/Tabs/Current","Panel/Content/Tabs/History","Panel/Content/Tabs/Discoveries","Panel/Content/BodyScroll/Body/Text","Panel/Content/BodyScroll/Body/Empty","Panel/Content/CloseButton","StartupError"}),
             ("ui/Phone",new[]{"Frame/Content/Contact","Frame/Content/MessageScroll/Messages","Frame/Content/Task","Frame/Content/AnswerButton","Frame/Content/CloseButton"}),
             ("ui/Dialogue",new[]{"Panel/Content/NameLabel","Panel/Content/Body","Panel/Content/ContinueHint","Portrait"}),
             ("ui/Choices",new[]{"Panel/Content/Title","Panel/Content/Options","Panel/Content/ReturnHint"}),

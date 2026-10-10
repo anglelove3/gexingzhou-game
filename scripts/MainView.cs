@@ -17,6 +17,8 @@ public partial class MainView : Control
     public AudioDirector Audio {get;private set;}=null!;
     public PauseController Pause {get;private set;}=null!;
     public SliceEndController SliceEnd {get;private set;}=null!;
+    public JournalController Journal {get;private set;}=null!;
+    public bool CanOpenJournal=>!HasMeta("binding_error")&&GodotObject.IsInstanceValid(World)&&World.IsInsideTree()&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&Memory==null&&!Rest.IsActive&&!SoupSeat.IsActive&&!Phone.IsOpen&&!Dialogue.IsOpen&&!Choices.IsOpen&&!Pause.IsOpen&&!Settings.IsOpen&&!SliceEnd.IsOpen;
     public bool CanPause=>World!=null&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!Rest.IsActive&&!SoupSeat.IsActive&&!Phone.IsOpen&&!Dialogue.IsOpen&&!Choices.IsOpen&&Memory==null;
     public Position2 SafeSavePosition=>GetNode<GameSession>("/root/GameSession").Snapshot.SceneId=="memory_soup_table"?
         GetNode<GameSession>("/root/GameSession").Snapshot.PlayerPosition:
@@ -43,6 +45,8 @@ public partial class MainView : Control
             SoupSeat=SceneBindings.Require<SoupSeatController>(this,"SoupSeat");SoupSeat.Configure(this);
             Pause=SceneBindings.Require<PauseController>(this,"Pause");Pause.Configure(this);
             SliceEnd=SceneBindings.Require<SliceEndController>(this,"SliceEnd");SliceEnd.Configure(this);
+            Journal=SceneBindings.Require<JournalController>(this,"Journal");Journal.Configure(this);
+            SceneBindings.Require<Button>(this,"HUD/JournalButton").Pressed+=()=>Journal.Open();
             SceneBindings.Require<Button>(this,"HUD/PauseButton").Pressed+=()=>Pause.Open();
             SceneFlow=SceneBindings.Require<SceneFlow>(this,"SceneFlow");SceneFlow.Main=this;
             status=SceneBindings.Require<Label>(this,"HUD/TaskCard/TaskText");
@@ -84,6 +88,7 @@ public partial class MainView : Control
         heardVoice=invitation.VoiceReceived;heardRing=invitation.PhoneRinging;
         prompt.Text=(Rest.IsActive?(GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身"):World.Interactions.Prompt)+" · Tab 手机";
         if(SoupSeat.IsActive)prompt.Text=(SoupSeat.IsActing?"稍等一会儿":"E 桌边选项 · Esc 起身")+" · Tab 手机";
+        prompt.Text+=" · J 今日记事";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
         if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
         prompt.Visible=s.Flow==FlowState.Field;
@@ -94,6 +99,7 @@ public partial class MainView : Control
         World.RefreshQuestActors(s.Snapshot);
         Guidance.Refresh();
         var pauseButton=GetNode<Button>("HUD/PauseButton");pauseButton.Visible=CanPause;pauseButton.Disabled=!CanPause;
+        GetNode<Button>("HUD/JournalButton").Disabled=!CanOpenJournal;
     }
     public void ShowNotice(string title,string body)
     {
@@ -281,6 +287,8 @@ public partial class MainView : Control
         if(ev is not InputEventKey{Pressed:true,Echo:false} key)return;
         var code=key.PhysicalKeycode;var s=GetNode<GameSession>("/root/GameSession");
         if(s.Flow==FlowState.Transition){GetViewport().SetInputAsHandled();return;}
+        if(Journal.IsOpen){if(Journal.HandleKey(code))GetViewport().SetInputAsHandled();return;}
+        if(code==Key.J){Journal.Open();GetViewport().SetInputAsHandled();return;}
         if(Settings.IsOpen){if(code==Key.Escape)Settings.Close();else return;}
         else if(SliceEnd.IsOpen){if(code==Key.Escape)SliceEnd.Close();else return;}
         else if(Pause.IsOpen)
