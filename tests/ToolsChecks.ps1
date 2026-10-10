@@ -63,6 +63,17 @@ try {
 } catch {$failures++;Write-Output "FAIL ExplorationDependencyWhitelist $_"}
 try {
     $original=Join-Path $projectRoot 'content/vs01/navigation.json';$hash=(Get-FileHash -LiteralPath $original).Hash
+    $journal=@('scenes/ui/Journal.tscn','scripts/JournalController.cs','code/Domain/JournalProjection.cs','docs/superpowers/specs/2026-10-10-今日记事任务日志-design.md','docs/superpowers/plans/2026-10-10-今日记事任务日志-实施计划.md','docs/development/12_今日记事验收与接续.md')
+    foreach($path in $journal){
+        $target=Join-Path $destination $path;$source=Join-Path $projectRoot $path
+        if(!(Test-Path -LiteralPath $source)){throw "JOURNAL_SOURCE_MISSING $path"}
+        if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "JOURNAL_PACKAGE_MISMATCH $path"}
+    }
+    foreach($path in @('docs/reviews/2026-10-05_首段试玩评估与待确认润色建议.md','references','test-output','游戏人物图片','tools/environment.local.json')){if(Test-Path -LiteralPath (Join-Path $destination $path)){throw "JOURNAL_PRIVATE_PACKAGE $path"}}
+    Write-Output 'PASS JournalDependencyWhitelist SourceBundleHashesPrivateExclusions'
+} catch {$failures++;Write-Output "FAIL JournalDependencyWhitelist $_"}
+try {
+    $original=Join-Path $projectRoot 'content/vs01/navigation.json';$hash=(Get-FileHash -LiteralPath $original).Hash
     $copyRelative='test-output/navigation-mismatch-copy.json';$copy=Join-Path $projectRoot $copyRelative
     Copy-Item -LiteralPath $original -Destination $copy
     $before=Get-Content -LiteralPath $copy -Raw

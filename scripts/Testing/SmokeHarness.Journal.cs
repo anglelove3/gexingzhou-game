@@ -30,6 +30,7 @@ public partial class SmokeHarness
         await JournalFocusLifetime();GD.Print("JOURNAL_PASS FocusLifetime Scroll");
         await JournalReloadRefresh();GD.Print("JOURNAL_PASS ReloadRefresh");
         await JournalBindingFailure();GD.Print("JOURNAL_PASS BindingFailure");
+        await JournalLayoutChecks();GD.Print("JOURNAL_PASS LayoutThreeFontsThreeWindows");
     }
     private async Task JournalOpenClose()
     {
@@ -124,5 +125,48 @@ public partial class SmokeHarness
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();main.GetNode("Journal/"+JournalText).Free();AddChild(main);await Frames(3);
         Require(main.HasMeta("binding_error")&&main.Journal.HasMeta("binding_error")&&!main.Journal.Open(),"Missing journal binding silently repaired");
         Require(before==SnapshotJson(s.Snapshot),"Broken journal binding mutated snapshot");main.Free();await Frames(3);
+    }
+    private void AssertJournalFits(MainView main,int font)
+    {
+        var panel=main.Journal.GetNode<Control>("Panel");var rect=panel.GetGlobalRect();
+        Require(rect.Size.X<=900.1&&rect.Size.Y<=720.1&&main.GetGlobalRect().Grow(-23.9f).Encloses(rect),"Journal size/safe margin failed");
+        Require(main.Journal.GetNode<Label>(JournalText).GetThemeFontSize("font_size")==font,"Journal silently shrank font");
+        foreach(var path in new[]{"Panel/Content/Title","Panel/Content/Tabs","Panel/Content/BodyScroll","Panel/Content/CloseButton"})Require(rect.Encloses(main.Journal.GetNode<Control>(path).GetGlobalRect()),"Journal fixed control clipped "+path);
+        foreach(var button in main.Journal.FindChildren("*","Button",true,false).OfType<Button>())
+        {button.GrabFocus();var color=button.GetThemeColor("font_focus_color");Require(color.R*.2126f+color.G*.7152f+color.B*.0722f<.5,"Journal focus text unreadable");}
+    }
+    private async Task JournalLayoutChecks()
+    {
+        var window=GetWindow();var oldSize=window.Size;var oldMode=window.ContentScaleMode;window.ContentScaleMode=Window.ContentScaleModeEnum.Disabled;
+        var s=GetNode<GameSession>("/root/GameSession");
+        foreach(var size in new[]{new Vector2I(1280,720),new Vector2I(1920,1080),new Vector2I(1440,1080)})foreach(var font in new[]{20,24,32})
+        {
+            window.Size=size;s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);var main=await NewPolishMain();
+            var button=main.GetNode<Button>("HUD/JournalButton");var pause=main.GetNode<Button>("HUD/PauseButton");
+            Require(!button.GetGlobalRect().Intersects(pause.GetGlobalRect()),"Journal HUD overlap font="+font+" button="+button.GetGlobalRect()+" pause="+pause.GetGlobalRect());
+            Require(main.Journal.Open(),"Journal layout open failed");await Frames(4);AssertJournalFits(main,font);main.Journal.Close();main.Free();await Frames(2);
+        }
+        window.Size=oldSize;window.ContentScaleMode=oldMode;await Frames(3);
+    }
+    private async Task CaptureJournalChecks()
+    {
+        var s=GetNode<GameSession>("/root/GameSession");
+        foreach(var font in new[]{20,24,32})
+        {
+            s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
+            var main=await NewPolishMain();
+            var journalButton=main.GetNode<Button>("HUD/JournalButton");var pauseButton=main.GetNode<Button>("HUD/PauseButton");
+            Require(!journalButton.GetGlobalRect().Intersects(pauseButton.GetGlobalRect())&&!journalButton.GetGlobalRect().Intersects(main.GetNode<Control>("HUD/TaskFold").GetGlobalRect()),"Journal HUD overlaps pause/goal");
+            Require(main.Journal.Open(),"Journal capture open failed");await Frames(5);AssertJournalFits(main,font);await Capture("journal-current-"+font);
+            main.Journal.ShowPage(JournalPage.History);await Frames(3);Require(main.Journal.GetNode<Label>(JournalEmpty).Visible,"Journal empty history capture not empty");await Capture("journal-empty-history-"+font);
+            main.Journal.ShowPage(JournalPage.Discoveries);await Frames(3);Require(main.Journal.GetNode<Label>(JournalEmpty).Visible,"Journal empty discoveries capture not empty");await Capture("journal-empty-discoveries-"+font);main.Journal.Close();main.Free();await Frames(3);
+            Require(s.Restore(JournalCompletedSnapshot(s.Options) with{DiscoveredIds=new(){"soup.sign","soup.menu","soup.note"}}).Success,"Journal full capture fixture invalid");
+            main=s.GetScene("res://scenes/Main.tscn")!.Instantiate<MainView>();AddChild(main);await Frames(3);main.SliceEnd.Close();Require(main.Journal.Open(),"Journal full capture open failed");
+            main.Journal.ShowPage(JournalPage.History);await Frames(4);AssertJournalFits(main,font);Require(main.Journal.GetNode<Label>(JournalText).Text.Contains("明天的安排"),"Journal capture history missing");await Capture("journal-history-"+font);
+            main.Journal.ShowPage(JournalPage.Discoveries);await Frames(3);Require(main.Journal.GetNode<Label>(JournalText).Text.Contains("柜台便条"),"Journal capture discoveries missing");await Capture("journal-discoveries-"+font);
+            main.Journal.ShowPage(JournalPage.Current);var text=main.Journal.GetNode<Label>(JournalText);var full=string.Join('\n',Enumerable.Repeat("我走过街道，也记下今天的生活。不必急着找到所有答案。",60));text.Text=full;await Frames(4);KeyPress(Key.Pagedown);await Frames(3);
+            Require(text.Text==full&&main.Journal.GetNode<ScrollContainer>("Panel/Content/BodyScroll").ScrollVertical>0,"Journal long capture cannot scroll");AssertJournalFits(main,font);await Capture("journal-long-"+font);main.Journal.Close();main.Free();await Frames(3);
+        }
+        GD.Print("JOURNAL_RENDER_PASS Current History Discoveries Empty Long ThreeFonts");
     }
 }

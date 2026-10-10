@@ -1,4 +1,4 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat')][string]$Batch='All')
+param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal')][string]$Batch='All')
 . "$PSScriptRoot/Common.ps1"
 try {
     $context=Get-ToolContext $GodotExe
@@ -17,6 +17,9 @@ try {
     $phoneChat=@();foreach($font in @(20,24,32)){foreach($state in @('empty','message','long','call','answered')){$phoneChat+='chat-'+$state+'-'+$font}}
     $phoneChat+='chat-missed'
     $required+=$phoneChat
+    $journal=@();foreach($font in @(20,24,32)){foreach($state in @('current','history','discoveries','empty-history','empty-discoveries','long')){$journal+='journal-'+$state+'-'+$font}}
+    $required+=$journal
+    if($Batch -eq 'CaptureJournal'){$required=$journal}
     if($Batch -eq 'CapturePhoneChat'){$required=$phoneChat}
     if($Batch -eq 'CaptureExploration'){$required=$exploration}
     if($Batch -eq 'CaptureDepthSeat'){$required=$depthSeat}
@@ -25,7 +28,7 @@ try {
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat')}else{@($Batch)}
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal')}else{@($Batch)}
     foreach($size in @('1280x720','1920x1080','1440x1080')) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
         [IO.Directory]::CreateDirectory($outputDir)|Out-Null

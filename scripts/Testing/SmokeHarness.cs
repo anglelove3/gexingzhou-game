@@ -48,7 +48,7 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");await DrainAudio();GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd" or "CaptureExploration" or "CaptureDepthSeat" or "CapturePhoneChat")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd" or "CaptureExploration" or "CaptureDepthSeat" or "CapturePhoneChat" or "CaptureJournal")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
@@ -56,6 +56,7 @@ public partial class SmokeHarness : Node
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
                 if(suite=="CapturePhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS CapturePhoneChat");await DrainAudio();GetTree().Quit();return;}
+                if(suite=="CaptureJournal"){await CaptureJournalChecks();GD.Print("GODOT_CHECKS_PASS CaptureJournal");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureExperience"){await ExperienceDialogueChecks();await ExperienceGuidanceChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureExperience");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureSoupSeat"){await SoupSeatVisualChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS CaptureSoupSeat");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureExploration"){await CaptureExplorationChecks();GD.Print("GODOT_CHECKS_PASS CaptureExploration");await DrainAudio();GetTree().Quit();return;}

@@ -22,6 +22,8 @@ Godot负责场景位置、图片、容器布局、主题、SpriteFrames、碰撞
 
 ## 练习3：修改一条C#提示并构建
 
+新增“今日记事”编辑练习：停止运行后打开scenes/ui/Journal.tscn，本地树可见Panel/Content下Title、Tabs三个Button、BodyScroll/Body/Text与Empty、CloseButton。在Godot改Paper/Tab/Selected/Focus样式，保持深色焦点字、滚动区和关闭按钮可达；正文继承用户字号，不能通过缩字容纳。Main.tscn预存Journal实例及HUD/JournalButton，按钮在暂停左侧（32字号最小宽164，因此实际预存宽180，保留12间距）。C#在scripts/JournalController.cs绑定节点，在code/Domain/JournalProjection.cs只读投影已完成事实，不往SaveCodec增加日志字段。改后跑Journal、EditableUi、PhoneChat及CaptureJournal；入口J，仅稳定自由探索且未坐下时可用。手机Task节点只提示收起后按J，不允许叠层。
+
 VS Code打开整个根目录，不只打开一个.cs。打开scripts/MainView.cs，在_Process中把显示文字“Tab 手机”暂改为“Tab 旧手机”，不要改事件ID或Flow枚举。
 按Ctrl+Shift+B选择“构建游戏”，成功后Godot F5运行核对。完成后恢复文字，再构建。首次构建可用终端dotnet build GeXingzhou.csproj；无需安装额外游戏插件。
 本机已检测到VS Code命令 F:\Vscode\vscode ben ti\Microsoft VS Code\bin\code.cmd；换设备请重新检查路径，不把这个路径写入公开包。Godot的C#外部编辑器在编辑器设置中选择VS Code；菜单名称/位置以本机设置为准。当前工具无法操作原生Godot设置窗口，未替你更改机器级偏好。
