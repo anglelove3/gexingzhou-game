@@ -69,11 +69,11 @@ public sealed class SaveRepository
         if(s.ReturnContext is {} context&&(!float.IsFinite(context.Position.X)||context.Position.X<8||context.Position.X>952||context.Position.Y!=280))return "回忆返回位置异常。";
         return null;
     }
-    internal static string? ValidateStory(WorldSnapshot s)
+    internal static string? ValidateStory(WorldSnapshot s,int discoverySchemaVersion=2)
     {
         if(s.SceneId is not ("community_gate" or "convenience_street" or "soup_shop" or "memory_soup_table")||!Enum.IsDefined(s.Stage)||s.CompletedActions==null||s.ChoiceCodes==null||s.InvitationState==null||s.Settings==null||s.SceneActiveMilliseconds==null||string.IsNullOrWhiteSpace(s.PlaythroughId))return "存档内容不完整。";
         if(s.GameDay!=1||s.CandyCount is <0 or >1||s.MemoryOrdinal<0||s.MemoryVisitOrdinal<0)return "存档数值异常。";
-        var idError=SaveIdPolicy.Validate(s);if(idError!=null)return idError;
+        var idError=SaveIdPolicy.Validate(s,discoverySchemaVersion);if(idError!=null)return idError;
         if(s.Stage==SliceStage.CandyHeyPending&&s.CandyCount!=1||s.Stage>SliceStage.CandyHeyPending&&s.CandyCount!=0)return "喜糖与任务阶段不一致。";
         if(!double.IsFinite(s.InvitationState.Elapsed)||s.InvitationState.Elapsed<0||s.InvitationState.Resolution!=null&&!Enum.IsDefined(s.InvitationState.Resolution.Value))return "邀请计时异常。";
         if(s.MemoryState is {} m)

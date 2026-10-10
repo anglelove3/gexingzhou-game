@@ -70,9 +70,11 @@ internal static class SaveIdPolicy
 {
     internal static bool MemoryId(string? id,int ordinal)=>id!=null&&id.StartsWith("soup-",StringComparison.Ordinal)&&int.TryParse(id[5..],out var n)&&n>0&&n<=ordinal&&id=="soup-"+n;
     private static bool CoinId(string id,int ordinal){var parts=id.Split(':');return parts.Length==2&&MemoryId(parts[0],ordinal)&&parts[1] is "c1" or "c2" or "c3" or "c4";}
-    internal static string? Validate(WorldSnapshot s)
+    internal static string? Validate(WorldSnapshot s,int discoverySchemaVersion=2)
     {
-        if(s.DiscoveredIds==null||s.DiscoveredIds.Count>3||s.DiscoveredIds.Any(id=>id is not ("soup.sign" or "soup.menu" or "soup.note")))return "未知发现记录。";
+        if(s.DiscoveredIds==null||s.DiscoveredIds.Count>(discoverySchemaVersion==3?6:3)||s.DiscoveredIds.Any(id=>
+            id is not ("soup.sign" or "soup.menu" or "soup.note")&&
+            !(discoverySchemaVersion==3&&id is "community.sign" or "community.notice" or "community.planter")))return "未知发现记录。";
         if(s.PhoneState is not ("open" or "closed")||s.TimeBlock!="arrival"||s.SceneActiveMilliseconds.Any(p=>p.Key is not ("community_gate" or "convenience_street" or "soup_shop" or "memory_soup_table")||p.Value<0))return "状态或场景计时异常。";
         if(s.CompletedActions.Any(id=>!Action(id,s.MemoryOrdinal))||s.ChoiceCodes.Any(p=>!Choice(p.Key,p.Value,s.MemoryOrdinal)))return "未知剧情事实或选项。";
         return null;
