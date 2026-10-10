@@ -33,6 +33,7 @@ try {
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
     $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity')}else{@($Batch)}
+    $supplemental=if($batches -contains 'CaptureCommunity'){@('community-sign-back','community-sign-front')}else{@()}
     foreach($size in $Sizes) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
         [IO.Directory]::CreateDirectory($outputDir)|Out-Null
@@ -49,7 +50,7 @@ try {
             $combined+=$body
         }
         $dimensions=$size.Split('x')
-        foreach($name in $required) {
+        foreach($name in ($required+$supplemental)) {
             $path=Join-Path $outputDir "$size/$name.png"
             if(!(Test-Path -LiteralPath $path) -or $combined -notmatch "CAPTURE $name $size "){throw "CAPTURE_SIZE_OR_FILE_MISMATCH $name $size"}
             $image=[Drawing.Bitmap]::new($path)
@@ -57,5 +58,6 @@ try {
         }
     }
     Write-Output "CAPTURE_PASS $($required.Count*$Sizes.Count) required real-rendered images; visual inspection still required"
+    if($supplemental.Count){Write-Output "CAPTURE_SUPPLEMENTAL_PASS $($supplemental.Count*$Sizes.Count) sign front/back render checks"}
     exit 0
 } catch {Write-Output "CAPTURE_FAIL $_";exit 1}

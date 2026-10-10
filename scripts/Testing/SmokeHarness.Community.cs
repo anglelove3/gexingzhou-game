@@ -5,6 +5,7 @@ public partial class SmokeHarness
     private async Task CaptureCommunityChecks()
     {
         var session=GetNode<GameSession>("/root/GameSession");
+        await CommunitySignOcclusionChecks();
         foreach(var font in new[]{20,24,32})
         {
             session.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=false},false);
@@ -22,6 +23,34 @@ public partial class SmokeHarness
         }
         await CommunityRestChecks();
         GD.Print("COMMUNITY_RENDER_PASS Entry Explore Observation Seated Smoke Stand ThreeFonts ContactNormalReduced");
+    }
+    // Break caught: a root-level/fixed-Z sign covers the player even after walking in front.
+    private async Task CommunitySignOcclusionChecks()
+    {
+        var main=await NewPolishMain();var player=main.World.Player;
+        var sign=(ObservationHotspot)main.World.GetTarget("old_sign")!;
+        var visual=sign.GetNode<Node2D>(sign.VisualTarget);
+        var viewport=main.GetNode<SubViewport>("WorldDisplay/WorldViewport");
+        player.Position=new(158,385);player.Velocity=Vector2.Zero;await Frames(4);
+        foreach(var front in new[]{false,true})
+        {
+            if(front){Input.ActionPress("move_down");await DepthPhysics(20);Input.ActionRelease("move_down");await DepthPhysics(12);Require(player.Position.Y>400,"Occlusion player never walked to sign front");}
+            player.SetPhysicsProcess(false);var art=player.GetNode<AnimatedSprite2D>("Artwork");art.Stop();
+            async Task<Image> Read(bool showPlayer,bool showSign){player.Visible=showPlayer;visual.Visible=showSign;await Frames(3);await ToSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);return viewport.GetTexture().GetImage();}
+            using var background=await Read(false,false);using var playerOnly=await Read(true,false);using var signOnly=await Read(false,true);using var both=await Read(true,true);
+            int overlap=0,correct=0;
+            static float Difference(Color a,Color b)=>Math.Abs(a.R-b.R)+Math.Abs(a.G-b.G)+Math.Abs(a.B-b.B);
+            for(int y=0;y<both.GetHeight();y++)for(int x=0;x<both.GetWidth();x++){
+                var p=playerOnly.GetPixel(x,y);var s=signOnly.GetPixel(x,y);var b=background.GetPixel(x,y);
+                if(Difference(p,b)<.15f||Difference(s,b)<.15f||Difference(p,s)<.15f)continue;
+                overlap++;if(Difference(both.GetPixel(x,y),front?p:s)<.03f)correct++;
+            }
+            GD.Print($"COMMUNITY_SIGN_OCCLUSION front={front} overlap={overlap} correct={correct}");
+            await Capture(front?"community-sign-front":"community-sign-back");
+            Require(overlap>=20&&correct>=overlap*.90,"Sign/player rendered in wrong depth order front="+front);
+            player.SetPhysicsProcess(true);
+        }
+        main.Free();await Frames(3);
     }
     private async Task CommunityChecks()
     {
@@ -121,6 +150,7 @@ public partial class SmokeHarness
             try {Require(fixture.TryUpgradePrevious(false).Status==LoadStatus.Corrupt,"Invalid candidate wrote v3");Require(fixture.Saves.Load().Status==LoadStatus.NotFound&&CommunityFileState(fixture.V2Directory)==old&&ReferenceEquals(fixture.Snapshot,snapshot),"Candidate failure changed runtime/source");}
             finally{resources[path]=original;fixture.Free();}await Frames();
         }
+        await CommunityCandidateHotspotChecks();
         foreach(var condition in new[]{"v3_valid","v3_corrupt","v3_parent_file","v2_valid","v2_corrupt","v2_parent_file","v1_valid"}){
             var fixture=UpgradeFixture();var oldDirectory=System.IO.Path.Combine(fixture.LegacyDirectory,"preferences");Require(new SettingsRepository(oldDirectory).Save(new(){SubtitleSize=32}).Success,"Old preference fixture");
             var v2Directory=System.IO.Path.Combine(fixture.V2Directory,"preferences");var currentDirectory=System.IO.Path.Combine(fixture.SaveDirectory,"preferences");
@@ -141,6 +171,38 @@ public partial class SmokeHarness
         Require(boot.GetNode<ChoiceController>("Choices").IsOpen&&session.Saves.Load().Status==LoadStatus.NotFound,"V2 menu bypassed confirmation");
         boot.GetNode<ChoiceController>("Choices").HandleKey(Key.Escape);await Frames();Require(session.Saves.Load().Status==LoadStatus.NotFound&&CommunityFileState(session.V2Directory)==files,"Canceled V2 upgrade mutated files");boot.Free();await Frames();
         GD.Print("COMMUNITY_UPGRADE_PASS RuntimeBoundary AllOldSlots SourceHashes BackupOnly BadV2 CandidateFailure PreferencesParentIsFile Cancel");
+    }
+    // Break caught: candidate acceptance writes v3 before _Ready rejects a broken authored hotspot.
+    private async Task CommunityCandidateHotspotChecks()
+    {
+        var failures=new List<string>();
+        foreach(var invalid in new[]{"missing_shape","bad_visual","bad_hit","unknown_discovery","short_outline","degenerate_outline"})
+        {
+            var fixture=UpgradeFixture();WriteV2(fixture,false,false);fixture.Flow=FlowState.Phone;
+            var old=CommunityFileState(fixture.V2Directory)+CommunityFileState(fixture.LegacyDirectory);
+            var current=CommunityFileState(fixture.SaveDirectory);var snapshot=fixture.Snapshot;var flow=fixture.Flow;var pending=fixture.PendingRestore;
+            var resources=(Dictionary<string,PackedScene>)DiagnosticField(fixture,"sceneResources")!;
+            const string path="res://scenes/world/CommunityGate.tscn";var original=resources[path];var candidate=original.Instantiate<WorldView>();
+            var hotspot=(ObservationHotspot)candidate.GetTarget("old_sign")!;
+            switch(invalid){
+                case "missing_shape":hotspot.GetNode(hotspot.HitPolygon).Free();break;
+                case "bad_visual":hotspot.VisualTarget="MissingVisual";break;
+                case "bad_hit":hotspot.HitPolygon="MissingHitPolygon";break;
+                case "unknown_discovery":hotspot.DiscoveryId="community.unknown";break;
+                case "short_outline":hotspot.GetNode<Polygon2D>(hotspot.HitPolygon).Polygon=new[]{Vector2.Zero,Vector2.One};break;
+                case "degenerate_outline":hotspot.GetNode<Polygon2D>(hotspot.HitPolygon).Polygon=new[]{Vector2.Zero,Vector2.One,new Vector2(2,2)};break;
+            }
+            using var broken=new PackedScene();Require(broken.Pack(candidate)==Error.Ok,"Hotspot candidate fixture pack failed");candidate.Free();resources[path]=broken;
+            try{
+                var result=fixture.TryUpgradePrevious(false);
+                var preserved=CommunityFileState(fixture.SaveDirectory)==current&&CommunityFileState(fixture.V2Directory)+CommunityFileState(fixture.LegacyDirectory)==old&&ReferenceEquals(fixture.Snapshot,snapshot)&&fixture.Flow==flow&&ReferenceEquals(fixture.PendingRestore,pending);
+                bool rejected=result.Status==LoadStatus.Corrupt&&preserved;
+                GD.Print($"CANDIDATE_HOTSPOT_{(rejected?"PASS":"FAIL")} {invalid} status={result.Status} preserved={preserved}");
+                if(!rejected)failures.Add(invalid);
+            }finally{resources[path]=original;fixture.Free();}
+            await Frames();
+        }
+        Require(failures.Count==0,"Invalid hotspot candidate wrote v3 or changed source/runtime: "+string.Join(",",failures));
     }
     private static void WriteV2(GameSession session,bool manual,bool backup,WorldSnapshot? snapshot=null)
     {

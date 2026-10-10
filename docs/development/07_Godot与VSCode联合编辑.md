@@ -17,6 +17,8 @@ Godot负责场景位置、图片、容器布局、主题、SpriteFrames、碰撞
 
 场景移动NPC时，保留Id和ActionId。张大炮Cannon初始隐藏/不参与互动，到场由存档状态控制；不要用节点是否存在判断他是否到了。
 
+旧路牌的图像/轮廓在DepthLayers/Props/OldSign/Visual，按脚底Y与角色排序；根OldSign是互动热点，VisualTarget和HitPolygon引用前者。移动路牌时同时保持这两个OldSign的世界位置一致，不用固定Z覆盖排序。形状至少三点、有限且非退化，发现ID必须已知；删掉Shape或破坏引用会在复制升级写v3之前拒绝候选，不会靠运行时重建补洞。
+
 ## 练习2：修改手机或对白外观
 
 打开scenes/ui/Phone.tscn或Dialogue.tscn：编辑器中完整显示，运行Main时默认隐藏，由Tab/对白控制显示。

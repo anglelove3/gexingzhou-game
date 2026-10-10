@@ -20,6 +20,7 @@ public static class RestoreCandidateValidator
             var ids=new HashSet<string>(StringComparer.Ordinal);
             foreach(var target in world.GetTargets()){
                 if(string.IsNullOrWhiteSpace(target.Id)||!ids.Add(target.Id))return "候选交互绑定异常。";
+                if(target is ObservationHotspot hotspot)hotspot.ValidateBindings();
                 if(target is BenchView bench&&(bench.SeatAnchor==null||bench.StandAnchor==null||bench.GetNodeOrNull<Sprite2D>("BenchForeground")?.Texture==null))return "候选长椅绑定缺失。";
             }
             if(scene=="community_gate"&&world.GetTarget("cannon")==null)return "候选小区会面目标缺失。";

@@ -133,8 +133,8 @@ position=Vector2(160,400)
 script=ExtResource("Observation")
 Id="old_sign"
 DiscoveryId="community.sign"
-VisualTarget=NodePath("Visual")
-HitPolygon=NodePath("Visual/Shape")
+VisualTarget=NodePath("../DepthLayers/Props/OldSign/Visual")
+HitPolygon=NodePath("../DepthLayers/Props/OldSign/Visual/Shape")
 Caption="看看旧路牌"
 Description="路是新的，牌还是旧的。以前闭着眼能走到家的地方，现在得看导航。"
 ActionId="observe"
@@ -148,15 +148,17 @@ theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
 theme_override_constants/outline_size=3
 text="◇"
 mouse_filter=2
-[node name="Visual" type="Node2D" parent="OldSign"]
+[node name="OldSign" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(160,400)
+[node name="Visual" type="Node2D" parent="DepthLayers/Props/OldSign"]
 position=Vector2(0,-55)
-[node name="Artwork" type="Sprite2D" parent="OldSign/Visual"]
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/OldSign/Visual"]
 position=Vector2(-25.607,-48.356)
 scale=Vector2(0.058,0.058)
 texture=ExtResource("SignArt")
 texture_filter=2
 centered=false
-[node name="Shape" type="Polygon2D" parent="OldSign/Visual"]
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/OldSign/Visual"]
 visible=false
 polygon=PackedVector2Array(-23,-34,0,-34,0,-29,23,-25,23,-14,3,-14,3,46,-5,46,-5,-22,-23,-22)
 [node name="CommunityNotice" type="Node2D" parent="."]

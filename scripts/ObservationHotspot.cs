@@ -11,12 +11,20 @@ public partial class ObservationHotspot : Interactable
         base._Ready();
         try
         {
-            if(!DiscoveryPolicy.IsKnown(DiscoveryId))throw new InvalidOperationException("未知观察ID："+DiscoveryId);
-            SceneBindings.Require<Node2D>(this,VisualTarget.ToString());
-            Shape=SceneBindings.Require<Polygon2D>(this,HitPolygon.ToString());
-            if(Shape.Polygon.Length<3)throw new InvalidOperationException("观察物件缺少轮廓："+Id);
+            Shape=ValidateBindings();
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
+    }
+    // Read-only and detached-safe: upgrade preflight and _Ready enforce the same authored contract.
+    public Polygon2D ValidateBindings()
+    {
+        if(!DiscoveryPolicy.IsKnown(DiscoveryId))throw new InvalidOperationException("未知观察ID："+DiscoveryId);
+        SceneBindings.Require<Node2D>(this,VisualTarget.ToString());
+        var shape=SceneBindings.Require<Polygon2D>(this,HitPolygon.ToString());var points=shape.Polygon;
+        if(points.Length<3||points.Any(p=>!float.IsFinite(p.X)||!float.IsFinite(p.Y)))throw new InvalidOperationException("观察物件缺少有效轮廓："+Id);
+        double area=0;for(int i=0;i<points.Length;i++){var a=points[i];var b=points[(i+1)%points.Length];area+=(double)a.X*b.Y-(double)b.X*a.Y;}
+        if(Math.Abs(area)<.00001)throw new InvalidOperationException("观察物件轮廓退化："+Id);
+        return shape;
     }
     public bool ContainsWorldPoint(Vector2 point)=>IsActive&&IsVisibleInTree()&&!HasMeta("binding_error")&&Geometry2D.IsPointInPolygon(Shape.ToLocal(point),Shape.Polygon);
     public Vector2[] OutlineWorld()=>Shape.Polygon.Select(p=>Shape.ToGlobal(p)).ToArray();
