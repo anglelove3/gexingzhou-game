@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=23 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/community-background.png" id="Bg"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
@@ -14,6 +14,18 @@
 [ext_resource type="Script" path="res://scripts/ObservationHotspot.cs" id="Observation"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/old-sign.png" id="SignArt"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/notice-board.png" id="NoticeArt"]
+[ext_resource type="Script" path="res://scripts/AmbientResidentController.cs" id="Ambient"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Resident1"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Resident2"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v6-polish/living-details.png" id="LivingArt"]
+[sub_resource type="AtlasTexture" id="BicycleDetails"]
+atlas=ExtResource("LivingArt")
+region=Rect2(0,150,1050,650)
+filter_clip=true
+[sub_resource type="AtlasTexture" id="LaundryDetails"]
+atlas=ExtResource("LivingArt")
+region=Rect2(1050,150,724,650)
+filter_clip=true
 [sub_resource type="AtlasTexture" id="BenchLip"]
 atlas=ExtResource("BenchArt")
 region=Rect2(215,450,1556,40)
@@ -30,6 +42,22 @@ z_index=-10
 scale=Vector2(0.74177052,0.74177052)
 texture=ExtResource("Bg")
 centered=false
+[node name="WallDetails" type="Node2D" parent="."]
+z_index=-1
+[node name="LivingDetails" type="Sprite2D" parent="WallDetails"]
+texture_filter=2
+position=Vector2(342,210)
+scale=Vector2(0.125,0.125)
+texture=SubResource("BicycleDetails")
+centered=false
+[node name="Laundry" type="Sprite2D" parent="WallDetails"]
+texture_filter=2
+position=Vector2(1190,210)
+scale=Vector2(0.12,0.12)
+texture=SubResource("LaundryDetails")
+centered=false
+[node name="CommunityNotice" type="Node2D" parent="WallDetails"]
+position=Vector2(740,400)
 [node name="DepthLayers" type="Node2D" parent="."]
 y_sort_enabled=true
 [node name="Actors" type="Node2D" parent="DepthLayers"]
@@ -75,6 +103,34 @@ theme_override_constants/outline_size=3
 theme_override_font_sizes/font_size=16
 text="◇"
 mouse_filter=2
+[node name="BackgroundResidents" type="Node2D" parent="DepthLayers/Actors"]
+y_sort_enabled=true
+[node name="ResidentByGate" type="Node2D" parent="DepthLayers/Actors/BackgroundResidents"]
+position=Vector2(470,326)
+script=ExtResource("Ambient")
+StepSpeed=8.0
+PauseSeconds=4.0
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByGate"]
+texture_filter=2
+position=Vector2(0,-36)
+scale=Vector2(0.145,0.145)
+texture=ExtResource("Resident1")
+[node name="Waypoint" type="Marker2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByGate"]
+position=Vector2(24,0)
+[node name="ResidentByStreet" type="Node2D" parent="DepthLayers/Actors/BackgroundResidents"]
+position=Vector2(1270,343)
+script=ExtResource("Ambient")
+StepSpeed=6.0
+PauseSeconds=5.0
+IdlePhase=1.8
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByStreet"]
+texture_filter=2
+position=Vector2(0,-35)
+scale=Vector2(0.138,0.138)
+texture=ExtResource("Resident2")
+flip_h=true
+[node name="Waypoint" type="Marker2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByStreet"]
+position=Vector2(-20,0)
 [node name="Props" type="Node2D" parent="DepthLayers"]
 y_sort_enabled=true
 [node name="Bench" parent="DepthLayers/Props" instance=ExtResource("Bench")]
@@ -166,18 +222,20 @@ position=Vector2(740,400)
 script=ExtResource("Observation")
 Id="community.notice"
 DiscoveryId="community.notice"
+VisualTarget=NodePath("../WallDetails/CommunityNotice/Visual")
+HitPolygon=NodePath("../WallDetails/CommunityNotice/Visual/Shape")
 Caption="小区公告"
 Description="请保持通道畅通。搬进来以后，连门口那点空地，也有人替你操心了。"
 ActionId="observe"
-[node name="Visual" type="Node2D" parent="CommunityNotice"]
+[node name="Visual" type="Node2D" parent="WallDetails/CommunityNotice"]
 position=Vector2(0,-155)
-[node name="Artwork" type="Sprite2D" parent="CommunityNotice/Visual"]
+[node name="Artwork" type="Sprite2D" parent="WallDetails/CommunityNotice/Visual"]
 position=Vector2(-58.368,-38.912)
 scale=Vector2(0.076,0.076)
 texture=ExtResource("NoticeArt")
 texture_filter=2
 centered=false
-[node name="Shape" type="Polygon2D" parent="CommunityNotice/Visual"]
+[node name="Shape" type="Polygon2D" parent="WallDetails/CommunityNotice/Visual"]
 visible=false
 polygon=PackedVector2Array(-41,-24,41,-24,41,24,-41,24)
 [node name="CommunityPlanter" type="Node2D" parent="."]
@@ -219,6 +277,29 @@ horizontal_alignment=1
 text="去便利店街"
 mouse_filter=2
 visible=false
+[node name="DirectionSign" type="Label" parent="StreetExit"]
+offset_left=-106.0
+offset_top=-153.0
+offset_right=94.0
+offset_bottom=-122.0
+horizontal_alignment=1
+theme_override_colors/font_color=Color(1,0.88,0.6,1)
+theme_override_colors/font_outline_color=Color(0.12,0.15,0.13,1)
+theme_override_constants/outline_size=4
+theme_override_font_sizes/font_size=20
+text="便利店街 →"
+mouse_filter=2
+[node name="GroundDirection" type="Label" parent="StreetExit"]
+offset_left=-100.0
+offset_top=5.0
+offset_right=-42.0
+offset_bottom=41.0
+theme_override_colors/font_color=Color(1,0.88,0.6,0.8)
+theme_override_colors/font_outline_color=Color(0.12,0.15,0.13,0.8)
+theme_override_constants/outline_size=2
+theme_override_font_sizes/font_size=30
+text="→"
+mouse_filter=2
 [node name="Foreground" type="Node2D" parent="."]
 [node name="Navigation" type="Node2D" parent="."]
 [node name="GroundBoundary" type="StaticBody2D" parent="Navigation"]

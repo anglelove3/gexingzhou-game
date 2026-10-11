@@ -1,0 +1,150 @@
+[gd_resource type="SpriteFrames" load_steps=30 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v6-polish/player-walk.png" id="Walk"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v4/player-depth.png" id="Idle"]
+[sub_resource type="AtlasTexture" id="F0"]
+atlas=ExtResource("Walk")
+region=Rect2(0,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F1"]
+atlas=ExtResource("Walk")
+region=Rect2(256,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F2"]
+atlas=ExtResource("Walk")
+region=Rect2(512,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F3"]
+atlas=ExtResource("Walk")
+region=Rect2(768,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F4"]
+atlas=ExtResource("Walk")
+region=Rect2(1024,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F5"]
+atlas=ExtResource("Walk")
+region=Rect2(1280,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F6"]
+atlas=ExtResource("Walk")
+region=Rect2(1536,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F7"]
+atlas=ExtResource("Walk")
+region=Rect2(1792,0,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F8"]
+atlas=ExtResource("Walk")
+region=Rect2(0,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F9"]
+atlas=ExtResource("Walk")
+region=Rect2(256,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F10"]
+atlas=ExtResource("Walk")
+region=Rect2(512,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F11"]
+atlas=ExtResource("Walk")
+region=Rect2(768,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F12"]
+atlas=ExtResource("Walk")
+region=Rect2(1024,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F13"]
+atlas=ExtResource("Walk")
+region=Rect2(1280,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F14"]
+atlas=ExtResource("Walk")
+region=Rect2(1536,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F15"]
+atlas=ExtResource("Walk")
+region=Rect2(1792,432,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F16"]
+atlas=ExtResource("Walk")
+region=Rect2(0,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F17"]
+atlas=ExtResource("Walk")
+region=Rect2(256,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F18"]
+atlas=ExtResource("Walk")
+region=Rect2(512,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F19"]
+atlas=ExtResource("Walk")
+region=Rect2(768,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F20"]
+atlas=ExtResource("Walk")
+region=Rect2(1024,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F21"]
+atlas=ExtResource("Walk")
+region=Rect2(1280,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F22"]
+atlas=ExtResource("Walk")
+region=Rect2(1536,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="F23"]
+atlas=ExtResource("Walk")
+region=Rect2(1792,864,256,432)
+filter_clip=true
+metadata/foot_pivot=Vector2(128,412)
+[sub_resource type="AtlasTexture" id="I0"]
+atlas=ExtResource("Idle")
+region=Rect2(0,0,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(165,411)
+[sub_resource type="AtlasTexture" id="I4"]
+atlas=ExtResource("Idle")
+region=Rect2(0,418,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(155,408)
+[sub_resource type="AtlasTexture" id="I8"]
+atlas=ExtResource("Idle")
+region=Rect2(0,836,313,418)
+filter_clip=true
+metadata/foot_pivot=Vector2(153,392)
+
+[resource]
+animations=[
+{ "name": &"idle_side", "loop":true, "speed":1.0, "frames":[{"duration":1.0,"texture":SubResource("I0")}] },
+{ "name": &"walk_side", "loop":true, "speed":10.0, "frames":[{"duration":1.0,"texture":SubResource("F0")},{"duration":1.0,"texture":SubResource("F1")},{"duration":1.0,"texture":SubResource("F2")},{"duration":1.0,"texture":SubResource("F3")},{"duration":1.0,"texture":SubResource("F4")},{"duration":1.0,"texture":SubResource("F5")},{"duration":1.0,"texture":SubResource("F6")},{"duration":1.0,"texture":SubResource("F7")}] },
+{ "name": &"idle_front", "loop":true, "speed":1.0, "frames":[{"duration":1.0,"texture":SubResource("I4")}] },
+{ "name": &"walk_front", "loop":true, "speed":10.0, "frames":[{"duration":1.0,"texture":SubResource("F8")},{"duration":1.0,"texture":SubResource("F9")},{"duration":1.0,"texture":SubResource("F10")},{"duration":1.0,"texture":SubResource("F11")},{"duration":1.0,"texture":SubResource("F12")},{"duration":1.0,"texture":SubResource("F13")},{"duration":1.0,"texture":SubResource("F14")},{"duration":1.0,"texture":SubResource("F15")}] },
+{ "name": &"idle_back", "loop":true, "speed":1.0, "frames":[{"duration":1.0,"texture":SubResource("I8")}] },
+{ "name": &"walk_back", "loop":true, "speed":10.0, "frames":[{"duration":1.0,"texture":SubResource("F16")},{"duration":1.0,"texture":SubResource("F17")},{"duration":1.0,"texture":SubResource("F18")},{"duration":1.0,"texture":SubResource("F19")},{"duration":1.0,"texture":SubResource("F20")},{"duration":1.0,"texture":SubResource("F21")},{"duration":1.0,"texture":SubResource("F22")},{"duration":1.0,"texture":SubResource("F23")}] },
+{ "name": &"idle", "loop":true, "speed":1.0, "frames":[{"duration":1.0,"texture":SubResource("I0")}] },
+{ "name": &"walk", "loop":true, "speed":10.0, "frames":[{"duration":1.0,"texture":SubResource("F0")},{"duration":1.0,"texture":SubResource("F1")},{"duration":1.0,"texture":SubResource("F2")},{"duration":1.0,"texture":SubResource("F3")},{"duration":1.0,"texture":SubResource("F4")},{"duration":1.0,"texture":SubResource("F5")},{"duration":1.0,"texture":SubResource("F6")},{"duration":1.0,"texture":SubResource("F7")}] }
+]

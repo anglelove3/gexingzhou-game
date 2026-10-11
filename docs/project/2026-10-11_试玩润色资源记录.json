@@ -1,0 +1,68 @@
+{
+  "generated_on": "2026-10-11",
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "id": "menu-autumn",
+      "file": "assets/art/vs01-v6-polish/menu-autumn.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "EBAD0E9A910EB5FAD62006CA29DB0A8D31C1B53BFD871DACB68EAFA6306894D0",
+      "usage": "title_menu_background",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    },
+    {
+      "id": "community-living-details",
+      "file": "assets/art/vs01-v6-polish/living-details.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "C01760088111006444E428BF0712A52404134BB0ABCF33A84971A11F5CA0F07D",
+      "usage": "transparent_wallside_bicycle_plants_laundry",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    },
+    {
+      "id": "player-walk-source",
+      "file": "assets/art/vs01-v6-polish/player-walk-source.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "C152A24A4973677DA6E49508D9AA6D384219DCBAF003A2C5A7F911A2001ECC29",
+      "usage": "AI_generated_24_pose_source",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    },
+    {
+      "id": "player-walk-polish",
+      "file": "assets/art/vs01-v6-polish/player-walk.png",
+      "size": [
+        2048,
+        1296
+      ],
+      "sha256": "8A7DE0B8E0546CB17441A9AFC653C1721D495C4F67517832F5C1980E816A4555",
+      "usage": "compiled_24_walk_phases_foot_anchored",
+      "source": "built-in image_gen; normalized atlas compilation tools/build-walk-atlas.mjs",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    }
+  ],
+  "prompts": {
+    "player": "Preserve original young Chinese protagonist, denim jacket/black shirt/pendant/jeans chain/boots/black ponytail. Three rows (right side, front, back), eight successive relaxed walking phases each, arm swings, knees, transparent gutters and no captions.",
+    "decor": "Two separated transparent groups: city bicycle and terracotta plants; low clothes drying rack, everyday pale shirts and cloth basket. Warm autumn dusk, detailed painterly retro Chinese neighborhood style; no people/text/background.",
+    "menu": "16:9 autumn dusk close courtyard corner, apartment windows, ochre leaves, old bench and plants on right, softly shaded wall/tree shadow on left for menu. Warm amber/cream/charcoal, original painterly artwork, no text/UI/people."
+  },
+  "compile": "Transparent source columns detected via alpha gaps; extracted poses normalized to 400px height on 256x432 cells, foot_pivot (128,412); neutral idle retains existing resource."
+}

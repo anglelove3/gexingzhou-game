@@ -14,10 +14,13 @@ public partial class WorldDisplayController : SubViewportContainer
         // Stretch owns the SubViewport size; assigning Size here conflicts with Godot.
         if(viewport.Size.X<1||viewport.Size.Y<1)return;
         var bounds=world.ViewBounds;float aspect=(float)viewport.Size.X/viewport.Size.Y;
-        float height=Math.Min(bounds.Size.Y,bounds.Size.X/aspect);var viewSize=new Vector2(height*aspect,height);
+        // Frame the community closer while retaining authored foot/furniture and save coordinates.
+        var framingBounds=world.SceneId=="community_gate"?new Rect2(bounds.Position,new Vector2(bounds.Size.X,Math.Min(bounds.Size.Y,520))):bounds;
+        float preferredHeight=world.SceneId=="community_gate"?460:framingBounds.Size.Y;
+        float height=Math.Min(preferredHeight,framingBounds.Size.X/aspect);var viewSize=new Vector2(height*aspect,height);
         var wanted=world.Player.GlobalPosition+new Vector2(0,-100);
         var center=new Vector2(Math.Clamp(wanted.X,bounds.Position.X+viewSize.X/2,bounds.End.X-viewSize.X/2),
-            Math.Clamp(wanted.Y,bounds.Position.Y+viewSize.Y/2,bounds.End.Y-viewSize.Y/2));
+            Math.Clamp(wanted.Y,framingBounds.Position.Y+viewSize.Y/2,framingBounds.End.Y-viewSize.Y/2));
         VisibleWorldRect=new Rect2(center-viewSize/2,viewSize);
         var camera=world.Player.GetNode<Camera2D>("Camera2D");
         // Clamp explicitly inside authored safe art bounds, independently of collision borders.

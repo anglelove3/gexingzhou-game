@@ -17,6 +17,11 @@ public partial class AudioDirector : Node
     private AudioStreamPlayer music=null!,ambience=null!;
     private AudioStreamPlayer[] slots=Array.Empty<AudioStreamPlayer>();
     private GameSettings options=new();private bool paused,ready;
+    private const float FadeSeconds=.8f;
+    private float musicTarget,ambienceTarget,musicRate,ambienceRate;
+    private AudioStream? nextAmbience;
+    private bool changingAmbience;
+    private string nextAmbienceName="environment";
     private readonly HashSet<string> missing=new();
     public override void _Ready()
     {
@@ -24,6 +29,7 @@ public partial class AudioDirector : Node
         {
             music=SceneBindings.Require<AudioStreamPlayer>(this,"Music");ambience=SceneBindings.Require<AudioStreamPlayer>(this,"Ambience");
             slots=Enumerable.Range(1,8).Select(i=>SceneBindings.Require<AudioStreamPlayer>(this,"Effects/Slot"+i)).ToArray();
+            music.VolumeLinear=0;ambience.VolumeLinear=0;
             ready=true;ApplySettings(GetNode<GameSession>("/root/GameSession").Options);
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
@@ -32,14 +38,34 @@ public partial class AudioDirector : Node
     {
         if(!ready)return;
         var current=GetNode<GameSession>("/root/GameSession").Options;if(current!=options)ApplySettings(current);
+        music.VolumeLinear=Mathf.MoveToward(music.VolumeLinear,musicTarget,musicRate*(float)delta);
+        ambience.VolumeLinear=Mathf.MoveToward(ambience.VolumeLinear,ambienceTarget,ambienceRate*(float)delta);
+        if(changingAmbience&&ambience.VolumeLinear==0)
+        {
+            changingAmbience=false;Loop(ambience,nextAmbience,nextAmbienceName);
+            var gain=(float)(options.MasterVolume*options.EnvironmentVolume*(paused?.35:1));
+            SetBedGain(ambience,gain,ref ambienceTarget,ref ambienceRate,gain==0);
+        }
     }
     public void ApplySettings(GameSettings settings)
     {
         options=settings.Normalize();if(!ready)return;
         var attenuation=paused?.35:1;
-        music.VolumeLinear=(float)(options.MasterVolume*options.MusicVolume*attenuation);
-        ambience.VolumeLinear=(float)(options.MasterVolume*options.EnvironmentVolume*attenuation);
-        foreach(var slot in slots)slot.VolumeLinear=(float)(options.MasterVolume*options.EffectsVolume);
+        var musicGain=(float)(options.MasterVolume*options.MusicVolume*attenuation);
+        SetBedGain(music,musicGain,ref musicTarget,ref musicRate,musicGain==0);
+        var environmentGain=(float)(options.MasterVolume*options.EnvironmentVolume*attenuation);
+        SetBedGain(ambience,changingAmbience?0:environmentGain,ref ambienceTarget,ref ambienceRate,environmentGain==0);
+        foreach(var slot in slots){slot.VolumeLinear=(float)(options.MasterVolume*options.EffectsVolume);slot.StreamPaused=slot.VolumeLinear==0;}
+    }
+    private static void SetBedGain(AudioStreamPlayer player,float target,ref float storedTarget,ref float rate,bool forceMute=false)
+    {
+        // Zero must silence the active render stream immediately; normal changes use a finite ramp.
+        if(forceMute)
+        {
+            player.VolumeLinear=0;player.StreamPaused=true;storedTarget=0;rate=0;return;
+        }
+        if(target>0)player.StreamPaused=false;
+        if(storedTarget!=target){storedTarget=target;rate=Math.Abs(player.VolumeLinear-target)/FadeSeconds;}
     }
     private void Missing(string name){if(missing.Add(name))GD.Print("AUDIO_RESOURCE_MISSING "+name+"; silent fallback");}
     private void Loop(AudioStreamPlayer player,AudioStream? stream,string name)
@@ -55,8 +81,11 @@ public partial class AudioDirector : Node
         if(!ready)return;
         StopTransient();
         Loop(music,MusicStream,"music");
-        Loop(ambience,sceneId is "soup_shop" or "memory_soup_table"?IndoorStream:OutdoorStream,"environment:"+sceneId);
-        music.PitchScale=sceneId=="memory_soup_table"?.96f:1;
+        var environment=sceneId is "soup_shop" or "memory_soup_table"?IndoorStream:OutdoorStream;
+        if(ambience.Stream==null||!ambience.Playing){changingAmbience=false;Loop(ambience,environment,"environment:"+sceneId);}
+        else if(ambience.Stream!=environment){nextAmbience=environment;nextAmbienceName="environment:"+sceneId;changingAmbience=true;}
+        else changingAmbience=false;
+        ApplySettings(options);
     }
     public bool PlayCue(AudioCue cue)
     {
@@ -68,6 +97,6 @@ public partial class AudioDirector : Node
     }
     public void SetPaused(bool value){if(value==paused)return;paused=value;if(value)StopTransient();ApplySettings(options);}
     public void StopTransient(){foreach(var slot in slots){slot.Stop();slot.Stream=null;}}
-    public void StopAll(){StopTransient();if(ready){music.Stop();ambience.Stop();music.Stream=null;ambience.Stream=null;}}
+    public void StopAll(){StopTransient();changingAmbience=false;nextAmbience=null;if(ready){music.Stop();ambience.Stop();music.Stream=null;ambience.Stream=null;}}
     public override void _ExitTree(){StopAll();ready=false;}
 }

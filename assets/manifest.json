@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "status": "vs01_depth_soup_sample_in_development",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
@@ -317,6 +317,62 @@
       ],
       "source": "built-in image_gen",
       "sha256": "45A7203E7F8715BDBF6C6A59A690F7DF56011D3B0822A5C70707D01C6C254A0D"
+    },
+    {
+      "id": "menu-autumn",
+      "file": "assets/art/vs01-v6-polish/menu-autumn.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "EBAD0E9A910EB5FAD62006CA29DB0A8D31C1B53BFD871DACB68EAFA6306894D0",
+      "usage": "title_menu_background",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    },
+    {
+      "id": "community-living-details",
+      "file": "assets/art/vs01-v6-polish/living-details.png",
+      "size": [
+        1774,
+        887
+      ],
+      "sha256": "C01760088111006444E428BF0712A52404134BB0ABCF33A84971A11F5CA0F07D",
+      "usage": "transparent_wallside_bicycle_plants_laundry",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    },
+    {
+      "id": "player-walk-source",
+      "file": "assets/art/vs01-v6-polish/player-walk-source.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "C152A24A4973677DA6E49508D9AA6D384219DCBAF003A2C5A7F911A2001ECC29",
+      "usage": "AI_generated_24_pose_source",
+      "source": "built-in image_gen",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
+    },
+    {
+      "id": "player-walk-polish",
+      "file": "assets/art/vs01-v6-polish/player-walk.png",
+      "size": [
+        2048,
+        1296
+      ],
+      "sha256": "8A7DE0B8E0546CB17441A9AFC653C1721D495C4F67517832F5C1980E816A4555",
+      "usage": "compiled_24_walk_phases_foot_anchored",
+      "source": "built-in image_gen; normalized atlas compilation tools/build-walk-atlas.mjs",
+      "generated_on": "2026-10-11",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_POLISH_20261011.md"
     }
   ],
   "concept_images_exported": false,
@@ -324,7 +380,9 @@
   "third_party_art_imported": false,
   "generated_new_images": true,
   "audio_included": true,
-  "audio_manifest": "assets/audio/vs01/manifest.json",
+  "audio_manifest": "assets/audio/vs02/manifest.json",
   "audio_provenance": "licenses/AUDIO_VS01.md",
-  "export_note": "PNG paths explicitly included by preset; actual Windows export and packed-game launch remain unverified."
+  "export_note": "PNG paths explicitly included by preset; actual Windows export and packed-game launch remain unverified.",
+  "audio_note": "Original sparse piano-like synthesized theme and soft ambience: assets/audio/vs02; short action cues remain vs01. Zero sliders pause active output; ordinary changes fade.",
+  "audio_legacy_manifest": "assets/audio/vs01/manifest.json"
 }

@@ -9,6 +9,7 @@ try {
     $known+='FinalBoundaries'
     $known+='PhoneChat'
     $known+='Journal'
+    $known+=@('UiPolish','MovementPolish','CommunityPolish')
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -29,6 +30,7 @@ try {
         if(!$Suite){$suites+='FinalBoundaries'}
         if(!$Suite){$suites+='PhoneChat'}
         if(!$Suite){$suites+='Journal'}
+        if(!$Suite){$suites+=@('UiPolish','MovementPolish','CommunityPolish')}
         if(!$Suite){$suites+=@('Community','CommunityUpgrade','CommunityRest','CommunityObservation')}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")

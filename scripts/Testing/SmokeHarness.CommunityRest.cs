@@ -38,7 +38,13 @@ public partial class SmokeHarness
             try{Require(!main.Rest.Begin((BenchView)foreign.GetTarget("bench")!),"Foreign bench accepted");}finally{foreign.Free();}
             Require(!main.Rest.Begin(bench),"Distant bench accepted");player.Position=new(940,440);var before=player.Position;Require(main.Rest.Begin(bench)&&!main.Rest.Begin(bench),"Repeated Begin reset approach");
             Require(!main.CanOpenJournal&&main.SafeSavePosition==new Position2(before.X,before.Y),"Approach interaction/save not isolated");
-            while(main.Rest.IsApproaching){var prior=player.Position;await DepthPhysics(1);Require(player.Position.DistanceTo(prior)<=112*player.GetPhysicsProcessDeltaTime()+.02,"Approach warped physics step");Require(NavigationGeometry.CanStand(main.World.Navigation,new(player.Position.X,player.Position.Y)),"Approach crossed obstacle");}
+            while(main.Rest.IsApproaching){
+                var prior=player.Position;var beforeTick=Engine.GetPhysicsFrames();await DepthPhysics(1);
+                // A rendered frame can contain several physics ticks while the GPU catches up.
+                var ticks=Engine.GetPhysicsFrames()-beforeTick;
+                Require(player.Position.DistanceTo(prior)<=112*player.GetPhysicsProcessDeltaTime()*ticks+.02,$"Approach warped physics step ticks={ticks} distance={player.Position.DistanceTo(prior)}");
+                Require(NavigationGeometry.CanStand(main.World.Navigation,new(player.Position.X,player.Position.Y)),"Approach crossed obstacle");
+            }
             for(int tick=0;main.Rest.Phase==RestPhase.SittingDown&&tick<180;tick++){AssertCommunityContact(main);if(art.Frame==0)await Capture("community-sit-start"+(reduced?"-reduced":""));if(art.Frame==1)await Capture("community-sit-mid"+(reduced?"-reduced":""));if(art.Frame==3)await Capture("community-sit-end"+(reduced?"-reduced":""));await DepthPhysics(1);}
             Require(main.Rest.Phase==RestPhase.Seated,"Approach never seated");AssertCommunityContact(main);
             var menu=main.GetNode<RestOptionsController>("RestOptions");Require(menu.IsOpen&&menu.GetNode<Button>("Panel/Options/Rest").HasFocus(),"Smoke selected automatically");

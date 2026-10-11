@@ -41,11 +41,21 @@ public partial class SettingsController : Control
         assistance.SetPressedNoSignal(s.Options.Assistance);motion.SetPressedNoSignal(s.Options.ReducedMotion);records.SetPressedNoSignal(s.Options.RecordEventsEnabled);
         var gains=new[]{s.Options.MasterVolume,s.Options.MusicVolume,s.Options.EffectsVolume,s.Options.EnvironmentVolume};
         for(int i=0;i<4;i++)volumes[i].SetValueNoSignal(gains[i]);
-        IsOpen=true;Visible=true;GetNode<ScrollContainer>("Panel/Scroll").ScrollVertical=0;font.GetLineEdit().GrabFocus();
+        IsOpen=true;Visible=true;UpdateVolumeLabels();GetNode<ScrollContainer>("Panel/Scroll").ScrollVertical=0;font.GetLineEdit().GrabFocus();
     }
     public void Close()
     {
         if(!IsOpen)return;var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(s.Options);s.Flow=source;IsOpen=false;Visible=false;
         if(GodotObject.IsInstanceValid(previousFocus)&&previousFocus!.IsVisibleInTree())previousFocus.GrabFocus();previousFocus=null;
+    }
+    public override void _Process(double delta)
+    {
+        if(IsOpen)UpdateVolumeLabels();
+    }
+    private void UpdateVolumeLabels()
+    {
+        var ids=new[]{"MasterVolume","MusicVolume","EffectsVolume","EnvironmentVolume"};
+        var titles=new[]{"总音量","音乐","音效","环境"};
+        for(int i=0;i<volumes.Length;i++)GetNode<Label>(Prefix+ids[i]+"Label").Text=titles[i]+"  "+Math.Round(volumes[i].Value*100)+"%";
     }
 }

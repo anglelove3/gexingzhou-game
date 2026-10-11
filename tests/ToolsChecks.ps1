@@ -99,6 +99,21 @@ try {
     if($record -match '(?i)Users[/\\]|Desktop|references[/\\]|\.docx'){throw 'PRIVATE_ART_REFERENCE_PATH'}
     Write-Output 'PASS CommunityDependencyWhitelist FrozenProtocol Art Documents Hashes'
 } catch {$failures++;Write-Output "FAIL CommunityDependencyWhitelist $_"}
+try {
+    $polish=@('assets/animations/player-depth-polish.tres','assets/art/vs01-v6-polish/menu-autumn.png','assets/art/vs01-v6-polish/living-details.png','assets/art/vs01-v6-polish/player-walk-source.png','assets/art/vs01-v6-polish/player-walk.png','assets/ui/panel-polish.tres','assets/ui/slider-knob.svg','assets/audio/vs02/piano-quiet-theme.wav','assets/audio/vs02/ambience-outdoor-soft.wav','assets/audio/vs02/ambience-indoor-soft.wav','assets/audio/vs02/manifest.json','scenes/ui/MenuAtmosphere.tscn','scripts/MenuAtmosphere.cs','scripts/AmbientResidentController.cs','tools/audio/generate-vs02-audio.mjs','tools/audio/check-vs02-audio.mjs','tools/build-walk-atlas.mjs','docs/project/2026-10-11_试玩润色资源记录.json','docs/reviews/2026-10-11_首段试玩反馈与诊断记录.md','docs/development/14_试玩反馈润色验收与接续.md','licenses/AI_ART_POLISH_20261011.md','licenses/AUDIO_VS02.md')
+    foreach($path in $polish){
+        $source=Join-Path $projectRoot $path;$target=Join-Path $destination $path
+        if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "FEEDBACK_POLISH_PACKAGE_MISMATCH $path"}
+    }
+    foreach($wav in @('piano-quiet-theme','ambience-outdoor-soft','ambience-indoor-soft')){
+        $import=Get-Content -LiteralPath (Join-Path $destination "assets/audio/vs02/$wav.wav.import") -Raw
+        if($import -notmatch '(?m)^compress/mode=0\s*$'){throw "POLISH_PCM_IMPORT_CHANGED $wav"}
+    }
+    $record=Get-Content -LiteralPath (Join-Path $destination 'docs/project/2026-10-11_试玩润色资源记录.json') -Raw | ConvertFrom-Json
+    foreach($asset in $record.assets){if((Get-FileHash -LiteralPath (Join-Path $destination $asset.file)).Hash -ne $asset.sha256){throw "POLISH_MANIFEST_HASH_MISMATCH $($asset.file)"}}
+    if($preset -notmatch 'assets/art/vs01-v6-polish/\*\.png' -or $preset -notmatch 'assets/audio/vs02/\*\.wav'){throw 'FEEDBACK_EXPORT_DEPENDENCY_MISSING'}
+    Write-Output 'PASS FeedbackPolishDependencyWhitelist ManifestHashes PCMImports SourceTools Documents'
+} catch {$failures++;Write-Output "FAIL FeedbackPolishDependencyWhitelist $_"}
 foreach($probe in @(@{Name='CaptureSizesEmpty';Literal='@()'},@{Name='CaptureSizesPath';Literal="@('../escape')"})) {
     $command="& '$projectRoot/tools/capture-smoke.ps1' -Sizes $($probe.Literal) -GodotExe '$projectRoot/test-output/no-godot.exe'"
     $output=& $shellExe -NoProfile -Command $command 2>&1

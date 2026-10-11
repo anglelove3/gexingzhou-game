@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 [ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Audio"]
 [ext_resource type="Script" path="res://scripts/BootMenu.cs" id="Script"]
-[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/community-v1.png" id="Image"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v6-polish/menu-autumn.png" id="Image"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Settings.tscn" id="Settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Choices.tscn" id="Choices"]
+[ext_resource type="PackedScene" path="res://scenes/ui/MenuAtmosphere.tscn" id="Atmosphere"]
 [node name="Boot" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -33,16 +34,17 @@ anchor_right=1.0
 anchor_bottom=1.0
 grow_horizontal=2
 grow_vertical=2
-color=Color(0.03,0.06,0.08,0.52)
+color=Color(0.025,0.035,0.025,0.27)
 mouse_filter=2
+[node name="Atmosphere" parent="." instance=ExtResource("Atmosphere")]
 [node name="MenuScroll" type="ScrollContainer" parent="."]
 layout_mode=1
-anchor_left=0.5
-anchor_right=0.5
+anchor_left=0.055
+anchor_right=0.055
 anchor_bottom=1.0
-offset_left=-320.0
-offset_top=40.0
-offset_right=320.0
+offset_left=0.0
+offset_top=68.0
+offset_right=470.0
 offset_bottom=-24.0
 horizontal_scroll_mode=0
 follow_focus=true
@@ -54,13 +56,13 @@ theme_override_constants/separation=12
 layout_mode=2
 text="葛行舟"
 autowrap_mode=3
-horizontal_alignment=1
-theme_override_font_sizes/font_size=52
+horizontal_alignment=0
+theme_override_font_sizes/font_size=64
 [node name="Subtitle" type="Label" parent="MenuScroll/Menu"]
 layout_mode=2
 text="首段试玩 · 故乡与一碗热汤"
 autowrap_mode=3
-horizontal_alignment=1
+horizontal_alignment=0
 [node name="StartButton" type="Button" parent="MenuScroll/Menu"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
@@ -112,7 +114,7 @@ visible=false
 visible=false
 z_index=110
 offset_left=40.0
-offset_top=40.0
+offset_top=68.0
 offset_right=1240.0
 offset_bottom=180.0
 autowrap_mode=3

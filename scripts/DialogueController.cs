@@ -74,7 +74,12 @@ public partial class DialogueController : Control
     private void UpdateLayout()
     {
         var font=GetNode<GameSession>("/root/GameSession").Options.SubtitleSize;
-        float height=Math.Clamp(font*4+44,124,188);
+        // Reserve complete body lines in addition to the speaker, footer and margins.
+        var line=text.GetThemeFont("font").GetHeight(font)+text.GetThemeConstant("line_spacing");
+        var hint=GetNode<Label>("Panel/Content/ContinueHint");
+        hint.AddThemeFontSizeOverride("font_size",Math.Max(16,font-4));
+        body.CustomMinimumSize=new Vector2(0,line*2+4);
+        float height=Math.Max(line*2+4+nameLabel.GetMinimumSize().Y+hint.GetMinimumSize().Y+24,160);
         panel.OffsetTop=-16-height;panel.OffsetBottom=-16;
         if(GetParent() is MainView main&&main.World?.SceneId=="soup_shop"&&main.SoupSeat.IsActive)
         {
@@ -89,6 +94,8 @@ public partial class DialogueController : Control
     public void HandleKey(Key key)
     {
         if(!IsOpen)return;
+        if(key==Key.Home){body.ScrollVertical=0;return;}
+        if(key==Key.End){body.ScrollVertical=(int)body.GetVScrollBar().MaxValue;return;}
         if(key is Key.Up or Key.Down or Key.Pageup or Key.Pagedown)
         {body.ScrollVertical+=(key is Key.Up or Key.Pageup?-1:1)*(key is Key.Pageup or Key.Pagedown?Math.Max(24,(int)body.Size.Y-12):32);return;}
         if(key==Key.Escape){dialogue.Cancel();Close(false);}

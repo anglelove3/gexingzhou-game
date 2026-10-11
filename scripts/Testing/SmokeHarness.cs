@@ -6,13 +6,22 @@ public partial class SmokeHarness : Node
     public override void _Notification(int what)
     {
         if(captureDirectory!=null&&(what==NotificationApplicationFocusIn||what==NotificationApplicationFocusOut))
+        {
             GD.Print($"CAPTURE_FOCUS notification={what} ticks={Godot.Time.GetTicksMsec()}");
+            if(what==NotificationApplicationFocusOut)CallDeferred(nameof(RestoreCaptureFocus));
+        }
     }
+    // Offscreen render batches need an active test window while exercising real focus-sensitive actions.
+    // Defer until the application has delivered FocusOut to every game controller, then request native focus.
+    private void RestoreCaptureFocus()=>GetWindow().GrabFocus();
     public override async void _Ready()
     {
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="UiPolish"){await UiPolishChecks();GD.Print("GODOT_CHECKS_PASS UiPolish");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="CommunityPolish"){await CommunityPolishChecks();GD.Print("GODOT_CHECKS_PASS CommunityPolish");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="MovementPolish"){await MovementPolishChecks();GD.Print("GODOT_CHECKS_PASS MovementPolish");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Community"){await CommunityChecks();GD.Print("GODOT_CHECKS_PASS Community");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CommunityUpgrade"){await CommunityUpgradeChecks();GD.Print("GODOT_CHECKS_PASS CommunityUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CommunityRest"){await CommunityRestChecks();GD.Print("GODOT_CHECKS_PASS CommunityRest");await DrainAudio();GetTree().Quit();return;}
@@ -52,13 +61,14 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");await DrainAudio();GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd" or "CaptureExploration" or "CaptureDepthSeat" or "CapturePhoneChat" or "CaptureJournal" or "CaptureCommunity")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd" or "CaptureExploration" or "CaptureDepthSeat" or "CapturePhoneChat" or "CaptureJournal" or "CaptureCommunity" or "CaptureFeedback")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
                 if(requested!=null){var dimensions=requested.Split('x');GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(dimensions[0]),int.Parse(dimensions[1]));await Frames(3);}
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
+                if(suite=="CaptureFeedback"){await FeedbackVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureFeedback");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS CapturePhoneChat");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureJournal"){await CaptureJournalChecks();GD.Print("GODOT_CHECKS_PASS CaptureJournal");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureCommunity"){await CaptureCommunityChecks();GD.Print("GODOT_CHECKS_PASS CaptureCommunity");await DrainAudio();GetTree().Quit();return;}

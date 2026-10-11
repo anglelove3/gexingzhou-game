@@ -27,6 +27,12 @@ public partial class GuidanceController : Node
         {messageShown=true;current="Tab 打开旧手机 · 张大炮发来了消息";remaining=6;}
         else if(nearbyObservation&&!observationShown&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
         {observationShown=true;current="E 观察 · 可以看看，也可以继续走";remaining=4;}
+        var street=main.World.SceneId=="community_gate"?targets.FirstOrDefault(t=>t.Id=="street"&&t.IsActive&&t.IsVisibleInTree()):null;
+        var streetDistance=street==null?float.PositiveInfinity:street.GlobalPosition.DistanceTo(main.World.Player.GlobalPosition);
+        if(field&&streetDistance<=125){
+            hint.Text=streetDistance<=40?"E 前往便利店街":"走近便利店街路口 · 按 E 进入";
+            hint.Visible=true;return;
+        }
         hint.Text=current;
         hint.Visible=field&&remaining>0&&(current.StartsWith("Tab")?invitation:nearbyObservation);
     }

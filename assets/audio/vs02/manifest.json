@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "seed": 20261011,
+  "generated_on": "2026-10-11",
+  "provenance": "licenses/AUDIO_VS02.md",
+  "files": [
+    {
+      "file": "piano-quiet-theme.wav",
+      "script": "tools/audio/generate-vs02-audio.mjs",
+      "seed": 20261011,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 96,
+      "sha256": "8574119385059a70a58e10dd1d6cd0fd223edfcf4c864df2c5f6752bea6abde3",
+      "source": "Original sparse twelve-phrase piano-like composition; additive decaying string synthesis with soft hammer envelope, not a live piano recording"
+    },
+    {
+      "file": "ambience-outdoor-soft.wav",
+      "script": "tools/audio/generate-vs02-audio.mjs",
+      "seed": 20261011,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 24,
+      "sha256": "7feff7704716ed99fb7add5e7fb863e3a0b9862c0c00f7380fccdb16bdda948a",
+      "source": "Original very quiet double-low-pass breeze-like bed; no field recordings, voices, birds or high-frequency noise"
+    },
+    {
+      "file": "ambience-indoor-soft.wav",
+      "script": "tools/audio/generate-vs02-audio.mjs",
+      "seed": 20261011,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 24,
+      "sha256": "36c76c1ba6aa5522213f45272af069168fac28b6a31254aa8ec12650909772ce",
+      "source": "Original very quiet room-like filtered bed with faint low resonances; no field recordings or voices"
+    }
+  ]
+}

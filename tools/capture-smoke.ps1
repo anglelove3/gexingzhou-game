@@ -1,4 +1,4 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
+param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
 . "$PSScriptRoot/Common.ps1"
 try {
     if(!$Sizes -or $Sizes.Count -eq 0 -or @($Sizes|Where-Object {$_ -notin @('1280x720','1920x1080','1440x1080','1440x900','1024x768')}).Count -gt 0){throw 'INVALID_CAPTURE_SIZES: select nonempty supported dimensions'}
@@ -22,7 +22,13 @@ try {
     $required+=$journal
     $community=@();foreach($font in @(20,24,32)){foreach($state in @('entry','explore','observation','seated','smoke','stand')){$community+='community-'+$state+'-'+$font}}
     $required+=$community
+    $feedback=@('feedback-menu','notice-player-wall-depth','ambient-community','street-exit-ready','street-return-community')
+    foreach($font in @(20,24,32)){foreach($state in @('entry','pause','settings','rest','thought','thought-end')){$feedback+='feedback-'+$state+'-'+$font}}
+    $required+=$feedback
     if($Batch -eq 'CaptureCommunity'){$required=$community}
+    if($Batch -eq 'CaptureFeedback'){
+        $required=$feedback
+    }
     if($Batch -eq 'CaptureJournal'){$required=$journal}
     if($Batch -eq 'CapturePhoneChat'){$required=$phoneChat}
     if($Batch -eq 'CaptureExploration'){$required=$exploration}
@@ -32,7 +38,7 @@ try {
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity')}else{@($Batch)}
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback')}else{@($Batch)}
     $supplemental=if($batches -contains 'CaptureCommunity'){@('community-sign-back','community-sign-front')}else{@()}
     foreach($size in $Sizes) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'
@@ -43,7 +49,11 @@ try {
             $arguments=@('--borderless','--position','-10000,-10000','--resolution',$size,'--path',('"'+$script:ProjectRoot+'"'),'res://tests/integration/Smoke.tscn','--',("--suite="+$captureBatch),"--capture-size=$size")
             $process=Start-Process -FilePath $context.GodotExe -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
             $retainedHandle=$process.Handle
-            if(!$process.WaitForExit(55000)){Stop-Process -Id $process.Id;throw "CAPTURE_TIMEOUT $size $captureBatch own_process=$($process.Id)"}
+            $deadline=[Diagnostics.Stopwatch]::StartNew()
+            while(!$process.WaitForExit(30000)){
+                if($deadline.Elapsed.TotalSeconds -ge 120){Stop-Process -Id $process.Id;throw "CAPTURE_TIMEOUT $size $captureBatch own_process=$($process.Id)"}
+                Write-Output "CAPTURE_RUNNING $size $captureBatch elapsed=$([int]$deadline.Elapsed.TotalSeconds)s"
+            }
             $process.WaitForExit();$body=(Get-Content -LiteralPath $stdout -Raw -Encoding UTF8)+(Get-Content -LiteralPath $stderr -Raw -Encoding UTF8)
             Write-Output $body
             if($process.ExitCode -ne 0 -or $body -match 'ERROR:|GODOT_CHECKS_FAIL|Fatal error' -or $body -notmatch ("GODOT_CHECKS_PASS "+$captureBatch)){throw "CAPTURE_FAILED $size $captureBatch exit=$($process.ExitCode)"}

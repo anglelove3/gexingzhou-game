@@ -51,8 +51,8 @@ public partial class SmokeHarness
     {
         var main=await NewDepthSoupMain(new(120,480));var s=GetNode<GameSession>("/root/GameSession");s.SetOptions(s.Options with{RecordEventsEnabled=true},false);
         Require(s.SaveManual().Success,"Journal save fixture failed");
-        main.Audio.PlayCue(AudioCue.PhoneRing);var music=main.Audio.GetNode<AudioStreamPlayer>("Music");var gain=music.VolumeLinear;var stream=music.Stream;
-        KeyPress(Key.J);await DepthPhysics(3);Require(main.Journal.IsOpen,"Journal isolation open failed");
+        await GameTime(.85);main.Audio.PlayCue(AudioCue.PhoneRing);var music=main.Audio.GetNode<AudioStreamPlayer>("Music");var gain=music.VolumeLinear;var stream=music.Stream;
+        KeyPress(Key.J);await GameTime(.85);Require(main.Journal.IsOpen,"Journal isolation open failed");
         var beforeJson=SnapshotJson(s.Snapshot);var beforeFiles=JournalFiles(s.SaveDirectory);var foot=main.World.Player.Position;
         Require(music.Playing&&ReferenceEquals(stream,music.Stream)&&Math.Abs(music.VolumeLinear-gain*.35)<.001,"Journal audio did not attenuate continuing music");
         Require(main.Audio.GetNode("Effects").GetChildren().OfType<AudioStreamPlayer>().All(p=>!p.Playing),"Journal did not stop transient audio");
@@ -65,7 +65,7 @@ public partial class SmokeHarness
         GetViewport().PushInput(new InputEventMouseButton{Position=point,GlobalPosition=point,ButtonIndex=MouseButton.Left,Pressed=false},true);await DepthPhysics(4);
         Require(beforeJson==SnapshotJson(s.Snapshot),"Journal mutated snapshot");Require(beforeFiles==JournalFiles(s.SaveDirectory),"Journal wrote save/event files");
         Require(main.World.Player.Position==foot&&!main.Dialogue.IsOpen&&main.Journal.IsOpen,"Journal allowed movement/observation/load");
-        KeyPress(Key.J);await Frames(2);Require(music.Playing&&ReferenceEquals(stream,music.Stream)&&Math.Abs(music.VolumeLinear-gain)<.001,"Journal close restarted or attenuated music");
+        KeyPress(Key.J);await GameTime(.85);Require(music.Playing&&ReferenceEquals(stream,music.Stream)&&Math.Abs(music.VolumeLinear-gain)<.001,"Journal close restarted or attenuated music");
         Require(main.Observations.TryObserve(target),"Observation not restored after journal");await Finish(main);main.Free();await Frames(3);
     }
     private async Task JournalAssertBlocked(MainView main,string source)

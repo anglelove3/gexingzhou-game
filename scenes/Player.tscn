@@ -5,7 +5,7 @@
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-rest-reduced-v2.tres" id="Reduced"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-soup-v3.tres" id="Soup"]
 [ext_resource type="SpriteFrames" path="res://assets/animations/player-soup-reduced-v3.tres" id="ReducedSoup"]
-[ext_resource type="SpriteFrames" path="res://assets/animations/player-depth-v4.tres" id="Depth"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/player-depth-polish.tres" id="Depth"]
 [sub_resource type="CircleShape2D" id="Foot"]
 radius=8.0
 [sub_resource type="RectangleShape2D" id="Body"]

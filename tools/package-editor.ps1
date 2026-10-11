@@ -20,6 +20,8 @@ try {
     $files+=$journalDocs
     $communityDocs=@('docs/superpowers/specs/2026-10-10-安置小区四向探索-design.md','docs/superpowers/plans/2026-10-10-安置小区四向探索-实施计划.md','docs/project/2026-10-10_小区探索资源记录.json')
     $files+=$communityDocs
+    $polishDocs=@('docs/project/2026-10-11_试玩润色资源记录.json','docs/reviews/2026-10-11_首段试玩反馈与诊断记录.md')
+    $files+=$polishDocs
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
         foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot $folder) -File -Recurse -Force) {
             $relative=$item.FullName.Substring($script:ProjectRoot.Length+1).Replace('\','/')
@@ -31,6 +33,8 @@ try {
     foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot 'scripts/Testing') -File){$files+=$item.FullName.Substring($script:ProjectRoot.Length+1).Replace('\','/')}
     $explicit=@('project.godot','GeXingzhou.csproj','global.json','export_presets.cfg','README.md','.gitignore','00_阅读与协作说明.md','docs/superpowers/specs/2026-10-04-Godot可编辑场景与坐下互动设计.md','docs/superpowers/plans/2026-10-04-VS01可编辑场景与表现润色实施计划.md','docs/project/2026-10-04_场景润色资源记录.json')
     $explicit+=$experienceDocs+$explorationDocs+$journalDocs+$communityDocs+@('tools/audio/generate-vs01-audio.mjs','tools/audio/check-vs01-audio.mjs')
+    $explicit+=@('tools/audio/generate-vs02-audio.mjs','tools/audio/check-vs02-audio.mjs','tools/build-walk-atlas.mjs')
+    $explicit+=$polishDocs
     foreach($relative in $files|Select-Object -Unique) {
         if($relative -notin $resources -and $relative -notin $explicit -and
            $relative -notmatch '^(code/Domain/.*\.(cs|csproj|uid)|tests/.*\.(cs|csproj|json|tscn|uid|ps1)|tools/[^/]+\.ps1|docs/development/[^/]+\.md|\.vscode/[^/]+\.json|scripts/Testing/[^/]+\.(cs|uid))$') {throw "PRIVATE_SOURCE_REJECTED $relative"}

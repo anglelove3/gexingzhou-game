@@ -25,7 +25,7 @@ public partial class PauseController : Control
     public bool Open()
     {
         if(IsOpen||HasMeta("binding_error")||main==null||!main.CanPause)return false;
-        previousFocus=GetViewport().GuiGetFocusOwner();IsOpen=true;Visible=true;message.Text="";
+        previousFocus=GetViewport().GuiGetFocusOwner();IsOpen=true;Visible=true;message.Text="";message.Visible=false;
         GetNode<GameSession>("/root/GameSession").Flow=FlowState.Paused;main.Audio.SetPaused(true);
         SceneBindings.Require<Button>(this,Prefix+"Resume").GrabFocus();return true;
     }
@@ -40,13 +40,13 @@ public partial class PauseController : Control
     {
         if(!IsOpen)return new(false,"请先暂停再保存。");
         var session=GetNode<GameSession>("/root/GameSession");session.UpdatePosition(main.SafeSavePosition);
-        var result=session.SaveManual();message.Text=result.Message;return result;
+        var result=session.SaveManual();message.Text=result.Message;message.Visible=true;return result;
     }
     private bool SaveForNavigation()
     {
         if(!IsOpen&&!main.SliceEnd.IsOpen)return false;
         var session=GetNode<GameSession>("/root/GameSession");session.UpdatePosition(main.SafeSavePosition);
-        var result=session.SaveCheckpoint();message.Text=result.Message;return result.Success;
+        var result=session.SaveCheckpoint();message.Text=result.Message;message.Visible=true;return result.Success;
     }
     public bool TryReturnToMenu()
     {
