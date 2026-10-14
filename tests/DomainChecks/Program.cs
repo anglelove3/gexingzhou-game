@@ -16,6 +16,7 @@ SaveMigrationChecks.Register(tests);
 CommunitySaveChecks.Register(tests);
 CommunityRestChecks.Register(tests);
 CommunityDiscoveryChecks.Register(tests);
+StreetSaveChecks.Register(tests);
 SettingsEventChecks.Register(tests);
 string? filter = null;
 for (int i = 0; i < args.Length; i++) if (args[i] == "--filter" && i+1 < args.Length) filter = args[++i];

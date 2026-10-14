@@ -1,5 +1,5 @@
 namespace GeXingzhou.Domain;
-public enum VersionedResumeSource {Current,V2,Legacy,Missing,Blocked}
+public enum VersionedResumeSource {Current,V3,V2,Legacy,Missing,Blocked}
 public sealed record VersionedResumeOffer(VersionedResumeSource Source,LoadResult Result);
 public static class SaveV3UpgradePolicy
 {
