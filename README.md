@@ -57,3 +57,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify.ps1 -GodotExe '
 Windows独立包尚未生成：本机缺匹配的.NET导出模板。`tools/export-windows.ps1`会先验证并拒绝缺模板，不把编辑器运行算作EXE通过；生成后还须实际试玩和检查打包资源。脚本不自动安装插件、下载模板或上传记录。
 
 历史证据与学习练习见`docs/development/04_试玩验收记录.md`和`05_学习练习与下一步.md`；最新版见二维探索验收记录。真实新档在Godot的user://saves/vs01-explore-v2，旧user://saves/vs01只读保留；测试使用独立test-output目录，不动玩家存档。
+
+## 🎮 试玩下载（免安装）
+
+| 版本 | 内容 | 下载 |
+|---|---|---|
+| **VS01 首段试玩** | 小区见面 → 交喜糖 → 汤店 → 硬币回忆 → 伴郎安排 | [Windows x64 zip（80MB）](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01) |
+
+- 解压后双击 `gexingzhou-demo.exe`（`gexingzhou-demo.pck` 保持同目录），无需安装任何运行库
+- 首次启动如遇 SmartScreen 提示：点「更多信息」→「仍要运行」（个人开发者未购买代码签名证书，属正常提示）
+- 更多轮次更新见 [Releases](https://github.com/anglelove3/gexingzhou-game/releases)
