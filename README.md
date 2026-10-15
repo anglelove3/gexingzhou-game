@@ -58,6 +58,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify.ps1 -GodotExe '
 
 本轮证据和未验证项见[首段润色验收记录](docs/reviews/2026-10-05_首段润色验收记录.md)。汤店新姿态完整提示及哈希在`licenses/AI_ART_SOUP_V3.md`；十个原创PCM音源、生成参数和许可说明在`assets/audio/vs01/manifest.json`、`tools/audio/`及`licenses/AUDIO_VS01.md`。合成拨弦不冒充实录吉他；声音不决定剧情，静音可走完。用户选择先保留音频方向，真实试听、正常阅读和原生键盘体验仍需人工补验。
 
-Windows独立包尚未生成：本机缺匹配的.NET导出模板。`tools/export-windows.ps1`会先验证并拒绝缺模板，不把编辑器运行算作EXE通过；生成后还须实际试玩和检查打包资源。脚本不自动安装插件、下载模板或上传记录。
+本轮兼容性修复未重新生成Windows独立包；下方保留远端已有版本的下载入口，不代表本轮v4源码已重新导出或完成EXE验收。`tools/export-windows.ps1`会先验证模板，生成后仍须实际试玩和检查打包资源。
 
 历史证据与学习练习见`docs/development/04_试玩验收记录.md`和`05_学习练习与下一步.md`；当前接续以15号文档为准。真实新档在Godot的user://saves/vs01-explore-v4，旧v1/v2/v3目录只读保留；测试使用独立test-output目录，不动玩家存档。
+
+## 🎮 试玩下载（免安装）
+
+| 版本 | 内容 | 下载 |
+|---|---|---|
+| **VS01 首段试玩** | 小区见面 → 交喜糖 → 汤店 → 硬币回忆 → 伴郎安排 | [Windows x64 zip（80MB）](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01) |
+
+- 解压后双击 `gexingzhou-demo.exe`（`gexingzhou-demo.pck` 保持同目录），无需安装任何运行库
+- 首次启动如遇 SmartScreen 提示：点「更多信息」→「仍要运行」（个人开发者未购买代码签名证书，属正常提示）
+- 更多轮次更新见 [Releases](https://github.com/anglelove3/gexingzhou-game/releases)
