@@ -19,6 +19,8 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="Street"){await StreetChecks();GD.Print("GODOT_CHECKS_PASS Street");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="StreetUpgrade"){await StreetUpgradeChecks();GD.Print("GODOT_CHECKS_PASS StreetUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="UiPolish"){await UiPolishChecks();GD.Print("GODOT_CHECKS_PASS UiPolish");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CommunityPolish"){await CommunityPolishChecks();GD.Print("GODOT_CHECKS_PASS CommunityPolish");await DrainAudio();GetTree().Quit();return;}
             if(suite=="MovementPolish"){await MovementPolishChecks();GD.Print("GODOT_CHECKS_PASS MovementPolish");await DrainAudio();GetTree().Quit();return;}
@@ -295,9 +297,9 @@ public partial class SmokeHarness : Node
         if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");}
         if(suite=="Hey")
         {
-            main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
+            Require(main.ChangeWorld("convenience_street",new(800,520)),"Hey street fixture failed");await Frames(2);
             main.ChangeWorld("community_gate",s.Navigation.Profiles["community_gate"].Anchors["safe"]);await Frames(2);
-            main.ChangeWorld("convenience_street",new(600,280));await Frames(2);
+            Require(main.ChangeWorld("convenience_street",new(800,520)),"Hey street fixture failed");await Frames(2);
             var hey=main.World.GetTargets().Single(t=>t.Id=="hey");hey.TryInteract(s);await Finish(main);
             if(s.Snapshot.CandyCount!=0||s.Snapshot.Stage!=GeXingzhou.Domain.SliceStage.CandyHeyDelivered)throw new Exception("Hey delivery failed");
             if(resume){main=await Restart(main);s=GetNode<GameSession>("/root/GameSession");hey=main.World.GetTargets().Single(t=>t.Id=="hey");hey.TryInteract(s);}
@@ -318,7 +320,7 @@ public partial class SmokeHarness : Node
         await StoryPath(answer,"Hey",resume);var s=GetNode<GameSession>("/root/GameSession");
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(2);
         main.ChangeWorld("soup_shop",new(400,430));await Frames(2);
-        main.ChangeWorld("convenience_street",new(1120,280));main.ChangeWorld("soup_shop",new(400,430));await Frames(2);
+        Require(main.ChangeWorld("convenience_street",new(1500,520)),"Soup exit street fixture failed");main.ChangeWorld("soup_shop",new(400,430));await Frames(2);
         await Capture("soup");
         main.World.GetTargets().Single(t=>t.Id=="seat").TryInteract(s);
         await WaitUntil(()=>!main.SoupSeat.IsActing,"Soup first seat");
@@ -469,7 +471,7 @@ public partial class SmokeHarness : Node
         var failures=new List<string>();void Verify(bool ok,string name){if(!ok)failures.Add(name);GD.Print((ok?"RECOVERY_PASS ":"RECOVERY_FAIL ")+name);}
         var s=GetNode<GameSession>("/root/GameSession");s.NewGame();
         var context=new GeXingzhou.Domain.SceneReturnContext("soup_shop",new(400,430),"soup.return",true);
-        s.PendingRestore=GeXingzhou.Domain.SaveV3Codec.CreateNew(s.Options,s.Navigation) with {Stage=GeXingzhou.Domain.SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryState=new(),MemoryOrdinal=1,ReturnContext=context};
+        s.PendingRestore=GeXingzhou.Domain.SaveV4Codec.CreateNew(s.Options,s.Navigation) with {Stage=GeXingzhou.Domain.SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryState=new(),MemoryOrdinal=1,ReturnContext=context};
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         foreach(var broken in new[]{false,true}) {
             if(broken){var testRoot=ProjectSettings.GlobalizePath("res://test-output/");if(!s.SaveDirectory.StartsWith(testRoot))throw new Exception("Unsafe test directory");System.IO.Directory.CreateDirectory(s.SaveDirectory);System.IO.File.WriteAllText(System.IO.Path.Combine(s.SaveDirectory,"manual.json"),"{broken");}

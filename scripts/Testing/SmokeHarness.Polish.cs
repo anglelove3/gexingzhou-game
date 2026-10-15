@@ -103,7 +103,7 @@ public partial class SmokeHarness
         Input.ParseInputEvent(new InputEventKey{PhysicalKeycode=Key.D,Pressed=false});Require(main.World.Player.Position.X>x+5,"Rise left movement locked");
         await Capture("rest-risen");Require(!main.Rest.Begin(bench),"Distant bench bypassed approach limit");main.World.Player.GlobalPosition=bench.StandAnchor.GlobalPosition;Require(main.Rest.Begin(bench),"Repeated bench rejected");await WaitForPhase(main,RestPhase.Seated);
         main.Rest.HandleKey(Key.Escape);KeyPress(Key.E);await Frames(2);smoke=main.GetNode<Button>("RestOptions/Panel/Options/Smoke");smoke.EmitSignal(Button.SignalName.Pressed);await Frames(2);
-        var oldArt=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");var transition=main.SceneFlow.TryEnter("convenience_street",new(120,280));
+        var oldArt=main.World.Player.GetNode<AnimatedSprite2D>("Artwork");var transition=main.SceneFlow.TryEnter("convenience_street",new(100,520));
         oldArt.EmitSignal(AnimatedSprite2D.SignalName.AnimationFinished);var result=await transition;await Frames(2);
         Require(result.Success&&main.Rest.Phase==RestPhase.Standing&&!main.GetNode<RestOptionsController>("RestOptions").IsOpen,"Transition allowed old animation callback");
         GetTree().CurrentScene=null;main.Free();await Frames(2);
@@ -235,7 +235,7 @@ public partial class SmokeHarness
     {
         foreach(var (file,paths) in new[] {
             ("CommunityGate",new[]{"OldSign","DepthLayers/Props/Bench/SeatAnchor","DepthLayers/Props/Bench/StandAnchor","DepthLayers/Actors/Cannon","StreetExit"}),
-            ("ConvenienceStreet",new[]{"CommunityExit","Hey","SoupExit"}),
+            ("ConvenienceStreet",new[]{"CommunityExit","DepthLayers/Actors/Hey","SoupExit"}),
             ("SoupShop",new[]{"Targets/StreetExit","Targets/Seat","DepthLayers/Props/Sign","DepthLayers/Props/Menu","DepthLayers/Props/CounterNote","DepthLayers/Props/Counter","DepthLayers/Actors/Shopkeeper","DepthLayers/Props/Table/SoupBowl","Navigation/GroundBoundary/CollisionPolygon2D"}) })
         {
             var world=GD.Load<PackedScene>($"res://scenes/world/{file}.tscn").Instantiate<WorldView>();

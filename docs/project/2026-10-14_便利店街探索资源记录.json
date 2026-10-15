@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-14",
+  "status": "便利店街八张正式美术已生成并接入静态场景；最终地图、见闻、音频、渲染与发布验收另见本轮验收文档。",
+  "tool": "built-in image_gen",
+  "reference": "仅参考本项目既有 assets/art/vs01-v5-community/community-background.png 与 assets/art/vs01-v4/soup-background.png 的暖秋半写实游戏美术；未使用真人照片、真实门牌或另一游戏素材。",
+  "assets": [
+    {
+      "path": "assets/art/vs01-v7-street/street-background.png",
+      "sha256": "B23698C14AA1E33848A4A6D62F9579453D12244AED96CF2A8837F31208C92B89",
+      "size": [1600, 720],
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Asset type: production Godot 2D exterior neighborhood street background. Create a 1600x720 warm autumn Chinese residential convenience-store street environment with a broad east-west main street, a connected north living loop, a connected south back-lane loop and a short east branch. Semi-realistic painterly raster style matching the project's golden-hour community art, weathered gray apartment façades, old walls, mature orange-gold trees and quiet lived-in paving. Keep all approved walkable corridors visibly clear: main street around y=520, north loop connections near x=380 and x=1220 with upper lane y=220, south loop connections near x=620 and x=1000 with lower lane y=650, and east branch near x=1320..1380. No people, no vehicles, no readable addresses, no logos, no watermark, no baked interaction markers, no duplicated newsstand, bicycle shed, drying rack, drain, wall-paint patch, doorplate or stool because these are separate sprites. Full-frame opaque background, polished production raster illustration."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/newsstand.png",
+      "sha256": "5FEFAE862F17CC3F212B6C5960CF24CECBFBF728484B899E97B62A3B934B8BBE",
+      "size": [420, 280],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: one transparent 2D game prop. Create a closed, slightly weathered neighborhood newsstand with its metal shutter down, empty glass display and a narrow faded striped awning. Match the project's warm autumn golden-hour semi-realistic painterly raster style, gray-green painted metal, subtle rust, a few fallen leaves and a crisp readable silhouette. Three-quarter front view, entire kiosk visible, transparent alpha outside the object and through any open gaps, small contained contact shadow only. No newspapers with readable text, no logos, no people, no surrounding building or street rectangle, no watermark."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/bike-shed.png",
+      "sha256": "8CD0B326AA60EE56FB682F33A0D1D702E4943471D679971A84B5A1A978232206",
+      "size": [1774, 887],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: one transparent 2D game prop. Create an old neighborhood bicycle shelter with a patched dark canopy, thin weathered metal posts and several ordinary unbranded bicycles parked closely beneath it. Warm autumn ivy and fallen leaves may touch the structure. Match the project's semi-realistic painterly golden-hour Chinese residential street style. Wide three-quarter front view, complete base visible, clear foot-level silhouette, genuinely transparent background including gaps between bicycles and posts. No people, no readable brands, no text, no logo, no watermark, no street or building backdrop, one shelter only."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/laundry-rack.png",
+      "sha256": "BBE2FB70AEEACA09A218570A2924886D8AC6DA52165D1CE2F4A741210497C14D",
+      "size": [1605, 980],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: transparent 2D game prop for a Godot warm autumn neighborhood street scene. Primary request: create a freestanding, slightly weathered metal laundry drying rack with only several empty wooden and plastic clothespins hanging from thin lines; no clothes, no people. Scene/backdrop: genuinely transparent background with clean alpha, no floor rectangle, no scenery. Style/medium: polished semi-realistic painterly raster art matching a warm Chinese residential neighborhood at golden hour, detailed but readable at game scale. Composition/framing: full object centered, straight three-quarter front view, complete feet visible, wide horizontal silhouette, realistic stable base. Lighting/mood: warm late-afternoon light from upper left, soft contact shading contained within the object. Color palette: aged galvanized gray, muted teal and warm wood, subtle autumn orange accents. Materials/textures: lightly rusted tubes, taut thin lines, worn clothespins. Constraints: one laundry rack only; transparent outside the prop; no text, no logo, no watermark; no laundry, no human figure, no building, no duplicate props; suitable for scaling to about 360x220 pixels."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/doorplate.png",
+      "sha256": "EEBC2CD873B3CE1832018AD871F60F35C08B03C4AE32E2006AB1F7FC2955586B",
+      "size": [1569, 1003],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: transparent 2D game prop for a Godot warm autumn neighborhood street scene. Primary request: create one old rectangular enamel street doorplate mounted on a small patch of cracked plaster, paint peeling at edges and several older color layers visible, with no readable number or real address. Scene/backdrop: genuinely transparent background with clean alpha; only the plaque and its small irregular plaster backing. Style/medium: polished semi-realistic painterly raster art matching a warm Chinese residential neighborhood at golden hour. Composition/framing: centered front view with slight perspective, compact horizontal silhouette, all edges visible. Lighting/mood: warm late-afternoon light from upper left, subtle shadow contained on the plaster patch. Color palette: desaturated teal-blue enamel, cream lettering-like abstract wear marks that are not legible, gray-beige plaster, warm rust. Materials/textures: chipped enamel, rusted screws, layered old paint, hairline cracks. Constraints: no readable words, no numbers, no real address, no logo, no watermark, no person, no building façade beyond the small plaster backing, one prop only; suitable for scaling to about 220x140 pixels."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/wall-paint.png",
+      "sha256": "D80AF799F81936D554F60ABEB71ACAA005189E33B28CE0DE22333661D16AB351",
+      "size": [1916, 821],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: transparent 2D game prop / wall decal for a Godot warm autumn neighborhood street scene. Primary request: create one irregular horizontal patch of an old wall showing several layers of peeling paint and fine cracks, as a standalone transparent overlay. Scene/backdrop: genuinely transparent background with clean alpha; only the irregular paint-and-plaster patch, no rectangular canvas. Style/medium: polished semi-realistic painterly raster art matching a warm Chinese residential neighborhood at golden hour. Composition/framing: low wide patch centered, ragged organic edges, readable layered paint strata, no object protruding from it. Lighting/mood: warm late-afternoon grazing light from upper left. Color palette: muted faded teal, dusty brick red, cream, warm gray and small ochre traces. Materials/textures: flaky paint, old plaster, hairline cracks, subtle weather staining. Constraints: no text, no graffiti letters, no logo, no watermark, no person, no entire building, no door or window, one patch only; suitable for scaling to about 420x180 pixels."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/drain.png",
+      "sha256": "8221E14328F85B3F1C43FD9883E45FD4942C6F8C98CAE1EA7BF651739EB2831D",
+      "size": [1942, 809],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: transparent 2D ground prop for a Godot warm autumn neighborhood street scene. Primary request: create one shallow roadside drainage channel segment with an aged dark metal grate, damp water stain, and a small natural cluster of dry autumn leaves gathered along one edge. Scene/backdrop: genuinely transparent background with clean alpha; only the drain segment and leaves, no street rectangle or surrounding scenery. Style/medium: polished semi-realistic painterly raster art matching a warm Chinese residential neighborhood at golden hour. Composition/framing: compact wide low object, three-quarter top-down game view, full edges visible. Lighting/mood: warm late-afternoon light from upper left, subtle contained contact shadow. Color palette: charcoal gray metal, weathered concrete, ochre and burnt-orange leaves. Materials/textures: worn metal slots, chipped concrete lip, faint wet streak, crisp leaves. Constraints: one drain segment only; no text, no logo, no watermark, no person, no trash branding, no duplicate drains; suitable for scaling to about 300x100 pixels."
+    },
+    {
+      "path": "assets/art/vs01-v7-street/street-stool.png",
+      "sha256": "F6EA9C8DF4D64797BE13420E1D3135F0B56A00868384C567042CB45F6F75F8A4",
+      "size": [1214, 1295],
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. Asset type: transparent 2D game prop for a Godot warm autumn neighborhood street scene. Primary request: create one humble low plastic stool placed outside a small neighborhood shop, visibly worn smooth from use, with a few scratches and slightly faded color. Scene/backdrop: genuinely transparent background with clean alpha; only the stool and a very small contained contact shadow. Style/medium: polished semi-realistic painterly raster art matching a warm Chinese residential neighborhood at golden hour. Composition/framing: centered three-quarter front view, entire stool and all four feet visible, compact readable silhouette. Lighting/mood: warm late-afternoon light from upper left. Color palette: faded muted red-orange plastic with warmer highlights and restrained gray scuffs. Materials/textures: molded plastic, rounded edges, worn glossy seat, subtle scratches. Constraints: exactly one empty stool; no person, no shop façade, no table, no text, no logo, no watermark, no duplicate objects; suitable for scaling to about 150x160 pixels."
+    }
+  ],
+  "rights": "项目内 AI 生成素材，不引用第三方收费素材包或真人照片；不承诺各司法辖区版权可登记性、独占性或商业发行认证。正式发行前仍需人工核查相似性、商标及平台规则。"
+}

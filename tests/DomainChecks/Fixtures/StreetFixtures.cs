@@ -8,7 +8,7 @@ public static class StreetFixtures
         var profiles=FrozenV3().Profiles.ToDictionary(p=>p.Key,p=>p.Value);
         profiles["convenience_street"]=new("convenience_street",WorldMode.Depth2D,1600,720,8,
             Rect(24,180,1576,688),new[]{Rect(24,180,340,440),Rect(450,300,1150,440),Rect(1260,180,1576,360),Rect(24,580,580,688),Rect(680,570,940,620),Rect(1040,580,1280,688),Rect(1340,580,1576,688)},
-            new Dictionary<string,Position2>{["entry"]=new(100,520),["exit"]=new(1500,520),["safe"]=new(240,520),["stand"]=new(240,520),["seat"]=new(240,500)});
+            new Dictionary<string,Position2>{["entry"]=new(100,520),["exit"]=new(1500,520),["safe"]=new(240,520)});
         return new(profiles);
     }
     public static NavigationCatalog CurrentWithStreetBlock(float x)

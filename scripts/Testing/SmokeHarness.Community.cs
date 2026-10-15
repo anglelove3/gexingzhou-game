@@ -60,7 +60,7 @@ public partial class SmokeHarness
         if(saved.GetNodeOrNull<PlayerController>("DepthLayers/Actors/Player")==null)problems.Add("Static DepthLayers/Actors/Player missing");
         if(saved.ViewBounds!=new Rect2(0,0,1600,540))problems.Add("Community dimensions not 1600x540");
         var session=GetNode<GameSession>("/root/GameSession");session.NewGame();
-        if(session.Snapshot.SchemaVersion!=3||session.Snapshot.PlayerPosition!=new Position2(320,460))problems.Add("NewGame still uses old protocol or foot lane");
+        if(session.Snapshot.SchemaVersion!=4||session.Snapshot.PlayerPosition!=new Position2(320,460))problems.Add("NewGame still uses old protocol or foot lane");
         if(problems.Count>0)throw new Exception(string.Join("; ",problems));
         var authored=NavigationSceneReader.Read(saved);
         Require(NavigationSceneReader.Matches(authored,session.Navigation.Profiles["community_gate"]),"Community export mismatch");
@@ -106,7 +106,7 @@ public partial class SmokeHarness
     private async Task CommunityUpgradeChecks()
     {
         var session=GetNode<GameSession>("/root/GameSession");session.NewGame();
-        Require(session.Snapshot.SchemaVersion==3,"Upgrade runtime not v3");
+        Require(session.Snapshot.SchemaVersion==4,"Upgrade runtime not v4");
         Require(typeof(GameSession).GetProperty("V2Directory")!=null&&typeof(GameSession).GetProperty("FrozenV2Navigation")!=null,"Frozen v2 runtime boundary missing");
         Require(session.Saves.Load().Status==LoadStatus.NotFound,"Community upgrade suite not isolated");
         foreach(var version in new[]{1,2})foreach(var manual in new[]{false,true})foreach(var backup in new[]{false,true}){
@@ -121,17 +121,17 @@ public partial class SmokeHarness
             Require((manual?fixture.Saves:fixture.ManualSaves).Load().Status==LoadStatus.NotFound,"Upgrade crossed manual/auto slots");
             fixture.Free();await Frames();
         }
-        foreach(var version in new[]{2,3}){
+        foreach(var version in new[]{2,3,4}){
             var fixture=UpgradeFixture();WriteLegacy(fixture,false,snapshot:new());WriteV2(fixture,false,false);
-            var directory=version==3?fixture.SaveDirectory:fixture.V2Directory;System.IO.Directory.CreateDirectory(directory);
-            var current=SaveV3Codec.CreateNew(new(),fixture.Navigation);var source=version==3?current:SaveV2Codec.CreateNew(new());
+            var directory=version switch{4=>fixture.SaveDirectory,3=>fixture.V3Directory,_=>fixture.V2Directory};System.IO.Directory.CreateDirectory(directory);
+            var source=version switch{4=>SaveV4Codec.CreateNew(new(),fixture.Navigation),3=>SaveV3Codec.CreateNew(new(),fixture.FrozenV3Navigation),_=>SaveV2Codec.CreateNew(new())};
             System.IO.File.WriteAllText(System.IO.Path.Combine(directory,"save.bak.json"),SnapshotJson(source));
             if(version==2)System.IO.File.Delete(System.IO.Path.Combine(directory,"save.json"));
-            var before=CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory);
+            var before=CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory)+CommunityFileState(fixture.V3Directory);
             Require(fixture.ProbeResume(false).Source==VersionedResumeSource.Blocked,"Backup only downgraded automatically");
-            Require(fixture.ProbeResume(false,true).Source==(version==3?VersionedResumeSource.Current:VersionedResumeSource.V2),"Explicit backup read wrong version");
+            Require(fixture.ProbeResume(false,true).Source==(version switch{4=>VersionedResumeSource.Current,3=>VersionedResumeSource.V3,_=>VersionedResumeSource.V2}),"Explicit backup read wrong version");
             Require(fixture.TryUpgradePrevious(false).Status!=LoadStatus.Loaded,"Backup-only upgrade overwrote current files");
-            Require(before==CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory),"Backup probe modified old files");fixture.Free();await Frames();
+            Require(before==CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory)+CommunityFileState(fixture.V3Directory),"Backup probe modified old files");fixture.Free();await Frames();
         }
         {
             var fixture=UpgradeFixture();WriteLegacy(fixture,false,snapshot:new());System.IO.Directory.CreateDirectory(fixture.V2Directory);
@@ -151,17 +151,17 @@ public partial class SmokeHarness
             finally{resources[path]=original;fixture.Free();}await Frames();
         }
         await CommunityCandidateHotspotChecks();
-        foreach(var condition in new[]{"v3_valid","v3_corrupt","v3_parent_file","v2_valid","v2_corrupt","v2_parent_file","v1_valid"}){
+        foreach(var condition in new[]{"v4_valid","v4_corrupt","v4_parent_file","v3_valid","v3_corrupt","v3_parent_file","v2_valid","v2_corrupt","v2_parent_file","v1_valid"}){
             var fixture=UpgradeFixture();var oldDirectory=System.IO.Path.Combine(fixture.LegacyDirectory,"preferences");Require(new SettingsRepository(oldDirectory).Save(new(){SubtitleSize=32}).Success,"Old preference fixture");
             var v2Directory=System.IO.Path.Combine(fixture.V2Directory,"preferences");var currentDirectory=System.IO.Path.Combine(fixture.SaveDirectory,"preferences");
-            var selected=condition.StartsWith("v3")?currentDirectory:v2Directory;
+            var selected=condition.StartsWith("v4")?currentDirectory:condition.StartsWith("v3")?System.IO.Path.Combine(fixture.V3Directory,"preferences"):v2Directory;
             if(condition.EndsWith("valid")&&condition!="v1_valid")Require(new SettingsRepository(selected).Save(new(){SubtitleSize=20}).Success,"Priority preference fixture");
             if(condition.EndsWith("corrupt")){System.IO.Directory.CreateDirectory(selected);System.IO.File.WriteAllText(System.IO.Path.Combine(selected,"settings.json"),"{broken");}
             if(condition.EndsWith("parent_file")){System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(selected)!);System.IO.File.WriteAllText(selected,"preserve me");}
-            var oldHash=CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory);
+            var oldHash=CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory)+CommunityFileState(fixture.V3Directory);
             typeof(GameSession).GetMethod("InitializePreferences",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.Invoke(fixture,null);
-            Require(fixture.Options.SubtitleSize==(condition is "v3_valid" or "v2_valid"?20:condition=="v1_valid"?32:24),"Preference precedence wrong "+condition);
-            Require(oldHash==CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory),"Preferences changed old directories");
+            Require(fixture.Options.SubtitleSize==(condition is "v4_valid" or "v3_valid" or "v2_valid"?20:condition=="v1_valid"?32:24),"Preference precedence wrong "+condition);
+            Require(oldHash==CommunityFileState(fixture.LegacyDirectory)+CommunityFileState(fixture.V2Directory)+CommunityFileState(fixture.V3Directory),"Preferences changed old directories");
             if(condition.EndsWith("corrupt")||condition.EndsWith("parent_file"))Require(fixture.EventWarning.Length>0,"Preference failure hidden "+condition);
             fixture.Free();await Frames();
         }

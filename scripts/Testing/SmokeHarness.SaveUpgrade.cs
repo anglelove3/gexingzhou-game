@@ -22,7 +22,7 @@ public partial class SmokeHarness
     private async Task SaveUpgradeChecks()
     {
         var root=GetNode<GameSession>("/root/GameSession");root.NewGame();
-        Require(root.Snapshot.SchemaVersion==3&&root.Snapshot.ContentVersion=="vs01-0.3","Production NewGame must use v3");
+        Require(root.Snapshot.SchemaVersion==4&&root.Snapshot.ContentVersion=="vs01-0.4","Production NewGame must use v4");
         Require(!root.Restore(new()).Success,"Production Restore silently upgrades v1");
         foreach(var manual in new[]{false,true})foreach(var backup in new[]{false,true})
         {
@@ -41,12 +41,12 @@ public partial class SmokeHarness
         {
             var session=UpgradeFixture();WriteLegacy(session,false);System.IO.Directory.CreateDirectory(session.SaveDirectory);
             if(condition=="backup_only"){
-                Require(session.Saves.Save(SaveV3Codec.CreateNew(new(),session.Navigation)).Success,"V3 seed failed");
+                Require(session.Saves.Save(SaveV4Codec.CreateNew(new(),session.Navigation)).Success,"V4 seed failed");
                 System.IO.File.Move(System.IO.Path.Combine(session.SaveDirectory,"save.json"),System.IO.Path.Combine(session.SaveDirectory,"save.bak.json"));
                 Require(session.ProbeResume(false,true).Source==VersionedResumeSource.Current,"Current backup inaccessible");
             }else System.IO.File.WriteAllText(System.IO.Path.Combine(session.SaveDirectory,"save.json"),condition=="corrupt"?"{broken":"{\"schema_version\":999,\"content_version\":\"future\"}");
             Require(session.ProbeResume(false).Source==VersionedResumeSource.Blocked,"Bad current silently fell back to v1");
-            Require(session.TryUpgradeLegacy(false).Status!=LoadStatus.Loaded,"Upgrade overwrote existing v2 slot");session.Free();
+            Require(session.TryUpgradeLegacy(false).Status!=LoadStatus.Loaded,"Upgrade overwrote existing v4 slot");session.Free();
         }
         {
             var session=UpgradeFixture();WriteLegacy(session,false);

@@ -106,7 +106,7 @@ public partial class SmokeHarness
             Require(main.World.Player.Position.X>1440&&NavigationGeometry.CanStand(main.World.Navigation,new(main.World.Player.Position.X,main.World.Player.Position.Y)),"Player cannot walk to street exit");
             Require(main.World.Interactions.Prompt.Contains("便利店街"),"Street exit not selected from walkable approach");await CommunityPolishCapture("street-exit-ready");
             KeyPress(Key.E);await WaitUntil(()=>main.World.SceneId=="convenience_street"&&session.Flow==FlowState.Field,"Street E transition");
-            Require(main.World.Mode==WorldMode.Horizontal,"Community polish changes convenience street movement");
+            Require(main.World.Mode==WorldMode.Depth2D,"Convenience street four-way navigation missing");
             var exit=main.World.GetTarget("community")!;main.World.Player.Position=new(exit.Position.X+70,exit.Position.Y);main.World.Player.Velocity=Vector2.Zero;
             using(var down=new InputEventKey{Keycode=Key.A,PhysicalKeycode=Key.A,Pressed=true})Input.ParseInputEvent(down);
             await DepthPhysics(30);

@@ -19,7 +19,7 @@ public partial class SmokeHarness
             }
             seat.Stand();await WaitUntil(()=>!seat.IsActive,"Visual stand");await Capture("soup-risen"+(reduced?"-reduced":""));main.Free();await Frames(2);
         }
-        var delivery=await NewPolishMain();s.AdvanceClock(53);s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1"));delivery.ChangeWorld("convenience_street",new(600,280));await Frames(3);
+        var delivery=await NewPolishMain();s.AdvanceClock(53);s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1"));delivery.ChangeWorld("convenience_street",new(800,520));await Frames(3);
         delivery.World.GetTarget("hey")!.TryInteract(s);await Finish(delivery);delivery.Choices.Close();await Frames(2);await Capture("candy-handover");delivery.Free();await Frames(2);
     }
     private async Task<MainView> NewSoupMain(bool reduced)
@@ -70,14 +70,14 @@ public partial class SmokeHarness
             Require(!restored.SoupSeat.IsActive&&restored.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation.ToString().StartsWith("idle"),"Saved soup restored transient pose");restored.Free();await Frames(2);
         }
         var transfer=await NewSoupMain(false);var stale=0;Require(transfer.SoupSeat.Begin(()=>stale++),"Transition begin");
-        Require((await transfer.SceneFlow.TryEnter("convenience_street",new(600,280))).Success,"Transition failed");await Frames(100);Require(stale==0&&!transfer.SoupSeat.IsActive,"SceneFlow retained old seat");transfer.Free();await Frames(2);
+        Require((await transfer.SceneFlow.TryEnter("convenience_street",new(800,520))).Success,"Transition failed");await Frames(100);Require(stale==0&&!transfer.SoupSeat.IsActive,"SceneFlow retained old seat");transfer.Free();await Frames(2);
         var read=await NewSoupMain(false);Require(read.SoupSeat.Begin(()=>{}),"F9 begin");await WaitUntil(()=>!read.SoupSeat.IsActing,"F9 seated");
         Require(read.SoupSeat.PlayAction("eat",()=>stale++),"F9 action");KeyPress(Key.F5);await Frames(2);
         var savedAction=s.ManualSaves.Load();Require(savedAction.Status==LoadStatus.Loaded&&savedAction.Snapshot!.PlayerPosition==read.SafeSavePosition,"F5 mid-action unsafe");
         GetTree().CurrentScene=null;KeyPress(Key.F9);await Frames(6);var reopened=GetTree().CurrentScene as MainView;
         Require(reopened!=null&&reopened!=read&&!reopened.SoupSeat.IsActive&&reopened.World.Player.GetNode<AnimatedSprite2D>("Artwork").Animation.ToString().StartsWith("idle"),"F9 retained transient soup pose");
         read.Free();await Frames(100);Require(stale==0,"F9 delayed callback committed");reopened!.Free();await Frames(2);
-        var delivery=await NewPolishMain();s.AdvanceClock(53);s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1"));delivery.ChangeWorld("convenience_street",new(600,280));await Frames(3);
+        var delivery=await NewPolishMain();s.AdvanceClock(53);s.TryDispatch(new("invitation.meeting_complete","meeting","invitation-1"));delivery.ChangeWorld("convenience_street",new(800,520));await Frames(3);
         delivery.World.GetTarget("hey")!.TryInteract(s);await Finish(delivery);delivery.Choices.Close();await Frames(2);await Capture("candy-handover");
         Require(s.Snapshot.CandyCount==0,"Handover did not commit once");delivery.World.GetTarget("hey")!.TryInteract(s);Require(s.Snapshot.CandyCount==0,"Repeated handover altered candy");delivery.Choices.Close();delivery.Free();await Frames(2);
     }

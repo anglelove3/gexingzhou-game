@@ -114,6 +114,22 @@ try {
     if($preset -notmatch 'assets/art/vs01-v6-polish/\*\.png' -or $preset -notmatch 'assets/audio/vs02/\*\.wav'){throw 'FEEDBACK_EXPORT_DEPENDENCY_MISSING'}
     Write-Output 'PASS FeedbackPolishDependencyWhitelist ManifestHashes PCMImports SourceTools Documents'
 } catch {$failures++;Write-Output "FAIL FeedbackPolishDependencyWhitelist $_"}
+try {
+    $streetFiles=@('content/vs01/compat/navigation-v3.json','docs/project/2026-10-14_便利店街探索资源记录.json','licenses/AI_ART_STREET_20261014.md','docs/superpowers/specs/2026-10-14-便利店街环形探索-design.md','docs/superpowers/plans/2026-10-14-便利店街环形探索-实施计划.md','docs/development/15_便利店街环形探索验收与接续.md')
+    foreach($path in $streetFiles){
+        $source=Join-Path $projectRoot $path;$target=Join-Path $destination $path
+        if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "STREET_PACKAGE_MISMATCH $path"}
+    }
+    if((Get-FileHash -LiteralPath (Join-Path $destination 'content/vs01/compat/navigation-v3.json')).Hash -ne 'F918EE94AC3A74320FF2EEA567AC86E3526E905E7B581E5EBD84CE19F4F5A18F'){throw 'FROZEN_V3_PROTOCOL_HASH_CHANGED'}
+    $streetRecord=Get-Content -LiteralPath (Join-Path $destination 'docs/project/2026-10-14_便利店街探索资源记录.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if(@($streetRecord.assets).Count -ne 8){throw 'STREET_ASSET_COUNT_CHANGED'}
+    foreach($asset in $streetRecord.assets){
+        $source=Join-Path $projectRoot $asset.path;$target=Join-Path $destination $asset.path
+        if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne $asset.sha256 -or (Get-FileHash -LiteralPath $target).Hash -ne $asset.sha256){throw "STREET_ASSET_HASH_MISMATCH $($asset.path)"}
+    }
+    if($preset -notmatch 'assets/art/vs01-v7-street/\*\.png'){throw 'STREET_EXPORT_DEPENDENCY_MISSING'}
+    Write-Output 'PASS StreetCompatibilityDependencyWhitelist FrozenV3 EightArtHashes Documents'
+} catch {$failures++;Write-Output "FAIL StreetCompatibilityDependencyWhitelist $_"}
 foreach($probe in @(@{Name='CaptureSizesEmpty';Literal='@()'},@{Name='CaptureSizesPath';Literal="@('../escape')"})) {
     $command="& '$projectRoot/tools/capture-smoke.ps1' -Sizes $($probe.Literal) -GodotExe '$projectRoot/test-output/no-godot.exe'"
     $output=& $shellExe -NoProfile -Command $command 2>&1

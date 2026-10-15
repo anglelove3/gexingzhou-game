@@ -29,6 +29,24 @@ public static class StreetSaveChecks
             Check.Equal(LoadStatus.Corrupt,codec.Read(StreetFixtures.Json(valid with{DiscoveredIds=new(){"street.unknown"}})).Status);
             Check.Equal(LoadStatus.UnsupportedVersion,codec.Read("{\"schema_version\":5,\"content_version\":\"vs01-0.5\",\"future\":true}").Status);
         }));
+        foreach(var (name,path) in new[]{("Position","player_position"),("Clock","scene_active_milliseconds"),("Settings","settings"),("Invitation","invitation_state"),("Memory","memory_state"),("Return","return_context"),("ReturnPosition","return_context.position")})
+            tests.Add(("StreetSave","RejectsNestedDuplicate"+name,()=>
+            {
+                var codec=new SaveV4Codec(StreetFixtures.Current());
+                var valid=Upgrade(SaveMigrationFixtures.LegacyMemory(null,false)).Snapshot! with{SceneActiveMilliseconds=new(){["community_gate"]=9000}};
+                var json=StreetFixtures.Json(valid);Check.Equal(LoadStatus.Loaded,codec.Read(json).Status);
+                using var document=System.Text.Json.JsonDocument.Parse(json);var nested=document.RootElement;
+                foreach(var segment in path.Split('.'))nested=nested.GetProperty(segment);
+                var first=nested.EnumerateObject().First();var raw=nested.GetRawText();
+                var repeated=raw.Insert(1,System.Text.Json.JsonSerializer.Serialize(first.Name)+":"+first.Value.GetRawText()+",");
+                var corrupt=json.Replace(raw,repeated,StringComparison.Ordinal);
+                Check.True(corrupt!=json);Check.Equal(LoadStatus.Corrupt,codec.Read(corrupt).Status);
+            }));
+        tests.Add(("StreetSave","FutureVersionRejectedBeforeNestedFields",()=>
+        {
+            var codec=new SaveV4Codec(StreetFixtures.Current());
+            Check.Equal(LoadStatus.UnsupportedVersion,codec.Read("{\"schema_version\":5,\"content_version\":\"vs01-0.5\",\"player_position\":{\"x\":320,\"x\":400}}").Status);
+        }));
         tests.Add(("StreetSave","InvalidVsBlockedPositions",()=>
         {
             var codec=new SaveV4Codec(StreetFixtures.Current());

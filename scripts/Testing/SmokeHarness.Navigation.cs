@@ -48,7 +48,7 @@ public partial class SmokeHarness
         foreach(var font in new[]{20,24,32})
         {
             s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
-            var complete=SaveV3Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
+            var complete=SaveV4Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
                 MemoryState=new(){PushedCoinIds=new(){"c1","c2","c3","c4"},PushedTotal=5,FoodChoice=FoodChoice.Take,Completed=true},
                 CompletedActions=new(){"slice.complete:slice-1"},ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
             Require(s.Restore(complete).Success,"End visual snapshot invalid");
@@ -111,7 +111,7 @@ public partial class SmokeHarness
         main.Pause.Close();await Frames(2);Require(s.Flow==FlowState.Field,"Resume did not restore field");
         main.Phone.Open("messages");KeyPress(Key.Escape);await Frames(2);Require(!main.Phone.IsOpen&&!main.Pause.IsOpen,"Phone Esc also opened pause");
         main.ShowNotice("测试","关闭后仍回自由活动。");KeyPress(Key.Escape);await Frames(2);Require(!main.Dialogue.IsOpen&&!main.Pause.IsOpen,"Dialogue Esc also opened pause");
-        var memory=SaveV3Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
+        var memory=SaveV4Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.MemoryActive,SceneId="memory_soup_table",PlayerPosition=new(320,280),MemoryState=new(),MemoryOrdinal=1,ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
         Require(s.Restore(memory).Success&&main.EnterMemoryView(),"Pause memory fixture failed");s.Flow=FlowState.Memory;
         KeyPress(Key.Escape);await WaitUntil(()=>main.Memory==null&&s.Flow==FlowState.Field,"Memory escape");
         Require(!main.Pause.IsOpen,"Memory Esc also paused");main.Free();await Frames(2);

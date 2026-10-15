@@ -91,7 +91,7 @@ public partial class SmokeHarness
     private async Task EntranceFailureBoundary()
     {
         var main=await NewDepthSoupMain(new(120,480));var s=GetNode<GameSession>("/root/GameSession");
-        Require(main.ChangeWorld("convenience_street",new(1120,280)),"Entrance fixture failed");await Frames(3);var world=main.World;
+        Require(main.ChangeWorld("convenience_street",new(1500,520)),"Entrance fixture failed");await Frames(3);var world=main.World;
         var packed=s.GetScene("res://scenes/world/SoupShop.tscn")!;var pristine=packed.Instantiate<WorldView>();var damaged=packed.Instantiate<WorldView>();
         damaged.GetNode<Node2D>("Navigation/Obstacles/Counter").Position=new(4,0);Require(packed.Pack(damaged)==Error.Ok,"Navigation mismatch fixture did not pack");
         try

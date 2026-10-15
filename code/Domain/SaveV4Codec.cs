@@ -19,6 +19,7 @@ public sealed class SaveV4Codec : ISaveCodec
             if(root.ValueKind!=JsonValueKind.Object||!root.TryGetProperty("schema_version",out var schema)||!schema.TryGetInt32(out var version)||
                 !root.TryGetProperty("content_version",out var content)||content.ValueKind!=JsonValueKind.String)return Corrupt("存档版本字段缺失或类型错误。");
             if(version!=4||content.GetString()!="vs01-0.4")return new(LoadStatus.UnsupportedVersion,null,"不支持的存档版本，原档已保留。");
+            if(HasDuplicateFields(root))return Corrupt("存档含重复字段。");
             var names=new HashSet<string>(StringComparer.Ordinal);
             foreach(var field in root.EnumerateObject())if(!RootFields.Contains(field.Name)||!names.Add(field.Name))return Corrupt("存档含未知或重复字段。");
             if(root.TryGetProperty("discovered_ids",out var discovered))
@@ -38,6 +39,19 @@ public sealed class SaveV4Codec : ISaveCodec
         if(snapshot.ReturnContext is {} context&&!NavigationGeometry.CanStand(navigation.Profiles["soup_shop"],context.Position))
         {snapshot=snapshot with{ReturnContext=context with{Position=navigation.Profiles["soup_shop"].Anchors["safe"]}};moved=true;}
         return new(LoadStatus.Loaded,snapshot,moved?"家具占位已调整，角色回到同场景安全位置。":"已读取存档。");
+    }
+
+    private static bool HasDuplicateFields(JsonElement element)
+    {
+        if(element.ValueKind==JsonValueKind.Object)
+        {
+            var names=new HashSet<string>(StringComparer.Ordinal);
+            foreach(var field in element.EnumerateObject())
+                if(!names.Add(field.Name)||HasDuplicateFields(field.Value))return true;
+        }
+        else if(element.ValueKind==JsonValueKind.Array)
+            foreach(var item in element.EnumerateArray())if(HasDuplicateFields(item))return true;
+        return false;
     }
 
     public string? Validate(WorldSnapshot snapshot)=>ValidateCore(snapshot,false);

@@ -1,166 +1,338 @@
-[gd_scene load_steps=15 format=3]
-[ext_resource type="Script" path="res://scripts/WorldView.cs" id="1"]
-[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/street-v1.png" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3"]
-[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="4"]
-[ext_resource type="Script" path="res://scripts/Interactable.cs" id="5"]
-[ext_resource type="PackedScene" path="res://scenes/world/Bench.tscn" id="6"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-0.tres" id="Npc0"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Npc1"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Npc2"]
-[ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="Npc3"]
-[ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-background.png" id="Bg"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
+[ext_resource type="Script" path="res://scripts/InteractionController.cs" id="Interactions"]
+[ext_resource type="Script" path="res://scripts/Interactable.cs" id="Target"]
+[ext_resource type="Script" path="res://scripts/ObservationHotspot.cs" id="Observation"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="HeyArt"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="ResidentNorthArt"]
+[ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="ResidentSouthArt"]
 [ext_resource type="Texture2D" path="res://assets/atlases/candy-bag.tres" id="Candy"]
-[sub_resource type="RectangleShape2D" id="Ground"]
-size=Vector2(1280,16)
-[sub_resource type="RectangleShape2D" id="Side"]
-size=Vector2(16,360)
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/doorplate.png" id="DoorplateArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/newsstand.png" id="NewsstandArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/bike-shed.png" id="BikeShedArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/drain.png" id="DrainArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/wall-paint.png" id="WallPaintArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/laundry-rack.png" id="LaundryArt"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-stool.png" id="StoolArt"]
+
 [node name="ConvenienceStreet" type="Node2D"]
-script=ExtResource("1")
+script=ExtResource("World")
 SceneId="convenience_street"
-Width=1280
-ViewBounds=Rect2(0,0,1280,360)
-[node name="Navigation" type="Node2D" parent="."]
-[node name="Anchors" type="Node2D" parent="Navigation"]
-[node name="EntryAnchor" type="Marker2D" parent="Navigation/Anchors"]
-position=Vector2(120,280)
-[node name="ExitAnchor" type="Marker2D" parent="Navigation/Anchors"]
-position=Vector2(1160,280)
-[node name="SafeAnchor" type="Marker2D" parent="Navigation/Anchors"]
-position=Vector2(320,280)
+Width=1600
+ViewBounds=Rect2(0,0,1600,720)
+Mode=1
+
 [node name="Backdrop" type="Sprite2D" parent="."]
 texture_filter=2
 z_index=-10
-position=Vector2(0,-52.80000000000001)
-scale=Vector2(0.5893186003683242,0.5893186003683242)
-texture=ExtResource("2")
+texture=ExtResource("Bg")
 centered=false
-[node name="Player" parent="." instance=ExtResource("3")]
-position=Vector2(320,280)
-[node name="Interactions" type="Node" parent="."]
-script=ExtResource("4")
-[node name="Floor" type="StaticBody2D" parent="."]
-position=Vector2(640,288)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
-shape=SubResource("Ground")
-[node name="LeftBoundary" type="StaticBody2D" parent="."]
-position=Vector2(-8,180)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
-shape=SubResource("Side")
-[node name="RightBoundary" type="StaticBody2D" parent="."]
-position=Vector2(1288,180)
-collision_layer=1
-collision_mask=0
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RightBoundary"]
-shape=SubResource("Side")
-[node name="CommunityExit" type="Node2D" parent="."]
-position=Vector2(80,280)
-script=ExtResource("5")
-Id="community"
-Caption="回安置小区"
-Description=""
-ActionId="scene:community_gate"
-IsActive=true
-[node name="NameLabel" type="Label" parent="CommunityExit"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
+
+[node name="DepthLayers" type="Node2D" parent="."]
+y_sort_enabled=true
+[node name="Actors" type="Node2D" parent="DepthLayers"]
+y_sort_enabled=true
+[node name="Player" parent="DepthLayers/Actors" instance=ExtResource("Player")]
+position=Vector2(240,520)
+
+[node name="Hey" type="Node2D" parent="DepthLayers/Actors"]
+position=Vector2(800,500)
+script=ExtResource("Target")
+Id="hey"
+Caption="Hey哥 · 递喜糖 / 聊两句"
+ActionId="candy.hey.delivered"
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/Hey"]
+texture_filter=2
+position=Vector2(0,-40)
+scale=Vector2(0.145,0.145)
+texture=ExtResource("HeyArt")
+flip_h=true
+[node name="NameLabel" type="Label" parent="DepthLayers/Actors/Hey"]
+offset_left=-80.0
+offset_top=-120.0
+offset_right=80.0
+offset_bottom=-96.0
 horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
 theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="回安置小区"
+theme_override_font_sizes/font_size=14
+text="Hey哥"
 mouse_filter=2
 visible=false
+[node name="Marker" type="Label" parent="DepthLayers/Actors/Hey"]
+offset_left=-8.0
+offset_top=-103.0
+offset_right=20.0
+offset_bottom=-79.0
+theme_override_colors/font_color=Color(0.94,0.83,0.6,1)
+theme_override_constants/outline_size=3
+theme_override_font_sizes/font_size=16
+text="◇"
+mouse_filter=2
+[node name="HandoverCandy" type="Sprite2D" parent="DepthLayers/Actors/Hey"]
+visible=false
+position=Vector2(-30,-40)
+scale=Vector2(0.035,0.035)
+texture=ExtResource("Candy")
+
+[node name="ResidentNorth" type="Node2D" parent="DepthLayers/Actors"]
+position=Vector2(520,220)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/ResidentNorth"]
+texture_filter=2
+position=Vector2(0,-36)
+scale=Vector2(0.14,0.14)
+texture=ExtResource("ResidentNorthArt")
+[node name="Waypoint" type="Marker2D" parent="DepthLayers/Actors/ResidentNorth"]
+position=Vector2(280,0)
+
+[node name="ResidentSouth" type="Node2D" parent="DepthLayers/Actors"]
+position=Vector2(700,660)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/ResidentSouth"]
+texture_filter=2
+position=Vector2(0,-36)
+scale=Vector2(0.14,0.14)
+texture=ExtResource("ResidentSouthArt")
+flip_h=true
+[node name="Waypoint" type="Marker2D" parent="DepthLayers/Actors/ResidentSouth"]
+position=Vector2(220,0)
+
+[node name="Props" type="Node2D" parent="DepthLayers"]
+y_sort_enabled=true
+[node name="Doorplate" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(220,315)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Doorplate"]
+texture_filter=2
+position=Vector2(-74,-55)
+scale=Vector2(0.095,0.095)
+texture=ExtResource("DoorplateArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/Doorplate"]
+visible=false
+position=Vector2(0,-48)
+polygon=PackedVector2Array(-70,-40,70,-40,70,40,-70,40)
+
+[node name="Newsstand" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(540,440)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Newsstand"]
+texture_filter=2
+position=Vector2(0,-70)
+scale=Vector2(0.55,0.55)
+texture=ExtResource("NewsstandArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/Newsstand"]
+visible=false
+position=Vector2(0,-70)
+polygon=PackedVector2Array(-110,-75,110,-75,110,75,-110,75)
+
+[node name="BikeShed" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(940,440)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/BikeShed"]
+texture_filter=2
+position=Vector2(0,-85)
+scale=Vector2(0.22,0.22)
+texture=ExtResource("BikeShedArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/BikeShed"]
+visible=false
+position=Vector2(0,-85)
+polygon=PackedVector2Array(-190,-90,190,-90,190,90,-190,90)
+
+[node name="Drain" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(1180,270)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Drain"]
+texture_filter=2
+scale=Vector2(0.16,0.16)
+texture=ExtResource("DrainArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/Drain"]
+visible=false
+polygon=PackedVector2Array(-145,-35,145,-35,145,35,-145,35)
+
+[node name="WallPaint" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(810,610)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/WallPaint"]
+texture_filter=2
+position=Vector2(0,-40)
+scale=Vector2(0.22,0.22)
+texture=ExtResource("WallPaintArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/WallPaint"]
+visible=false
+position=Vector2(0,-40)
+polygon=PackedVector2Array(-190,-55,190,-55,190,55,-190,55)
+
+[node name="LaundryRack" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(1140,630)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/LaundryRack"]
+texture_filter=2
+position=Vector2(0,-70)
+scale=Vector2(0.22,0.22)
+texture=ExtResource("LaundryArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/LaundryRack"]
+visible=false
+position=Vector2(0,-70)
+polygon=PackedVector2Array(-175,-80,175,-80,175,80,-175,80)
+
+[node name="StreetStool" type="Node2D" parent="DepthLayers/Props"]
+position=Vector2(1460,390)
+[node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/StreetStool"]
+texture_filter=2
+position=Vector2(0,-45)
+scale=Vector2(0.095,0.095)
+texture=ExtResource("StoolArt")
+[node name="Shape" type="Polygon2D" parent="DepthLayers/Props/StreetStool"]
+visible=false
+position=Vector2(0,-45)
+polygon=PackedVector2Array(-55,-60,55,-60,55,60,-55,60)
+
+[node name="Interactions" type="Node" parent="."]
+script=ExtResource("Interactions")
+
+[node name="CommunityExit" type="Node2D" parent="."]
+position=Vector2(100,520)
+script=ExtResource("Target")
+Id="community"
+Caption="回安置小区"
+ActionId="scene:community_gate"
 [node name="Marker" type="Label" parent="CommunityExit"]
 offset_left=-8.0
 offset_top=-88.0
 offset_right=20.0
 offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="›"
+text="‹"
 mouse_filter=2
-[node name="Hey" type="Node2D" parent="."]
-position=Vector2(600,280)
-script=ExtResource("5")
-Id="hey"
-Caption="Hey哥 · 递喜糖 / 聊两句"
-Description=""
-ActionId="candy.hey.delivered"
-IsActive=true
-[node name="NameLabel" type="Label" parent="Hey"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
-horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="Hey哥"
-mouse_filter=2
-visible=false
-[node name="Marker" type="Label" parent="Hey"]
-offset_left=-8.0
-offset_top=-88.0
-offset_right=20.0
-offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
-text="◇"
-mouse_filter=2
-[node name="Artwork" type="Sprite2D" parent="Hey"]
-texture_filter=2
-position=Vector2(0,-34)
-scale=Vector2(0.13793103448275862,0.13793103448275862)
-texture=ExtResource("Npc1")
-flip_h=true
-[node name="HandoverCandy" type="Sprite2D" parent="Hey"]
-visible=false
-position=Vector2(-30,-40)
-scale=Vector2(0.035,0.035)
-texture=ExtResource("Candy")
+
 [node name="SoupExit" type="Node2D" parent="."]
-position=Vector2(1120,280)
-script=ExtResource("5")
+position=Vector2(1500,520)
+script=ExtResource("Target")
 Id="soup"
 Caption="去鸭血粉丝汤店"
-Description=""
 ActionId="scene:soup_shop"
-IsActive=true
-[node name="NameLabel" type="Label" parent="SoupExit"]
-offset_left=-100.0
-offset_top=-111.0
-offset_right=100.0
-offset_bottom=-88.0
-horizontal_alignment=1
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=13
-text="去鸭血粉丝汤店"
-mouse_filter=2
-visible=false
 [node name="Marker" type="Label" parent="SoupExit"]
 offset_left=-8.0
 offset_top=-88.0
 offset_right=20.0
 offset_bottom=-60.0
-theme_override_colors/font_color=Color(0.937,0.824,0.58,1)
-theme_override_colors/font_outline_color=Color(0.094,0.129,0.169,1)
-theme_override_constants/outline_size=3
-theme_override_font_sizes/font_size=16
 text="›"
 mouse_filter=2
+
+[node name="DoorplateHotspot" type="Node2D" parent="."]
+position=Vector2(360,260)
+script=ExtResource("Observation")
+Id="doorplate"
+DiscoveryId="community.sign"
+VisualTarget=NodePath("../DepthLayers/Props/Doorplate")
+HitPolygon=NodePath("../DepthLayers/Props/Doorplate/Shape")
+Caption="掉漆的旧门牌"
+ActionId="observe"
+IsActive=false
+[node name="NewsstandHotspot" type="Node2D" parent="."]
+position=Vector2(430,455)
+script=ExtResource("Observation")
+Id="newsstand"
+DiscoveryId="community.notice"
+VisualTarget=NodePath("../DepthLayers/Props/Newsstand")
+HitPolygon=NodePath("../DepthLayers/Props/Newsstand/Shape")
+Caption="关门的报刊亭"
+ActionId="observe"
+IsActive=false
+[node name="BikeShedHotspot" type="Node2D" parent="."]
+position=Vector2(1170,455)
+script=ExtResource("Observation")
+Id="bike_shed"
+DiscoveryId="community.planter"
+VisualTarget=NodePath("../DepthLayers/Props/BikeShed")
+HitPolygon=NodePath("../DepthLayers/Props/BikeShed/Shape")
+Caption="遮雨自行车棚"
+ActionId="observe"
+IsActive=false
+[node name="DrainHotspot" type="Node2D" parent="."]
+position=Vector2(1220,270)
+script=ExtResource("Observation")
+Id="drain"
+DiscoveryId="soup.sign"
+VisualTarget=NodePath("../DepthLayers/Props/Drain")
+HitPolygon=NodePath("../DepthLayers/Props/Drain/Shape")
+Caption="落叶排水沟"
+ActionId="observe"
+IsActive=false
+[node name="WallPaintHotspot" type="Node2D" parent="."]
+position=Vector2(650,550)
+script=ExtResource("Observation")
+Id="wall_paint"
+DiscoveryId="soup.menu"
+VisualTarget=NodePath("../DepthLayers/Props/WallPaint")
+HitPolygon=NodePath("../DepthLayers/Props/WallPaint/Shape")
+Caption="墙面多层旧漆"
+ActionId="observe"
+IsActive=false
+[node name="LaundryRackHotspot" type="Node2D" parent="."]
+position=Vector2(1000,650)
+script=ExtResource("Observation")
+Id="laundry_rack"
+DiscoveryId="soup.note"
+VisualTarget=NodePath("../DepthLayers/Props/LaundryRack")
+HitPolygon=NodePath("../DepthLayers/Props/LaundryRack/Shape")
+Caption="晾晒架与衣夹"
+ActionId="observe"
+IsActive=false
+[node name="StoolHotspot" type="Node2D" parent="."]
+position=Vector2(1380,420)
+script=ExtResource("Observation")
+Id="stool"
+DiscoveryId="community.sign"
+VisualTarget=NodePath("../DepthLayers/Props/StreetStool")
+HitPolygon=NodePath("../DepthLayers/Props/StreetStool/Shape")
+Caption="店外塑料凳"
+ActionId="observe"
+IsActive=false
+
+[node name="Foreground" type="Node2D" parent="."]
+[node name="Navigation" type="Node2D" parent="."]
+[node name="GroundBoundary" type="StaticBody2D" parent="Navigation"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/GroundBoundary"]
+build_mode=1
+polygon=PackedVector2Array(24,180,1576,180,1576,688,24,688)
+[node name="Obstacles" type="Node2D" parent="Navigation"]
+[node name="Obstacle01NorthWest" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle01NorthWest"]
+polygon=PackedVector2Array(24,180,340,180,340,440,24,440)
+[node name="Obstacle02NorthCenter" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle02NorthCenter"]
+polygon=PackedVector2Array(450,300,1150,300,1150,440,450,440)
+[node name="Obstacle03NorthEast" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle03NorthEast"]
+polygon=PackedVector2Array(1260,180,1576,180,1576,360,1260,360)
+[node name="Obstacle04SouthWest" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle04SouthWest"]
+polygon=PackedVector2Array(24,580,580,580,580,688,24,688)
+[node name="Obstacle05SouthCenter" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle05SouthCenter"]
+polygon=PackedVector2Array(680,570,940,570,940,620,680,620)
+[node name="Obstacle06SouthEast" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle06SouthEast"]
+polygon=PackedVector2Array(1040,580,1280,580,1280,688,1040,688)
+[node name="Obstacle07FarEast" type="StaticBody2D" parent="Navigation/Obstacles"]
+collision_layer=1
+collision_mask=0
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Navigation/Obstacles/Obstacle07FarEast"]
+polygon=PackedVector2Array(1340,580,1576,580,1576,688,1340,688)
+[node name="Anchors" type="Node2D" parent="Navigation"]
+[node name="EntryAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(100,520)
+[node name="ExitAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(1500,520)
+[node name="SafeAnchor" type="Marker2D" parent="Navigation/Anchors"]
+position=Vector2(240,520)
