@@ -130,7 +130,20 @@ try {
     if($preset -notmatch 'assets/art/vs01-v7-street/\*\.png'){throw 'STREET_EXPORT_DEPENDENCY_MISSING'}
     Write-Output 'PASS StreetCompatibilityDependencyWhitelist FrozenV3 EightArtHashes Documents'
 } catch {$failures++;Write-Output "FAIL StreetCompatibilityDependencyWhitelist $_"}
-foreach($probe in @(@{Name='CaptureSizesEmpty';Literal='@()'},@{Name='CaptureSizesPath';Literal="@('../escape')"})) {
+  try {
+      $refinementFiles=@('docs/project/2026-10-15_场景精修资源记录.json','docs/development/16_现有场景精修验收与接续.md','licenses/AI_ART_REFINEMENT_20261015.md','assets/art/vs01-v7-street/street-background-aligned.png','assets/art/vs01-v7-street/street-registration.gdshader')
+      foreach($path in $refinementFiles){
+          $source=Join-Path $projectRoot $path;$target=Join-Path $destination $path
+          if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "REFINEMENT_PACKAGE_MISMATCH $path"}
+      }
+      $refinementRecord=Get-Content -LiteralPath (Join-Path $destination 'docs/project/2026-10-15_场景精修资源记录.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+      foreach($asset in @($refinementRecord.assets)+@($refinementRecord.native_registration)){
+          if((Get-FileHash -LiteralPath (Join-Path $destination $asset.path)).Hash -ne $asset.sha256){throw "REFINEMENT_HASH_MISMATCH $($asset.path)"}
+      }
+      if($preset -notmatch 'assets/art/vs01-v7-street/\*\.gdshader'){throw 'REGISTRATION_EXPORT_DEPENDENCY_MISSING'}
+      Write-Output 'PASS RefinementDependencyWhitelist ArtRegistrationHashes Documents'
+  } catch {$failures++;Write-Output "FAIL RefinementDependencyWhitelist $_"}
+  foreach($probe in @(@{Name='CaptureSizesEmpty';Literal='@()'},@{Name='CaptureSizesPath';Literal="@('../escape')"})) {
     $command="& '$projectRoot/tools/capture-smoke.ps1' -Sizes $($probe.Literal) -GodotExe '$projectRoot/test-output/no-godot.exe'"
     $output=& $shellExe -NoProfile -Command $command 2>&1
     if($LASTEXITCODE -eq 0 -or ($output -join "`n") -notmatch 'INVALID_CAPTURE_SIZES'){$failures++;Write-Output "FAIL $($probe.Name) $output"}else{Write-Output "PASS $($probe.Name)"}

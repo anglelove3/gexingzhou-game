@@ -19,6 +19,10 @@ ReducedRestFrames=ExtResource("Reduced")
 SoupFrames=ExtResource("Soup")
 ReducedSoupFrames=ExtResource("ReducedSoup")
 DepthFrames=ExtResource("Depth")
+[node name="GroundShadow" type="Polygon2D" parent="."]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.18)
+polygon=PackedVector2Array(-13,0,-11,-3,-5,-4,5,-4,11,-3,13,0,11,3,5,4,-5,4,-11,3)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position=Vector2(0,-28)
 shape=SubResource("Body")

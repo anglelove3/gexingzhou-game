@@ -24,6 +24,8 @@ try {
     $files+=$polishDocs
     $streetDocs=@('docs/project/2026-10-14_便利店街探索资源记录.json','docs/superpowers/specs/2026-10-14-便利店街环形探索-design.md','docs/superpowers/plans/2026-10-14-便利店街环形探索-实施计划.md')
     $files+=$streetDocs
+    $refinementDocs=@('docs/project/2026-10-15_场景精修资源记录.json')
+    $files+=$refinementDocs
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
         foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot $folder) -File -Recurse -Force) {
             $relative=$item.FullName.Substring($script:ProjectRoot.Length+1).Replace('\','/')
@@ -38,6 +40,7 @@ try {
     $explicit+=@('tools/audio/generate-vs02-audio.mjs','tools/audio/check-vs02-audio.mjs','tools/build-walk-atlas.mjs')
     $explicit+=$polishDocs
     $explicit+=$streetDocs
+    $explicit+=$refinementDocs
     foreach($relative in $files|Select-Object -Unique) {
         if($relative -notin $resources -and $relative -notin $explicit -and
            $relative -notmatch '^(code/Domain/.*\.(cs|csproj|uid)|tests/.*\.(cs|csproj|json|tscn|uid|ps1)|tools/[^/]+\.ps1|docs/development/[^/]+\.md|\.vscode/[^/]+\.json|scripts/Testing/[^/]+\.(cs|uid))$') {throw "PRIVATE_SOURCE_REJECTED $relative"}

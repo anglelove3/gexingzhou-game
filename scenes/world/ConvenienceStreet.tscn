@@ -1,7 +1,8 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
-[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-background.png" id="Bg"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-background-aligned.png" id="Bg"]
+[ext_resource type="Shader" path="res://assets/art/vs01-v7-street/street-registration.gdshader" id="Registration"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
 [ext_resource type="Script" path="res://scripts/InteractionController.cs" id="Interactions"]
 [ext_resource type="Script" path="res://scripts/Interactable.cs" id="Target"]
@@ -18,6 +19,9 @@
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/laundry-rack.png" id="LaundryArt"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-stool.png" id="StoolArt"]
 
+[sub_resource type="ShaderMaterial" id="BackdropRegistration"]
+shader=ExtResource("Registration")
+
 [node name="ConvenienceStreet" type="Node2D"]
 script=ExtResource("World")
 SceneId="convenience_street"
@@ -28,6 +32,8 @@ Mode=1
 [node name="Backdrop" type="Sprite2D" parent="."]
 texture_filter=2
 z_index=-10
+scale=Vector2(0.8556149733,0.8561236623)
+material=SubResource("BackdropRegistration")
 texture=ExtResource("Bg")
 centered=false
 
@@ -62,6 +68,10 @@ theme_override_font_sizes/font_size=14
 text="Hey哥"
 mouse_filter=2
 visible=false
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/Hey"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.18)
+polygon=PackedVector2Array(-13,0,-11,-3,-5,-4,5,-4,11,-3,13,0,11,3,5,4,-5,4,-11,3)
 [node name="Marker" type="Label" parent="DepthLayers/Actors/Hey"]
 offset_left=-8.0
 offset_top=-103.0
@@ -80,6 +90,10 @@ texture=ExtResource("Candy")
 
 [node name="ResidentNorth" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(520,220)
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/ResidentNorth"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.18)
+polygon=PackedVector2Array(-13,0,-11,-3,-5,-4,5,-4,11,-3,13,0,11,3,5,4,-5,4,-11,3)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/ResidentNorth"]
 texture_filter=2
 position=Vector2(0,-36)
@@ -90,6 +104,10 @@ position=Vector2(280,0)
 
 [node name="ResidentSouth" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(700,660)
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/ResidentSouth"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.18)
+polygon=PackedVector2Array(-13,0,-11,-3,-5,-4,5,-4,11,-3,13,0,11,3,5,4,-5,4,-11,3)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/ResidentSouth"]
 texture_filter=2
 position=Vector2(0,-36)
@@ -115,6 +133,10 @@ polygon=PackedVector2Array(-70,-40,70,-40,70,40,-70,40)
 
 [node name="Newsstand" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(540,440)
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Props/Newsstand"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.16)
+polygon=PackedVector2Array(-96,0,-82,-5,-40,-8,40,-8,82,-5,96,0,82,5,40,8,-40,8,-82,5)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Newsstand"]
 texture_filter=2
 position=Vector2(0,-70)
@@ -127,52 +149,68 @@ polygon=PackedVector2Array(-110,-75,110,-75,110,75,-110,75)
 
 [node name="BikeShed" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(940,440)
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Props/BikeShed"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.16)
+polygon=PackedVector2Array(-166,0,-140,-6,-70,-10,70,-10,140,-6,166,0,140,6,70,10,-70,10,-140,6)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/BikeShed"]
 texture_filter=2
-position=Vector2(0,-85)
+position=Vector2(0,-97.57)
 scale=Vector2(0.22,0.22)
 texture=ExtResource("BikeShedArt")
 [node name="Shape" type="Polygon2D" parent="DepthLayers/Props/BikeShed"]
 visible=false
-position=Vector2(0,-85)
+position=Vector2(0,-97.57)
 polygon=PackedVector2Array(-190,-90,190,-90,190,90,-190,90)
 
 [node name="Drain" type="Node2D" parent="DepthLayers/Props"]
-position=Vector2(1180,270)
+position=Vector2(1180,390)
+z_index=-2
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/Drain"]
 texture_filter=2
-scale=Vector2(0.16,0.16)
+rotation=-0.22
+scale=Vector2(0.075,0.045)
 texture=ExtResource("DrainArt")
 [node name="Shape" type="Polygon2D" parent="DepthLayers/Props/Drain"]
 visible=false
-polygon=PackedVector2Array(-145,-35,145,-35,145,35,-145,35)
+polygon=PackedVector2Array(-77,-20,77,-20,77,20,-77,20)
 
 [node name="WallPaint" type="Node2D" parent="DepthLayers/Props"]
-position=Vector2(810,610)
+position=Vector2(810,620)
+z_index=-2
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/WallPaint"]
 texture_filter=2
-position=Vector2(0,-40)
-scale=Vector2(0.22,0.22)
+position=Vector2(0,-16)
+scale=Vector2(0.06,0.036)
+modulate=Color(0.8,0.83,0.8,0.82)
 texture=ExtResource("WallPaintArt")
 [node name="Shape" type="Polygon2D" parent="DepthLayers/Props/WallPaint"]
 visible=false
-position=Vector2(0,-40)
-polygon=PackedVector2Array(-190,-55,190,-55,190,55,-190,55)
+position=Vector2(0,-16)
+polygon=PackedVector2Array(-58,-15,58,-15,58,15,-58,15)
 
 [node name="LaundryRack" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(1140,630)
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Props/LaundryRack"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.14)
+polygon=PackedVector2Array(-130,0,-110,-4,-55,-7,55,-7,110,-4,130,0,110,4,55,7,-55,7,-110,4)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/LaundryRack"]
 texture_filter=2
-position=Vector2(0,-70)
+position=Vector2(0,-104)
 scale=Vector2(0.22,0.22)
 texture=ExtResource("LaundryArt")
 [node name="Shape" type="Polygon2D" parent="DepthLayers/Props/LaundryRack"]
 visible=false
-position=Vector2(0,-70)
+position=Vector2(0,-104)
 polygon=PackedVector2Array(-175,-80,175,-80,175,80,-175,80)
 
 [node name="StreetStool" type="Node2D" parent="DepthLayers/Props"]
 position=Vector2(1460,390)
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Props/StreetStool"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.16)
+polygon=PackedVector2Array(-28,0,-24,-4,-12,-6,12,-6,24,-4,28,0,24,4,12,6,-12,6,-24,4)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Props/StreetStool"]
 texture_filter=2
 position=Vector2(0,-45)
@@ -245,7 +283,7 @@ Caption="遮雨自行车棚"
 ActionId="observe"
 IsActive=false
 [node name="DrainHotspot" type="Node2D" parent="."]
-position=Vector2(1220,270)
+position=Vector2(1220,390)
 script=ExtResource("Observation")
 Id="drain"
 DiscoveryId="soup.sign"
@@ -255,7 +293,7 @@ Caption="落叶排水沟"
 ActionId="observe"
 IsActive=false
 [node name="WallPaintHotspot" type="Node2D" parent="."]
-position=Vector2(650,550)
+position=Vector2(810,650)
 script=ExtResource("Observation")
 Id="wall_paint"
 DiscoveryId="soup.menu"

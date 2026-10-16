@@ -115,6 +115,7 @@ offset_bottom=-20.0
 theme_override_colors/font_outline_color=Color(0.02,0.035,0.05,0.95)
 theme_override_constants/outline_size=6
 text="A/D 移动 · Shift 加快 · E 互动 · Tab 手机"
+autowrap_mode=3
 mouse_filter=2
 [node name="Phone" parent="." instance=ExtResource("Phone")]
 visible=false

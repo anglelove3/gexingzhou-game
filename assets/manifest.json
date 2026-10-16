@@ -1,8 +1,20 @@
 {
-  "version": 8,
-  "status": "vs01_depth_soup_sample_in_development",
+  "version": 9,
+  "status": "vs01_scene_refinement; street discoveries/resident movement still pending",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
+    {
+      "id": "street-background-aligned",
+      "file": "assets/art/vs01-v7-street/street-background-aligned.png",
+      "size": [1870, 841],
+      "world_size": [1600, 720],
+      "sha256": "1BCCB86D57A6CC39C3EA825B395E9E8A956AB743A84944D10B5EFE1C8AE1DABA",
+      "usage": "street backdrop with native texture-coordinate registration; unchanged world/save coordinates",
+      "source": "built-in image_gen plus project-native canvas shader",
+      "generated_on": "2026-10-15",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_REFINEMENT_20261015.md"
+    },
     {
       "id": "player-soup",
       "file": "assets/art/vs01-v3/player-soup.png",

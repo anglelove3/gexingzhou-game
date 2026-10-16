@@ -18,9 +18,24 @@ public partial class GuidanceController : Node
         if(main==null||!GodotObject.IsInstanceValid(main.World))return;
         var s=GetNode<GameSession>("/root/GameSession");var field=s.Flow==FlowState.Field;
         var targets=main.World.GetTargets();
-        foreach(var target in targets)
-            if(target.GetNodeOrNull<Label>("NameLabel") is {} name)
-                name.Visible=field&&target.IsActive&&target.IsVisibleInTree()&&Math.Abs(target.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=140;
+        foreach(var name in main.World.FindChildren("NameLabel","Label",true,false).OfType<Label>())
+        {
+            var owner=(Node2D)name.GetParent();var target=owner as Interactable;
+            var distance=main.World.Mode==WorldMode.Depth2D?owner.GlobalPosition.DistanceTo(main.World.Player.GlobalPosition):Math.Abs(owner.GlobalPosition.X-main.World.Player.GlobalPosition.X);
+            name.Visible=field&&(target?.IsActive??true)&&owner.IsVisibleInTree()&&distance<=(target==null?200:140);
+            name.AddThemeFontSizeOverride("font_size",s.Options.SubtitleSize);
+            name.AddThemeColorOverride("font_color",new Color(.98f,.94f,.84f,1));
+            name.AddThemeColorOverride("font_outline_color",new Color(.06f,.045f,.025f,1));
+            name.AddThemeConstantOverride("outline_size",4);
+            if(owner.GetNodeOrNull<Sprite2D>("Artwork") is {} art&&art.Texture!=null)
+            {
+                var font=name.GetThemeFont("font");var size=s.Options.SubtitleSize;
+                var width=Math.Max(160,font.GetStringSize(name.Text,fontSize:size).X+20);
+                var height=font.GetHeight(size)+8;
+                var top=art.Position.Y-(art.Centered?art.Texture.GetHeight()*art.Scale.Y/2:0);
+                name.Size=new(width,height);name.Position=new(-width/2,top-height-6);
+            }
+        }
         var nearbyObservation=field&&targets.Any(t=>t.ActionId=="observe"&&t.IsActive&&(main.World.Mode==WorldMode.Depth2D?t.GlobalPosition.DistanceTo(main.World.Player.GlobalPosition)<=40:Math.Abs(t.GlobalPosition.X-main.World.Player.GlobalPosition.X)<=40));
         var invitation=s.Snapshot.Stage<=SliceStage.InvitationResolved;
         if(field&&invitation&&!messageShown&&s.Snapshot.InvitationState.VoiceReceived)

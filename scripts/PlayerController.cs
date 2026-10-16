@@ -201,6 +201,9 @@ public partial class PlayerController : CharacterBody2D
     }
     private void AnchorArtwork()
     {
+        // Seated artwork uses a different contact pivot; do not leave a standing
+        // foot shadow at the old root while the chair owns the seated grounding.
+        if(GetNodeOrNull<Polygon2D>("GroundShadow") is {} shadow)shadow.Visible=!restActive;
         // SpriteFrames emits AnimationChanged while the previous pose name is being replaced.
         if(!artwork.SpriteFrames.HasAnimation(artwork.Animation))return;
         var texture=artwork.SpriteFrames.GetFrameTexture(artwork.Animation,artwork.Frame);

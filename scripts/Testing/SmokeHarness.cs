@@ -19,6 +19,7 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="SceneRefinement"){await SceneRefinementChecks();GD.Print("GODOT_CHECKS_PASS SceneRefinement");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Street"){await StreetChecks();GD.Print("GODOT_CHECKS_PASS Street");await DrainAudio();GetTree().Quit();return;}
             if(suite=="StreetUpgrade"){await StreetUpgradeChecks();GD.Print("GODOT_CHECKS_PASS StreetUpgrade");await DrainAudio();GetTree().Quit();return;}
             if(suite=="UiPolish"){await UiPolishChecks();GD.Print("GODOT_CHECKS_PASS UiPolish");await DrainAudio();GetTree().Quit();return;}
@@ -63,13 +64,14 @@ public partial class SmokeHarness : Node
             {
                 await ArtChecks();GC.Collect();GC.WaitForPendingFinalizers();await Frames(2);GD.Print("GODOT_CHECKS_PASS Art");await DrainAudio();GetTree().Quit();return;
             }
-            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd" or "CaptureExploration" or "CaptureDepthSeat" or "CapturePhoneChat" or "CaptureJournal" or "CaptureCommunity" or "CaptureFeedback")
+            if(suite is "Capture" or "CaptureNarrative" or "CapturePolish" or "CaptureExperience" or "CaptureSoupSeat" or "CaptureCoins" or "CapturePause" or "CaptureEnd" or "CaptureExploration" or "CaptureDepthSeat" or "CapturePhoneChat" or "CaptureJournal" or "CaptureCommunity" or "CaptureFeedback" or "CaptureRefinement")
             {
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
                 var requested=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=',2)[1];
                 if(requested!=null){var dimensions=requested.Split('x');GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(dimensions[0]),int.Parse(dimensions[1]));await Frames(3);}
                 var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");GD.Print("PROJECT_USERDATA "+OS.GetUserDataDir());
                 GetNode<GameSession>("/root/GameSession").SetOptions(new(){TextSpeed=0,ReducedMotion=true},false);
+                if(suite=="CaptureRefinement"){await SceneRefinementChecks();GD.Print("GODOT_CHECKS_PASS CaptureRefinement");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureFeedback"){await FeedbackVisualChecks();GD.Print("GODOT_CHECKS_PASS CaptureFeedback");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CapturePhoneChat"){await PhoneChatChecks();GD.Print("GODOT_CHECKS_PASS CapturePhoneChat");await DrainAudio();GetTree().Quit();return;}
                 if(suite=="CaptureJournal"){await CaptureJournalChecks();GD.Print("GODOT_CHECKS_PASS CaptureJournal");await DrainAudio();GetTree().Quit();return;}

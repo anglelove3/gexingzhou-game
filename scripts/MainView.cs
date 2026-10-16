@@ -86,16 +86,32 @@ public partial class MainView : Control
         if(invitation.VoiceReceived&&!heardVoice)Audio.PlayCue(AudioCue.PhoneMessage);
         if(invitation.PhoneRinging&&!heardRing)Audio.PlayCue(AudioCue.PhoneRing);
         heardVoice=invitation.VoiceReceived;heardRing=invitation.PhoneRinging;
-        prompt.Text=(Rest.IsActive?(GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身"):World.Interactions.Prompt)+" · Tab 手机";
-        if(SoupSeat.IsActive)prompt.Text=(SoupSeat.IsActing?"稍等一会儿":"E 桌边选项 · Esc 起身")+" · Tab 手机";
-        prompt.Text+=Rest.IsActive||SoupSeat.IsActive?" · 起身后 J 查看记事":" · J 今日记事";
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
-        if(s.Options.Assistance)prompt.Text+=" · ←→移动，靠近金色标记按E";
+        if(Rest.IsActive)prompt.Text=GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身 · Tab 手机";
+        else if(SoupSeat.IsActive)prompt.Text=SoupSeat.IsActing?"稍等一会儿":"E 桌边选项 · Esc 起身 · Tab 手机";
+        else if(World.Interactions.Prompt.StartsWith("E"))prompt.Text=World.Interactions.Prompt;
+        else
+        {
+            prompt.Text=World.Interactions.Prompt+" · Tab 手机 · J 今日记事";
+            if(s.Options.Assistance)prompt.Text+=" · 靠近标记按 E";
+        }
         prompt.Visible=s.Flow==FlowState.Field;
         var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
         status.Text=(goalExpanded?"葛行舟 · "+place+"\n":"")+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
-        var card=GetNode<PanelContainer>("HUD/TaskCard");card.OffsetBottom=goalExpanded||s.SaveMessage.Length>0?116:78;
-        GetNode<Button>("HUD/TaskFold").Text=goalExpanded?"－":"＋";
+        var card=GetNode<PanelContainer>("HUD/TaskCard");var fold=GetNode<Button>("HUD/TaskFold");
+        var font=status.GetThemeFont("font");var fontSize=status.GetThemeFontSize("font_size");
+        var desiredWidth=status.Text.Split('\n').Max(line=>font.GetStringSize(line,fontSize:fontSize).X)+48;
+        var foldWidth=Math.Max(44,fold.GetCombinedMinimumSize().X);
+        var maximumWidth=Math.Max(160,Size.X-352-card.OffsetLeft-8-foldWidth-16);
+        card.OffsetRight=card.OffsetLeft+Math.Clamp(desiredWidth,Math.Min(240,maximumWidth),maximumWidth);
+        var availableTextWidth=Math.Max(1,card.OffsetRight-card.OffsetLeft-48);
+        var lines=status.Text.Split('\n').Sum(line=>Math.Max(1,(int)Math.Ceiling(font.GetStringSize(line,fontSize:fontSize).X/availableTextWidth)));
+        card.OffsetBottom=card.OffsetTop+lines*font.GetHeight(fontSize)+40;
+        fold.OffsetLeft=card.OffsetRight+8;fold.OffsetRight=fold.OffsetLeft+foldWidth;fold.Text=goalExpanded?"－":"＋";
+        var hintFont=prompt.GetThemeFont("font");var hintSize=prompt.GetThemeFontSize("font_size");
+        var hintLines=Math.Max(1,(int)Math.Ceiling(hintFont.GetStringSize(prompt.Text,fontSize:hintSize).X/Math.Max(1,Size.X-60)));
+        prompt.OffsetTop=-20-Math.Max(48,hintLines*hintFont.GetHeight(hintSize)+12);
+        var guidance=GetNode<Label>("HUD/Guidance");guidance.OffsetBottom=prompt.OffsetTop-8;guidance.OffsetTop=guidance.OffsetBottom-hintFont.GetHeight(hintSize)-12;
         World.RefreshQuestActors(s.Snapshot);
         Guidance.Refresh();
         var pauseButton=GetNode<Button>("HUD/PauseButton");pauseButton.Visible=CanPause;pauseButton.Disabled=!CanPause;

@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-15",
+  "status": "Batch A scene refinement; aligned backdrop source plus native texture-coordinate registration. Gameplay/navigation/save protocol unchanged.",
+  "tool": "built-in image_gen",
+  "reference": "Only this project's existing autumn street-background.png plus a code-native layout guide derived from the unchanged 1600x720 navigation. No external-game art, real photos or private story files.",
+  "assets": [
+    {
+      "path": "assets/art/vs01-v7-street/street-background-aligned.png",
+      "sha256": "1BCCB86D57A6CC39C3EA825B395E9E8A956AB743A84944D10B5EFE1C8AE1DABA",
+      "size": [
+        1870,
+        841
+      ],
+      "transparent": false,
+      "prompt": "Use case: sketch-to-render. Image 1 is the edit target and FIXED MAP GEOMETRY. Image 2 supplies ONLY the art style, materials, lighting and atmosphere of this project's existing game. Paint over Image 1 into a polished 2D game background while keeping its exact spatial arrangement; DO NOT use Image 2's spatial layout. Image 1 is 1600x720. Preserve EVERY rectangle footprint and every horizontal corridor elevation from Image 1; this is essential for game collision registration. Beige means walkable flat gray-warm paved stone. Green means low walled planted garden islands, exactly within the rectangular footprints. Gray top band means weathered Chinese residential facades, golden leaves and warm windows. Retain Image 1's unusually LOW main street, at y=450..555, around seventy percent down the picture; its position must NOT move upward to fifty percent height. Retain its higher north lane at y=220, and very low south alley at y=650. The center north garden really starts at y=300 and ends at y=440, with its north lane ABOVE it, not pushed into the top facade. Preserve the green islands (24,180)-(340,440); (450,300)-(1150,440); (1260,180)-(1576,360); (24,580)-(580,688); (680,570)-(940,620); (1040,580)-(1280,688); (1340,580)-(1576,688). Each garden must have the same aspect ratio, footprint and position as in Image 1. Only add low wall faces INSIDE each green footprint so they never overhang walkable beige ground. Trees must be restrained, no trunks or canopies covering the paved corridors. The street must remain entirely flat ground along y=520 from left to right, including (800,500). Keep flat paving at (520,220), (700,660), (620,650), (1000,650), (380,220), (1220,220), (1380,420). Keep every beige part of Image 1 traversable-looking. Replace flat fills with rich hand-painted weathered stone, natural warm sunlight and shadow, crisp curb edges, aged brick and autumn greenery matching Image 2, with the SAME semi-realistic painterly oblique overhead game camera. Preserve only the structural template of Image 1, not the colored diagram style. No grid, colored guide outlines, labels, numbers, typography, UI, arrows, watermarks, logos, addresses, people, vehicles, kiosk, bike shed, laundry rack, grate, paint decal, stool or other independently rendered game props. No foreground roofs anywhere inside beige lanes. Final image is opaque and full-bleed, one landscape background, target 1600x720 / 20:9. Priority order: EXACT Image 1 geometry first; Image 2 artistic finish second. Do not redesign or balance the composition.",
+      "source": "built-in image_gen; candidate 3 selected; candidates 1/2 rejected for layout drift"
+    }
+  ],
+  "native_registration": {
+    "path": "assets/art/vs01-v7-street/street-registration.gdshader",
+    "sha256": "86458B9C2EF00CB261342262D046D3153D8E02C717CCD0C73E38AAEA2EF000CB",
+    "east_override": {"world_x_blend": [1245,1260], "world_y": [170,360,570], "image_y": [125,385,575], "purpose": "NE island stops at y360; clear the existing east spur without changing navigation"},
+    "world_size": [
+      1600,
+      720
+    ],
+    "image_size": [
+      1870,
+      841
+    ],
+    "world_x": [
+      0,
+      24,
+      340,
+      450,
+      580,
+      680,
+      940,
+      1040,
+      1150,
+      1260,
+      1340,
+      1576,
+      1600
+    ],
+    "image_x": [
+      0,
+      30,
+      415,
+      535,
+      687,
+      797,
+      1097,
+      1195,
+      1330,
+      1460,
+      1530,
+      1835,
+      1870
+    ],
+    "world_y": [
+      0,
+      170,
+      300,
+      440,
+      570,
+      620,
+      688,
+      720
+    ],
+    "image_y": [
+      0,
+      125,
+      225,
+      385,
+      575,
+      685,
+      755,
+      841
+    ],
+    "purpose": "Background sampling only. Monotone continuous mapping registers painted paths to the existing world; no character stretching or coordinate migration."
+  },
+  "original_assets": "The eight original street assets and frozen v3 protocol are preserved byte-for-byte; source hashes remain in the 2026-10-14 resource record.",
+  "license_status": "AI generated for this project; commercial release similarity/trademark/platform review still required.",
+  "verification": "Refer to docs/development/16_现有场景精修验收与接续.md for actual runtime/capture/package results, not generation prompts."
+}
