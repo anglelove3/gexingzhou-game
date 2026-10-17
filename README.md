@@ -15,7 +15,7 @@
 
 - **[下载最新版 Windows x64 试玩 ZIP（约 154 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-feedback-20261017/gexingzhou-demo-vs01-feedback-20261017-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-feedback-20261017)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
-- [10月17日17:28上一轮试玩](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-hr-20261017)和[10月14日历史旧版](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01)保留，不包含本轮入口/步态/菜单精修。
+- 下载入口整理：**2026-10-17 22:26（北京时间）**。GitHub 仅保留本版试玩 Release；旧试玩已撤下并在本地备份，避免误下载。游戏内容和 ZIP 未改变。
 - 试玩范围：小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。不是完整多日游戏。
 - 建议为首次阅读与探索预留 10–15 分钟；这是体验安排建议，不是实测通关时长。不设探索倒计时。
 
