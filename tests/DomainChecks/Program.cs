@@ -19,6 +19,7 @@ CommunityDiscoveryChecks.Register(tests);
 StreetSaveChecks.Register(tests);
 StreetDiscoveryChecks.Register(tests);
 NarrativeReflectionChecks.Register(tests);
+RecruitDemoChecks.Register(tests);
 SettingsEventChecks.Register(tests);
 string? filter = null;
 for (int i = 0; i < args.Length; i++) if (args[i] == "--filter" && i+1 < args.Length) filter = args[++i];

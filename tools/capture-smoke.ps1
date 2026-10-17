@@ -1,16 +1,18 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
+param([string]$GodotExe,[ValidateSet('All','CaptureArt','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
 . "$PSScriptRoot/Common.ps1"
 try {
     if(!$Sizes -or $Sizes.Count -eq 0 -or @($Sizes|Where-Object {$_ -notin @('1280x720','1920x1080','1440x1080','1440x900','1024x768')}).Count -gt 0){throw 'INVALID_CAPTURE_SIZES: select nonempty supported dimensions'}
     $context=Get-ToolContext $GodotExe
     Add-Type -AssemblyName System.Drawing
-    $required=@('menu','phone','soup','memory','memory-font-32','art-community_gate','art-convenience_street','art-soup_shop','art-walk-0','art-walk-1','art-walk-2','art-walk-3','observation-quiet','observation-answered','observation-unanswered','return-0-font-32','return-1-font-32','return-2-font-32','polish-dialogue-20','polish-dialogue-24','polish-dialogue-32','polish-phone-20','polish-phone-24','polish-phone-32','rest-seated','rest-options','rest-smoke','rest-risen')
+    $required=@('menu','phone','soup','memory','memory-font-32','art-community_gate','art-convenience_street','art-soup_shop','observation-quiet','observation-answered','observation-unanswered','return-0-font-32','return-1-font-32','return-2-font-32','polish-dialogue-20','polish-dialogue-24','polish-dialogue-32','polish-phone-20','polish-phone-24','polish-phone-32','rest-seated','rest-options','rest-smoke','rest-risen')
+    $walkFrames=@();foreach($direction in @('front','back','side')){foreach($frame in 0..7){$walkFrames+='art-walk-'+$direction+'-'+$frame}}
+    $required+=$walkFrames
     $required+=@('guidance-first','guidance-cannon','guidance-exit')
     $required+=@('soup-seated','soup-eat','soup-chopsticks','soup-phone','soup-risen','candy-handover')
     $required+=@('soup-seated-reduced','soup-eat-reduced','soup-chopsticks-reduced','soup-phone-reduced','soup-risen-reduced')
     foreach($font in @(20,24,32)){foreach($kind in @('spoken','thought','narration')){$required+='dialogue-'+$kind+'-'+$font}}
     foreach($font in @(20,24,32)){foreach($kind in @('table','partial','complete','help')){$required+='memory-'+$kind+'-'+$font}}
-    foreach($font in @(20,24,32)){foreach($kind in @('pause','pause-settings','pause-save-failed')){$required+=$kind+'-'+$font}}
+    foreach($font in @(20,24,32)){foreach($kind in @('pause','pause-controls','pause-settings','pause-save-failed')){$required+=$kind+'-'+$font}}
     foreach($font in @(20,24,32)){foreach($kind in @('end','end-save-failed')){$required+=$kind+'-'+$font}}
     $exploration=@('depth-front','depth-back','depth-side','depth-table-occlusion','observation-sign','observation-menu','observation-note','observation-hover','compact-short-20','compact-short-24','compact-short-32','compact-long-32')
     $depthSeat=@();foreach($suffix in @('','-reduced')){foreach($action in @('sit','stand')){foreach($frame in @('start','mid','end')){$depthSeat+='depth-'+$action+'-'+$frame+$suffix}};foreach($action in @('eat','chopsticks','phone')){$depthSeat+='depth-'+$action+$suffix}}
@@ -34,6 +36,8 @@ try {
         foreach($state in @('end','end-save-failed')){$street+=$state+'-'+$font}
     }
     if($Batch -eq 'CaptureStreet'){$required=$street}
+    if($Batch -eq 'All'){$required+=@($street|Where-Object {$_ -notmatch '^end-'})}
+    if($Batch -eq 'CaptureArt'){$required=$walkFrames+@('art-community_gate','art-convenience_street','art-soup_shop')}
     if($Batch -eq 'CaptureCommunity'){$required=$community}
     if($Batch -eq 'CaptureFeedback'){
         $required=$feedback
@@ -47,7 +51,7 @@ try {
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement')}else{@($Batch)}
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet')}else{@($Batch)}
     $supplemental=if($batches -contains 'CaptureCommunity'){@('community-sign-back','community-sign-front')}else{@()}
     foreach($size in $Sizes) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'

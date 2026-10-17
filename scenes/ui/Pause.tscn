@@ -60,6 +60,16 @@ autowrap_mode=3
 layout_mode=2
 custom_minimum_size=Vector2(0,56)
 text="继续走走"
+[node name="Controls" type="Button" parent="Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,56)
+text="操作与试玩提示"
+[node name="ControlsHelp" type="Label" parent="Panel/Scroll/Content"]
+visible=false
+layout_mode=2
+size_flags_horizontal=3
+autowrap_mode=3
+text="WASD / 方向键：走动；Shift：加快。\n靠近人物、物件或路口，按 E 互动。\nE / Enter：继续对白；方向键选回答，Enter 确认。\nTab：打开或收起手机；来电时 Enter 接听。\nJ：今日记事；目标卡的 + 可展开位置提示。\nF5：手动保存；F9：读取手动存档。\n坐下时 Esc 起身；先关界面、起身，再按 Esc 暂停。\n硬币回忆可拖动，或用左右键选币、E 推币；Esc 暂离。\n不必找齐见闻；静音也能走完整段故事。"
 [node name="Save" type="Button" parent="Panel/Scroll/Content"]
 layout_mode=2
 custom_minimum_size=Vector2(0,56)

@@ -82,6 +82,9 @@ public partial class SmokeHarness
             await Capture("pause-"+font);
             main.Pause.GetNode<Button>("Panel/Scroll/Content/Settings").EmitSignal(Button.SignalName.Pressed);await Frames(3);
             await Capture("pause-settings-"+font);main.Settings.Close();await Frames(2);
+            main.Pause.GetNode<Button>("Panel/Scroll/Content/Controls").EmitSignal(Button.SignalName.Pressed);await Frames(3);
+            await Capture("pause-controls-"+font);
+            main.Pause.GetNode<Button>("Panel/Scroll/Content/Controls").EmitSignal(Button.SignalName.Pressed);await Frames(3);
             var path=TestAutoPath();System.IO.Directory.CreateDirectory(path);
             Require(!main.Pause.TryReturnToMenu(),"Pause failure gallery navigated");System.IO.Directory.Delete(path);
             await Frames(3);await Capture("pause-save-failed-"+font);main.Free();await Frames(2);

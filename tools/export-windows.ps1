@@ -8,6 +8,7 @@ try {
         }
     }
     if(!$TemplateDirectory -or !(Test-Path -LiteralPath (Join-Path $TemplateDirectory 'windows_release_x86_64.exe'))){throw 'TEMPLATES_MISSING: Godot 4.7.2 .NET Windows x86_64 templates required; editor delivery is not an EXE'}
+    if(!(Test-Path -LiteralPath (Join-Path $script:ProjectRoot 'GeXingzhou.sln'))){throw 'SOLUTION_MISSING: Godot C# export requires GeXingzhou.sln; EXE/PCK alone is not a complete playable build'}
     $context=Get-ToolContext $GodotExe
     & "$PSScriptRoot/verify.ps1" -GodotExe $context.GodotExe
     if($LASTEXITCODE -ne 0){throw 'VERIFICATION_REQUIRED'}

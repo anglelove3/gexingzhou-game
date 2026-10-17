@@ -10,7 +10,7 @@ try {
     [IO.Directory]::CreateDirectory($buildsPath)|Out-Null
     $ignoreFile=Join-Path $buildsPath '.gdignore'
     if(!(Test-Path -LiteralPath $ignoreFile)){[IO.File]::WriteAllText($ignoreFile,'')}
-    $files=$resources+@('project.godot','GeXingzhou.csproj','global.json','export_presets.cfg','README.md','.gitignore','code/Domain/GeXingzhou.Domain.csproj')
+    $files=$resources+@('project.godot','GeXingzhou.csproj','GeXingzhou.sln','global.json','export_presets.cfg','README.md','.gitignore','code/Domain/GeXingzhou.Domain.csproj')
     $files+=@('00_阅读与协作说明.md','docs/superpowers/specs/2026-10-04-Godot可编辑场景与坐下互动设计.md','docs/superpowers/plans/2026-10-04-VS01可编辑场景与表现润色实施计划.md','docs/project/2026-10-04_场景润色资源记录.json')
     $experienceDocs=@('docs/reviews/2026-10-05_首段润色验收记录.md','docs/superpowers/specs/2026-10-05-首段玩家体验润色-design.md','docs/superpowers/plans/2026-10-05-首段润色-实施入口.md','docs/superpowers/plans/2026-10-05-润色-P1-引导与对白.md','docs/superpowers/plans/2026-10-05-润色-P2-汤店动作.md','docs/superpowers/plans/2026-10-05-润色-P3-桌面硬币.md','docs/superpowers/plans/2026-10-05-润色-P4-音频氛围.md','docs/superpowers/plans/2026-10-05-润色-P5-暂停收尾.md')
     $files+=$experienceDocs
@@ -27,6 +27,8 @@ try {
     $refinementDocs=@('docs/project/2026-10-15_场景精修资源记录.json')
     $refinementDocs+='docs/project/2026-10-16_街区生活与叙事资源记录.json'
     $files+=$refinementDocs
+    $showcaseImages=@('docs/media/menu.png','docs/media/street.png','docs/media/memory.png')
+    $files+=$showcaseImages
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
         foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot $folder) -File -Recurse -Force) {
             $relative=$item.FullName.Substring($script:ProjectRoot.Length+1).Replace('\','/')
@@ -36,7 +38,7 @@ try {
     }
     # Test harness is intentional in the editor source bundle, never in the public runtime resources.
     foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot 'scripts/Testing') -File){$files+=$item.FullName.Substring($script:ProjectRoot.Length+1).Replace('\','/')}
-    $explicit=@('project.godot','GeXingzhou.csproj','global.json','export_presets.cfg','README.md','.gitignore','00_阅读与协作说明.md','docs/superpowers/specs/2026-10-04-Godot可编辑场景与坐下互动设计.md','docs/superpowers/plans/2026-10-04-VS01可编辑场景与表现润色实施计划.md','docs/project/2026-10-04_场景润色资源记录.json')
+    $explicit=@('project.godot','GeXingzhou.csproj','GeXingzhou.sln','global.json','export_presets.cfg','README.md','.gitignore','00_阅读与协作说明.md','docs/superpowers/specs/2026-10-04-Godot可编辑场景与坐下互动设计.md','docs/superpowers/plans/2026-10-04-VS01可编辑场景与表现润色实施计划.md','docs/project/2026-10-04_场景润色资源记录.json')
     $explicit+=$experienceDocs+$explorationDocs+$journalDocs+$communityDocs+@('tools/audio/generate-vs01-audio.mjs','tools/audio/check-vs01-audio.mjs')
     $explicit+=@('tools/audio/generate-vs02-audio.mjs','tools/audio/check-vs02-audio.mjs','tools/build-walk-atlas.mjs')
     $files+=@('tools/audio/generate-vs03-audio.mjs','tools/audio/check-vs03-audio.mjs')
@@ -44,9 +46,10 @@ try {
     $explicit+=$polishDocs
     $explicit+=$streetDocs
     $explicit+=$refinementDocs
+    $explicit+=$showcaseImages
     foreach($relative in $files|Select-Object -Unique) {
         if($relative -notin $resources -and $relative -notin $explicit -and
-           $relative -notmatch '^(code/Domain/.*\.(cs|csproj|uid)|tests/.*\.(cs|csproj|json|tscn|uid|ps1)|tools/[^/]+\.ps1|docs/development/[^/]+\.md|\.vscode/[^/]+\.json|scripts/Testing/[^/]+\.(cs|uid))$') {throw "PRIVATE_SOURCE_REJECTED $relative"}
+           $relative -notmatch '^(code/Domain/.*\.(cs|csproj|uid)|tests/.*\.(cs|csproj|json|tscn|uid|ps1|gd)|tools/[^/]+\.ps1|docs/development/[^/]+\.md|\.vscode/[^/]+\.json|scripts/Testing/[^/]+\.(cs|uid))$') {throw "PRIVATE_SOURCE_REJECTED $relative"}
         $sourceInfo=Get-Item -LiteralPath (Join-Path $script:ProjectRoot $relative)
         if(($sourceInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw "PRIVATE_SOURCE_REJECTED link $relative"}
     }

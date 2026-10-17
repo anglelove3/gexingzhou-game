@@ -1,6 +1,6 @@
 {
   "version": 9,
-  "status": "vs01_scene_refinement; street discoveries/resident movement still pending",
+  "status": "vs01_recruitment_demo_polish; street discoveries and resident movement enabled",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
     {
@@ -394,7 +394,7 @@
   "audio_included": true,
   "audio_manifest": "assets/audio/vs02/manifest.json",
   "audio_provenance": "licenses/AUDIO_VS01.md",
-  "export_note": "PNG paths explicitly included by preset; actual Windows export and packed-game launch remain unverified.",
+  "export_note": "PNG paths explicitly included by preset. Standalone Windows validation and release receipt: docs/development/19_求职试玩精修验收与发行.md.",
   "audio_note": "Original sparse piano-like synthesized theme and soft ambience: assets/audio/vs02; short action cues remain vs01. Zero sliders pause active output; ordinary changes fade.",
   "audio_legacy_manifest": "assets/audio/vs01/manifest.json",
   "audio_street_manifest": "assets/audio/vs03/manifest.json",

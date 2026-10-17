@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 [ext_resource type="Script" path="res://scripts/SoupMemoryController.cs" id="Script"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v1/memory-v1.png" id="Image"]
 [ext_resource type="Texture2D" path="res://assets/atlases/soup-bowl.tres" id="Bowl"]
@@ -16,6 +16,15 @@ corner_radius_top_left=32
 corner_radius_top_right=32
 corner_radius_bottom_left=32
 corner_radius_bottom_right=32
+[sub_resource type="Gradient" id="ReadingGradient"]
+offsets=PackedFloat32Array(0,0.76,1)
+colors=PackedColorArray(0.025,0.035,0.03,0.8,0.025,0.035,0.03,0.48,0.025,0.035,0.03,0)
+[sub_resource type="GradientTexture2D" id="ReadingShade"]
+gradient=SubResource("ReadingGradient")
+width=64
+height=256
+fill_from=Vector2(0,0)
+fill_to=Vector2(0,1)
 [node name="MemorySoupTable" type="Control"]
 layout_mode=1
 anchors_preset=15
@@ -36,6 +45,14 @@ texture=ExtResource("Image")
 expand_mode=1
 stretch_mode=6
 mouse_filter=2
+[node name="ReadingShade" type="TextureRect" parent="."]
+layout_mode=1
+anchor_right=1.0
+offset_bottom=324.0
+texture=SubResource("ReadingShade")
+expand_mode=1
+stretch_mode=0
+mouse_filter=2
 [node name="Title" type="Label" parent="."]
 offset_left=40.0
 offset_top=28.0
@@ -44,13 +61,13 @@ offset_bottom=82.0
 theme_override_colors/font_shadow_color=Color(0,0,0,0.8)
 theme_override_constants/shadow_offset_x=2
 theme_override_constants/shadow_offset_y=2
-text="网吧包夜之后 · 回忆不会改写过去"
+text="网吧包夜之后 · 那年清晨"
 [node name="Status" type="Label" parent="."]
 offset_left=40.0
 offset_top=88.0
 offset_right=800.0
 offset_bottom=140.0
-text="那年清晨 · 0/5"
+text="那年清晨 · 已推过 0/4 枚"
 [node name="HelpToggle" type="Button" parent="."]
 offset_left=1070.0
 offset_top=30.0
@@ -62,11 +79,11 @@ visible=false
 offset_left=40.0
 offset_top=154.0
 offset_right=1240.0
-offset_bottom=278.0
+offset_bottom=308.0
 theme_override_colors/font_shadow_color=Color(0,0,0,0.9)
 theme_override_constants/shadow_offset_x=2
 theme_override_constants/shadow_offset_y=2
-text="把硬币向桌子对面推过去，也可以按 E。\n四枚硬币合计五个单位，仅为叙事，不是现实价格。"
+text="四枚硬币，刚好凑够这碗汤。\n拖向桌对面的提示区，或用左右键选择、按 E 推过去。\nEsc 可暂时离开，重看不会改写已完成的经历。"
 autowrap_mode=3
 mouse_filter=2
 [node name="Table" type="Control" parent="."]

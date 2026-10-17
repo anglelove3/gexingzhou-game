@@ -7,6 +7,7 @@ public partial class JournalController : Control
     private PanelContainer panel=null!;private ScrollContainer scroll=null!;
     private Label text=null!,empty=null!;private Button[] tabs=Array.Empty<Button>();
     private Button close=null!;private Control? previousFocus;private JournalView? view;
+    private string routeHint="";
     public bool IsOpen {get;private set;}
     public void Configure(MainView owner)=>main=owner;
     public override void _Ready()
@@ -45,6 +46,7 @@ public partial class JournalController : Control
     {
         if(IsOpen||HasMeta("binding_error")||!GodotObject.IsInstanceValid(main)||!main.CanOpenJournal)return false;
         previousFocus=GetViewport().GuiGetFocusOwner();view=JournalProjection.Build(GetNode<GameSession>("/root/GameSession").Snapshot);
+        routeHint=JournalProjection.RouteHint(GetNode<GameSession>("/root/GameSession").Snapshot);
         IsOpen=true;Visible=true;GetNode<GameSession>("/root/GameSession").Flow=FlowState.Journal;
         main.Audio.SetPaused(true);ShowPage(JournalPage.Current);tabs[0].GrabFocus();return true;
     }
@@ -65,7 +67,7 @@ public partial class JournalController : Control
         var isEmpty=page!=JournalPage.Current&&entries.Count==0;
         text.Visible=!isEmpty;empty.Visible=isEmpty;
         empty.Text=page==JournalPage.History?"还没有记下已完成的事":"还没有记下见闻。走走看看，也不必找齐。";
-        text.Text=page==JournalPage.Current?view.CurrentGoal:string.Join("\n\n",entries.Select(e=>e.Title+(e.Body.Length>0?"\n"+e.Body:"")));
+        text.Text=page==JournalPage.Current?view.CurrentGoal+"\n\n"+routeHint:string.Join("\n\n",entries.Select(e=>e.Title+(e.Body.Length>0?"\n"+e.Body:"")));
         scroll.ScrollVertical=0;
     }
     public bool HandleKey(Key key)

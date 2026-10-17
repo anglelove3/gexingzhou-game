@@ -48,7 +48,8 @@ public static class JournalChecks
             var items=JournalProjection.Build(s).Discoveries;
             Check.Equal("soup.sign,soup.menu,soup.note",string.Join(',',items.Select(e=>e.Id)));
             Check.Equal("旧招牌,看看菜单,柜台便条",string.Join(',',items.Select(e=>e.Title)));
-            foreach(var item in items)Check.Equal("在鸭血粉丝汤店看过，可回到场景再次观察",item.Body);
+            foreach(var item in items)Check.True(item.Body.StartsWith("在鸭血粉丝汤店看过\n",StringComparison.Ordinal));
+            Check.True(items.Single(x=>x.Id=="soup.note").Body.Contains("汤马上好"));
             var marked=DiscoveryPolicy.Mark(new(),"soup.note");Check.Equal(1,JournalProjection.Build(DiscoveryPolicy.Mark(marked,"soup.note")).Discoveries.Count);
         }));
         tests.Add(("Journal","DoesNotMutate",()=>{

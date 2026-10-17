@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeXingzhou", "GeXingzhou.csproj", "{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeXingzhou.Domain", "code\Domain\GeXingzhou.Domain.csproj", "{95A15683-0A2D-42F8-949A-126768E7DC17}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		ExportDebug|Any CPU = ExportDebug|Any CPU
+		ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{8A6D5C11-BE35-4B03-AC8F-BD7549920E10}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{95A15683-0A2D-42F8-949A-126768E7DC17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95A15683-0A2D-42F8-949A-126768E7DC17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95A15683-0A2D-42F8-949A-126768E7DC17}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{95A15683-0A2D-42F8-949A-126768E7DC17}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{95A15683-0A2D-42F8-949A-126768E7DC17}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{95A15683-0A2D-42F8-949A-126768E7DC17}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+EndGlobal

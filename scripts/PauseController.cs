@@ -16,6 +16,8 @@ public partial class PauseController : Control
             SceneBindings.Require<Button>(this,Prefix+"Resume").Pressed+=Close;
             SceneBindings.Require<Button>(this,Prefix+"Save").Pressed+=()=>Save();
             SceneBindings.Require<Button>(this,Prefix+"Settings").Pressed+=()=>main.Settings.Open();
+            var help=SceneBindings.Require<Label>(this,Prefix+"ControlsHelp");
+            SceneBindings.Require<Button>(this,Prefix+"Controls").Pressed+=()=>help.Visible=!help.Visible;
             SceneBindings.Require<Button>(this,Prefix+"Menu").Pressed+=()=>TryReturnToMenu();
             SceneBindings.Require<Button>(this,Prefix+"Quit").Pressed+=()=>TryExit();
             Visible=false;
@@ -26,6 +28,8 @@ public partial class PauseController : Control
     {
         if(IsOpen||HasMeta("binding_error")||main==null||!main.CanPause)return false;
         previousFocus=GetViewport().GuiGetFocusOwner();IsOpen=true;Visible=true;message.Text="";message.Visible=false;
+        GetNode<Label>(Prefix+"ControlsHelp").Visible=false;
+        GetNode<ScrollContainer>("Panel/Scroll").ScrollVertical=0;
         GetNode<GameSession>("/root/GameSession").Flow=FlowState.Paused;main.Audio.SetPaused(true);
         SceneBindings.Require<Button>(this,Prefix+"Resume").GrabFocus();return true;
     }
@@ -40,24 +44,31 @@ public partial class PauseController : Control
     {
         if(!IsOpen)return new(false,"请先暂停再保存。");
         var session=GetNode<GameSession>("/root/GameSession");session.UpdatePosition(main.SafeSavePosition);
-        var result=session.SaveManual();message.Text=result.Message;message.Visible=true;return result;
+        var result=session.SaveManual();ShowMessage(result.Message);return result;
     }
     private bool SaveForNavigation()
     {
         if(!IsOpen&&!main.SliceEnd.IsOpen)return false;
         var session=GetNode<GameSession>("/root/GameSession");session.UpdatePosition(main.SafeSavePosition);
-        var result=session.SaveCheckpoint();message.Text=result.Message;message.Visible=true;return result.Success;
+        var result=session.SaveCheckpoint();ShowMessage(result.Message);return result.Success;
     }
     public bool TryReturnToMenu()
     {
         if(!SaveForNavigation())return false;
         main.Audio.StopTransient();
         var error=GetTree().ChangeSceneToFile("res://scenes/Boot.tscn");
-        if(error==Error.Ok)return true;message.Text="菜单未能打开，请继续游戏或重试。";return false;
+        if(error==Error.Ok)return true;ShowMessage("菜单未能打开，请继续游戏或重试。");return false;
     }
     public bool TryExit()
     {
         if(!SaveForNavigation())return false;
         main.Audio.StopAll();GetTree().Quit();return true;
+    }
+    private void ShowMessage(string text){message.Text=text;message.Visible=true;CallDeferred(nameof(RevealMessage));}
+    private async void RevealMessage()
+    {
+        // Showing the label queues a VBox relayout; using its old rectangle scrolls to the wrong place.
+        await ToSignal(GetTree(),SceneTree.SignalName.ProcessFrame);
+        if(GodotObject.IsInstanceValid(this)&&IsInsideTree()&&IsOpen)GetNode<ScrollContainer>("Panel/Scroll").EnsureControlVisible(message);
     }
 }

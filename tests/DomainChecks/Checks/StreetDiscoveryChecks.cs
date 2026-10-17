@@ -20,7 +20,7 @@ public static class StreetDiscoveryChecks
             var all=new[]{"community.sign","community.notice","community.planter"}.Concat(Ids).Concat(new[]{"soup.sign","soup.menu","soup.note"}).ToArray();
             var s=StreetFixtures.V4() with{DiscoveredIds=new(all.Reverse())};var before=StreetFixtures.Json(s);
             var view=JournalProjection.Build(s);Check.Equal(string.Join(',',all),string.Join(',',view.Discoveries.Select(x=>x.Id)));
-            foreach(var entry in view.Discoveries.Where(x=>x.Id.StartsWith("street.")))Check.Equal("在便利店街看过，可回到场景再次观察",entry.Body);
+            foreach(var entry in view.Discoveries.Where(x=>x.Id.StartsWith("street.")))Check.True(entry.Body.StartsWith("在便利店街看过\n",StringComparison.Ordinal));
             Check.Equal(before,StreetFixtures.Json(s));Check.Equal(0,view.History.Count);
         }));
         // Break: runtime expansion must never expand the frozen v2/v3 save protocols.

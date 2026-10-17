@@ -11,7 +11,7 @@
   "soup.check_phone": {"Speaker":"张大炮","Lines":["又卡了？你这手机，比我结婚这事还磨叽。","他没再追问。汤气挡住屏幕，也挡住一些你不知道怎么说的话。"],"LineMetadata":[{"Kind":"Spoken"},{"Kind":"Narration"}]},
   "soup.return": {"Speaker":"张大炮","Lines":["想什么呢？汤都快凉了。","你看着桌上那碗汤。小时候那几枚硬币，早不知去了哪儿。这个人倒还坐在对面。","我请。别抢，等我穷了再找你。","张大炮冲收银台摆摆手，这顿饭算他账上。"],"LineMetadata":[{"Kind":"Spoken"},{"Kind":"Narration"},{"Kind":"Spoken"},{"Kind":"Narration"}]},
   "soup.return.take": {"Speaker":"张大炮","Lines":["醒醒，葛大爷。你这架势，像怕我把汤端走似的。","你把碗拉近一点，先喝了一口。小时候数了又数的那几枚硬币，忽然没那么响了。","我请。别抢，等我穷了再找你。","张大炮冲收银台摆摆手，这顿饭算他账上。"],"LineMetadata":[{"Kind":"Spoken"},{"Kind":"Narration"},{"Kind":"Spoken"},{"Kind":"Narration"}]},
-  "soup.return.wait": {"Speaker":"张大炮","Lines":["等什么呢？汤又不会自己长腿走你嘴里。烫就吹两下，没人跟你抢。","你低头吹了吹热气，等汤慢慢凉一点。对面筷子碰了一下碗沿。","我请。别抢，等我穷了再找你。","张大炮冲收银台摆摆手，这顿饭算他账上。"],"LineMetadata":[{"Kind":"Spoken"},{"Kind":"Narration"},{"Kind":"Spoken"},{"Kind":"Narration"}]},
+  "soup.return.wait": {"Speaker":"张大炮","Lines":["先让我吃？还跟我客气上了。汤都给你端来了，别光看着。","你把碗留在桌子中间，等他先动筷。张大炮笑了一声，伸手把汤往你这边推了推。","我请。别抢，等我穷了再找你。","张大炮冲收银台摆摆手，这顿饭算他账上。"],"LineMetadata":[{"Kind":"Spoken"},{"Kind":"Narration"},{"Kind":"Spoken"},{"Kind":"Narration"}]},
   "soup.return.share": {"Speaker":"张大炮","Lines":["哟，还知道往我这边推？你自己吃，店里又不缺碗。","你笑着把碗收回来。小时候想分出去的那一口，隔了这么多年，对面终于有人接了句玩笑。","我请。别抢，等我穷了再找你。","张大炮冲收银台摆摆手，这顿饭算他账上。"],"LineMetadata":[{"Kind":"Spoken"},{"Kind":"Narration"},{"Kind":"Spoken"},{"Kind":"Narration"}]},
   "observation.community.quiet": {"Speaker":"葛行舟","Lines":["你站了一会儿。这里像故乡，又不太像你记得的那个地方。"],"LineMetadata":[{"Kind":"Thought"}]},
   "observation.community.answered": {"Speaker":"葛行舟","Lines":["电话已经接了。答应朋友的事，总得往前走两步。"],"LineMetadata":[{"Kind":"Thought"}]},

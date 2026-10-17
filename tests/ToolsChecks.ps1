@@ -49,7 +49,10 @@ try {
         if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "EXPERIENCE_PACKAGE_MISMATCH $path"}
     }
     if(Get-ChildItem -LiteralPath $destination -File -Recurse -Force | Where-Object {$_.FullName -match 'references|test-output|environment\.local\.json|\.docx$|\.zip$'}){throw 'PRIVATE_SOURCE_BUNDLE_CONTENT'}
-    Write-Output 'PASS PolishDependencyWhitelist SourceBundleTeachingAndHashes'
+    foreach($path in @('GeXingzhou.sln','tests/runtime/ExportSmoke.gd','docs/media/menu.png','docs/media/street.png','docs/media/memory.png')){
+        if((Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $destination $path)).Hash){throw "RECRUIT_PACKAGE_MISMATCH $path"}
+    }
+    Write-Output 'PASS PolishDependencyWhitelist SourceBundleTeachingAndHashes RecruitSolutionAndShowcase'
 } catch {$failures++;Write-Output "FAIL PolishDependencyWhitelist $_"}
 try {
     $exploration=@('content/vs01/navigation.json','tools/bake-navigation.ps1','tests/integration/NavigationBake.tscn','scripts/Testing/NavigationBake.cs','assets/art/vs01-v4/player-soup.png','assets/art/vs01-v4/player-soup-phone.png','assets/animations/player-soup-v4.tres','docs/project/2026-10-09_探索资源记录.json','docs/superpowers/specs/2026-10-09-二维探索汤店样板-design.md','docs/superpowers/plans/2026-10-09-二维探索汤店样板-实施计划.md','docs/reviews/2026-10-09_二维探索汤店样板验收记录.md')

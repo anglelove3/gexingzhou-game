@@ -98,6 +98,7 @@ public partial class MainView : Control
         prompt.Visible=s.Flow==FlowState.Field;
         var place=World.SceneId switch{"soup_shop"=>"鸭血粉丝汤店","convenience_street"=>"便利店街",_=>"安置小区"};
         status.Text=(goalExpanded?"葛行舟 · "+place+"\n":"")+GameSession.TaskText(s.Snapshot)+(s.Snapshot.InvitationState.PhoneRinging?" · 【来电】":"")+(s.SaveMessage.Length>0?"\n"+s.SaveMessage:"");
+        if(goalExpanded)status.Text+="\n"+JournalProjection.RouteHint(s.Snapshot);
         var card=GetNode<PanelContainer>("HUD/TaskCard");var fold=GetNode<Button>("HUD/TaskFold");
         var font=status.GetThemeFont("font");var fontSize=status.GetThemeFontSize("font_size");
         var desiredWidth=status.Text.Split('\n').Max(line=>font.GetStringSize(line,fontSize:fontSize).X)+48;

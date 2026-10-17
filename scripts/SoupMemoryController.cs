@@ -67,7 +67,7 @@ public partial class SoupMemoryController : Control
         var state=Session.Snapshot.MemoryState;
         if(state!=shown)RestoreCoinPositions();
     }
-    private void SetStatus(MemoryState state)=>status.Text=$"那年清晨 · {state.PushedTotal}/5"+(state.Replay?" · 重看":"");
+    private void SetStatus(MemoryState state)=>status.Text=$"那年清晨 · 已推过 {state.PushedCoinIds.Count}/4 枚"+(state.Replay?" · 重看":"");
     public void RestoreCoinPositions()
     {
         if(coins.Length!=4)return;
