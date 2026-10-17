@@ -307,7 +307,7 @@ public partial class MainView : Control
         if(Journal.IsOpen){if(Journal.HandleKey(code))GetViewport().SetInputAsHandled();return;}
         if(code==Key.J){Journal.Open();GetViewport().SetInputAsHandled();return;}
         if(Settings.IsOpen){if(code==Key.Escape)Settings.Close();else return;}
-        else if(SliceEnd.IsOpen){if(code==Key.Escape)SliceEnd.Close();else return;}
+        else if(SliceEnd.IsOpen){if(code==Key.Escape)SliceEnd.Close();else if(SliceEnd.HandleReadingKey(code)){GetViewport().SetInputAsHandled();return;}else return;}
         else if(Pause.IsOpen)
         {
             if(code==Key.Escape)Pause.Close();

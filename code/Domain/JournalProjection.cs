@@ -24,16 +24,38 @@ public static class JournalProjection
         ("slice.complete:slice-1","slice","听过明天的安排，今天先到这里")};
     private static readonly (string Id,string Title)[] KnownDiscoveries={
         ("community.sign","旧路牌"),("community.notice","小区公告"),("community.planter","旧花箱"),
+        ("street.doorplate","掉漆的旧门牌"),("street.newsstand","关门的报刊亭"),("street.bike_shed","遮雨自行车棚"),
+        ("street.drain","落叶排水沟"),("street.wall_paint","墙面多层旧漆"),("street.laundry_rack","晾晒架与衣夹"),("street.stool","店外塑料凳"),
         ("soup.sign","旧招牌"),("soup.menu","看看菜单"),("soup.note","柜台便条")};
     public static JournalView Build(WorldSnapshot snapshot)
     {
         var history=new List<JournalEntry>();
         foreach(var (fact,id,title) in HistoryFacts)
             if(snapshot.CompletedActions.Contains(fact)&&(id!="memory"||snapshot.CompletedActions.Contains("memory.food.resolve:soup-1")))
-                history.Add(new(id,title,""));
+                history.Add(new(id,title,HistoryContext(id)));
         var discoveries=new List<JournalEntry>();
         foreach(var (id,title) in KnownDiscoveries)
-            if(snapshot.DiscoveredIds.Contains(id))discoveries.Add(new(id,title,id.StartsWith("community.",StringComparison.Ordinal)?"在安置小区看过，可回到场景再次观察":"在鸭血粉丝汤店看过，可回到场景再次观察"));
+            if(snapshot.DiscoveredIds.Contains(id))discoveries.Add(new(id,title,id.StartsWith("community.",StringComparison.Ordinal)?"在安置小区看过，可回到场景再次观察":id.StartsWith("street.",StringComparison.Ordinal)?"在便利店街看过，可回到场景再次观察":"在鸭血粉丝汤店看过，可回到场景再次观察"));
         return new(CurrentGoal(snapshot),history.AsReadOnly(),discoveries.AsReadOnly());
+    }
+    private static string HistoryContext(string id)=>id switch
+    {
+        "meeting"=>"在小区门口碰了面。手机里的声音，这回站到了眼前。",
+        "hey"=>"喜糖递出去了。街上还有路，不必把每一步都走成赶路。",
+        "soup"=>"你们坐在同一张桌边。热气升起来，有些话可以慢一点说。",
+        "memory"=>"那碗汤的旧事想过了，眼前的人仍坐在对面。想起，不等于必须想明白。",
+        "payment"=>"这顿张大炮结了账。先把他的心意收下，别急着算回来。",
+        "slice"=>"听过明天的安排。还有没说清的话，也还有一次见面的约定。",
+        _=>""
+    };
+    // Read-only presentation: stages/live replay choices are not evidence of a completed experience.
+    public static string EndReflection(WorldSnapshot snapshot)
+    {
+        var view=Build(snapshot);var lines=new List<string>();
+        if(view.History.Count>0){lines.Add("今天留下的几笔");lines.AddRange(view.History.Select(x=>"· "+x.Title));}
+        var seen=view.Discoveries.Take(2).Select(x=>x.Title).ToArray();
+        if(seen.Length>0)lines.Add("路上，你留意过"+string.Join("、",seen)+"。那些小地方，也留在了今天。");
+        if(lines.Count==0)lines.Add("今天先到这里。还有没想清楚的事，可以留到明天。");
+        return string.Join("\n",lines);
     }
 }

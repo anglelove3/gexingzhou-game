@@ -17,6 +17,7 @@ public static class RestoreCandidateValidator
             SceneBindings.Require<InteractionController>(world,"Interactions");SceneBindings.Require<Camera2D>(player,"Camera2D");
             if(SceneBindings.Require<Sprite2D>(world,"Backdrop").Texture==null)return "候选背景图像缺失。";
             player.ValidateBindings(world.Mode);
+            foreach(var resident in world.FindChildren("*","",true,false).OfType<AmbientResidentController>())resident.ValidateRoute(world);
             var ids=new HashSet<string>(StringComparer.Ordinal);
             foreach(var target in world.GetTargets()){
                 if(string.IsNullOrWhiteSpace(target.Id)||!ids.Add(target.Id))return "候选交互绑定异常。";

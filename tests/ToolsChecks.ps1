@@ -144,10 +144,19 @@ try {
       Write-Output 'PASS RefinementDependencyWhitelist ArtRegistrationHashes Documents'
   } catch {$failures++;Write-Output "FAIL RefinementDependencyWhitelist $_"}
   foreach($probe in @(@{Name='CaptureSizesEmpty';Literal='@()'},@{Name='CaptureSizesPath';Literal="@('../escape')"})) {
+    # Continue keeping the default capture batches and private exclusions unchanged.
     $command="& '$projectRoot/tools/capture-smoke.ps1' -Sizes $($probe.Literal) -GodotExe '$projectRoot/test-output/no-godot.exe'"
     $output=& $shellExe -NoProfile -Command $command 2>&1
     if($LASTEXITCODE -eq 0 -or ($output -join "`n") -notmatch 'INVALID_CAPTURE_SIZES'){$failures++;Write-Output "FAIL $($probe.Name) $output"}else{Write-Output "PASS $($probe.Name)"}
 }
+try{
+    $bcFiles=@('assets/audio/vs03/ambience-street-soft.wav','assets/audio/vs03/manifest.json','assets/audio/vs03/ambience-street-soft.wav.import','licenses/AUDIO_VS03.md','tools/audio/generate-vs03-audio.mjs','tools/audio/check-vs03-audio.mjs','docs/project/2026-10-16_街区生活与叙事资源记录.json','docs/development/17_街区生活与叙事润色验收与接续.md')
+    foreach($path in $bcFiles){$source=Join-Path $projectRoot $path;$target=Join-Path $destination $path;if(!(Test-Path -LiteralPath $target) -or (Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash){throw "BC_PACKAGE_MISMATCH $path"}}
+    $bc=Get-Content -LiteralPath (Join-Path $destination 'docs/project/2026-10-16_街区生活与叙事资源记录.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    if((Get-FileHash -LiteralPath (Join-Path $destination $bc.audio.path)).Hash -ne $bc.audio.sha256){throw 'STREET_AUDIO_HASH_MISMATCH'}
+    if($preset -notmatch 'assets/audio/vs03/\*\.wav' -or $preset -notmatch 'assets/audio/vs03/manifest.json'){throw 'STREET_AUDIO_EXPORT_MISSING'}
+    Write-Output 'PASS StreetLifeNarrativeDependencyWhitelist AudioHashes SourceScripts Documents'
+}catch{$failures++;Write-Output "FAIL StreetLifeNarrativeDependencyWhitelist $_"}
 if($args -contains '--check-capture-records'){
     try {
         foreach($size in @('1280x720','1920x1080','1440x1080')){foreach($batch in @('CapturePhoneChat','CaptureJournal','CaptureDepthSeat')){

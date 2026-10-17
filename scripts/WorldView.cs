@@ -26,6 +26,7 @@ public partial class WorldView : Node2D
                 throw new InvalidOperationException("导航数据与编辑场景不一致，请检查后重新导出："+SceneId);
             if(HasMeta("binding_error"))throw new InvalidOperationException(GetMeta("binding_error").AsString());
             Player.ApplyNavigation(Navigation);
+            foreach(var resident in FindChildren("*","",true,false).OfType<AmbientResidentController>())resident.Configure(this);
             if(GetNodeOrNull<Sprite2D>("PaymentCoin") is {} payment)paymentOrigin=payment.Position;
             if(HasMeta("binding_error"))throw new InvalidOperationException(GetMeta("binding_error").AsString());
             var ids=new HashSet<string>();

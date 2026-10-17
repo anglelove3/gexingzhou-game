@@ -11,10 +11,10 @@ public partial class SmokeHarness
         var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
         Require(main.SliceEnd.IsOpen&&s.Flow==FlowState.EndCard&&!main.CanPause,"Completed save has no end card");
         Require(main.SliceEnd.GetNode<Label>("Panel/Title").Text=="今天先到这里。明天见。"&&main.SliceEnd.GetNode<Label>("Panel/Label").Text=="首段试玩","Wrong ending copy");
-        Require(main.SliceEnd.GetNode<Button>("Panel/Scroll/Content/Continue").HasFocus(),"Ending default focus missing");
+        Require(main.SliceEnd.GetNode<Button>("Panel/Actions/Continue").HasFocus(),"Ending default focus missing");
         foreach(var button in new[]{"Continue","Menu","Restart"})
         {
-            var control=main.SliceEnd.GetNode<Button>("Panel/Scroll/Content/"+button);control.GrabFocus();await Frames(2);Require(control.HasFocus(),"Ending button inaccessible "+button);
+            var control=main.SliceEnd.GetNode<Button>("Panel/Actions/"+button);control.GrabFocus();await Frames(2);Require(control.HasFocus(),"Ending button inaccessible "+button);
         }
         Require(System.IO.File.ReadAllLines(log).Length==count,"Loading completed save re-recorded ending");
         KeyPress(Key.Tab);await Frames(2);Require(!main.Phone.IsOpen&&main.SliceEnd.IsOpen,"Ending Tab opened phone");
@@ -50,7 +50,7 @@ public partial class SmokeHarness
             s.SetOptions(new(){SubtitleSize=font,TextSpeed=0,ReducedMotion=true},false);
             var complete=SaveV4Codec.CreateNew(s.Options,s.Navigation) with{Stage=SliceStage.SliceComplete,SceneId="soup_shop",PlayerPosition=new(400,430),MemoryOrdinal=1,
                 MemoryState=new(){PushedCoinIds=new(){"c1","c2","c3","c4"},PushedTotal=5,FoodChoice=FoodChoice.Take,Completed=true},
-                CompletedActions=new(){"slice.complete:slice-1"},ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
+                CompletedActions=new(){"invitation.meeting_complete:invitation-1","candy.hey.delivered:hey-1","soup.meet:soup-seat-1","memory.return:soup-1","memory.food.resolve:soup-1","soup.payment:soup-payment-1","slice.complete:slice-1"},DiscoveredIds=new(){"street.doorplate","street.stool"},ReturnContext=new("soup_shop",new(400,430),"soup.return",true)};
             Require(s.Restore(complete).Success,"End visual snapshot invalid");
             var main=GD.Load<PackedScene>("res://scenes/Main.tscn").Instantiate<MainView>();AddChild(main);await Frames(3);
             Require(main.GetGlobalRect().Encloses(main.SliceEnd.GetNode<Control>("Panel").GetGlobalRect()),"End card clipped");

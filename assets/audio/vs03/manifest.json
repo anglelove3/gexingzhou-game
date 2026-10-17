@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "seed": 20261016,
+  "generated_on": "2026-10-16",
+  "provenance": "licenses/AUDIO_VS03.md",
+  "files": [
+    {
+      "file": "ambience-street-soft.wav",
+      "script": "tools/audio/generate-vs03-audio.mjs",
+      "seed": 20261016,
+      "sample_rate": 44100,
+      "bits": 16,
+      "channels": 1,
+      "duration_seconds": 32,
+      "sha256": "d71cd6232f9a2bed1b55cd548b35e1b2edd95825df91f250e6da68e95787b036",
+      "source": "Original synthetic freezer hum, two soft distant bicycle-bell gestures and four filtered foot contacts. No voices, recordings or third-party samples."
+    }
+  ]
+}

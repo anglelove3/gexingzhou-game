@@ -25,6 +25,7 @@ try {
     $streetDocs=@('docs/project/2026-10-14_便利店街探索资源记录.json','docs/superpowers/specs/2026-10-14-便利店街环形探索-design.md','docs/superpowers/plans/2026-10-14-便利店街环形探索-实施计划.md')
     $files+=$streetDocs
     $refinementDocs=@('docs/project/2026-10-15_场景精修资源记录.json')
+    $refinementDocs+='docs/project/2026-10-16_街区生活与叙事资源记录.json'
     $files+=$refinementDocs
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
         foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot $folder) -File -Recurse -Force) {
@@ -38,6 +39,8 @@ try {
     $explicit=@('project.godot','GeXingzhou.csproj','global.json','export_presets.cfg','README.md','.gitignore','00_阅读与协作说明.md','docs/superpowers/specs/2026-10-04-Godot可编辑场景与坐下互动设计.md','docs/superpowers/plans/2026-10-04-VS01可编辑场景与表现润色实施计划.md','docs/project/2026-10-04_场景润色资源记录.json')
     $explicit+=$experienceDocs+$explorationDocs+$journalDocs+$communityDocs+@('tools/audio/generate-vs01-audio.mjs','tools/audio/check-vs01-audio.mjs')
     $explicit+=@('tools/audio/generate-vs02-audio.mjs','tools/audio/check-vs02-audio.mjs','tools/build-walk-atlas.mjs')
+    $files+=@('tools/audio/generate-vs03-audio.mjs','tools/audio/check-vs03-audio.mjs')
+    $explicit+=@('tools/audio/generate-vs03-audio.mjs','tools/audio/check-vs03-audio.mjs')
     $explicit+=$polishDocs
     $explicit+=$streetDocs
     $explicit+=$refinementDocs

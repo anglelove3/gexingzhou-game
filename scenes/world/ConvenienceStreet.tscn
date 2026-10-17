@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-background-aligned.png" id="Bg"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/InteractionController.cs" id="Interactions"]
 [ext_resource type="Script" path="res://scripts/Interactable.cs" id="Target"]
 [ext_resource type="Script" path="res://scripts/ObservationHotspot.cs" id="Observation"]
+[ext_resource type="Script" path="res://scripts/AmbientResidentController.cs" id="Ambient"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="HeyArt"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="ResidentNorthArt"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="ResidentSouthArt"]
@@ -90,6 +91,9 @@ texture=ExtResource("Candy")
 
 [node name="ResidentNorth" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(520,220)
+script=ExtResource("Ambient")
+StepSpeed=8.0
+PauseSeconds=4.0
 [node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/ResidentNorth"]
 z_index=-1
 color=Color(0.08,0.07,0.04,0.18)
@@ -104,6 +108,10 @@ position=Vector2(280,0)
 
 [node name="ResidentSouth" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(700,660)
+script=ExtResource("Ambient")
+StepSpeed=6.0
+PauseSeconds=5.0
+IdlePhase=1.7
 [node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/ResidentSouth"]
 z_index=-1
 color=Color(0.08,0.07,0.04,0.18)
@@ -256,72 +264,79 @@ mouse_filter=2
 position=Vector2(360,260)
 script=ExtResource("Observation")
 Id="doorplate"
-DiscoveryId="community.sign"
+DiscoveryId="street.doorplate"
 VisualTarget=NodePath("../DepthLayers/Props/Doorplate")
 HitPolygon=NodePath("../DepthLayers/Props/Doorplate/Shape")
 Caption="掉漆的旧门牌"
+Description="门牌重新刷过，边角还是露出旧颜色。路名没变，认路的方式倒变了。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 [node name="NewsstandHotspot" type="Node2D" parent="."]
 position=Vector2(430,455)
 script=ExtResource("Observation")
 Id="newsstand"
-DiscoveryId="community.notice"
+DiscoveryId="street.newsstand"
 VisualTarget=NodePath("../DepthLayers/Props/Newsstand")
 HitPolygon=NodePath("../DepthLayers/Props/Newsstand/Shape")
 Caption="关门的报刊亭"
+Description="卷帘门落着，玻璃里没有新报纸。门口那一小块阴影，还像有人会停下来翻两页。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 [node name="BikeShedHotspot" type="Node2D" parent="."]
 position=Vector2(1170,455)
 script=ExtResource("Observation")
 Id="bike_shed"
-DiscoveryId="community.planter"
+DiscoveryId="street.bike_shed"
 VisualTarget=NodePath("../DepthLayers/Props/BikeShed")
 HitPolygon=NodePath("../DepthLayers/Props/BikeShed/Shape")
 Caption="遮雨自行车棚"
+Description="车把挤在一起，雨布补了又补。谁的车都认不出来，倒像从前的日子还排在里面。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 [node name="DrainHotspot" type="Node2D" parent="."]
 position=Vector2(1220,390)
 script=ExtResource("Observation")
 Id="drain"
-DiscoveryId="soup.sign"
+DiscoveryId="street.drain"
 VisualTarget=NodePath("../DepthLayers/Props/Drain")
 HitPolygon=NodePath("../DepthLayers/Props/Drain/Shape")
 Caption="落叶排水沟"
+Description="叶子顺着水痕聚在沟边。风一来散开一点，过一会儿又堆回去。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 [node name="WallPaintHotspot" type="Node2D" parent="."]
 position=Vector2(810,650)
 script=ExtResource("Observation")
 Id="wall_paint"
-DiscoveryId="soup.menu"
+DiscoveryId="street.wall_paint"
 VisualTarget=NodePath("../DepthLayers/Props/WallPaint")
 HitPolygon=NodePath("../DepthLayers/Props/WallPaint/Shape")
 Caption="墙面多层旧漆"
+Description="新漆盖住旧漆，旧漆又从裂缝里露出来。这里总在变，也总没有完全变掉。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 [node name="LaundryRackHotspot" type="Node2D" parent="."]
 position=Vector2(1000,650)
 script=ExtResource("Observation")
 Id="laundry_rack"
-DiscoveryId="soup.note"
+DiscoveryId="street.laundry_rack"
 VisualTarget=NodePath("../DepthLayers/Props/LaundryRack")
 HitPolygon=NodePath("../DepthLayers/Props/LaundryRack/Shape")
 Caption="晾晒架与衣夹"
+Description="架子上只剩几只衣夹，被风碰得轻轻响。没有谁的名字，也不需要知道是谁家的。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 [node name="StoolHotspot" type="Node2D" parent="."]
 position=Vector2(1380,420)
 script=ExtResource("Observation")
 Id="stool"
-DiscoveryId="community.sign"
+DiscoveryId="street.stool"
 VisualTarget=NodePath("../DepthLayers/Props/StreetStool")
 HitPolygon=NodePath("../DepthLayers/Props/StreetStool/Shape")
 Caption="店外塑料凳"
+Description="凳面磨得发亮，像是很多人只坐了一会儿，又各自走了。"
 ActionId="observe"
-IsActive=false
+IsActive=true
 
 [node name="Foreground" type="Node2D" parent="."]
 [node name="Navigation" type="Node2D" parent="."]

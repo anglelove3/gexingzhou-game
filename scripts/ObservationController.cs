@@ -6,7 +6,7 @@ public partial class ObservationController : Node
     private Vector2 pointer;private bool hasPointer;
     public void Configure(MainView owner)
     {main=owner;hover=SceneBindings.Require<Control>(main,"ObservationHover");outline=hover.GetNode<Line2D>("Outline");title=hover.GetNode<Label>("Title");}
-    private bool Available()=>GodotObject.IsInstanceValid(main)&&GodotObject.IsInstanceValid(main.World)&&(main.World.SceneId is "soup_shop" or "community_gate")&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!main.SoupSeat.IsActing&&!main.Rest.IsActive;
+    private bool Available()=>GodotObject.IsInstanceValid(main)&&GodotObject.IsInstanceValid(main.World)&&(main.World.SceneId is "soup_shop" or "community_gate" or "convenience_street")&&GetNode<GameSession>("/root/GameSession").Flow==FlowState.Field&&!main.SoupSeat.IsActing&&!main.Rest.IsActive;
     public bool CanObserve(ObservationHotspot target)=>Available()&&GodotObject.IsInstanceValid(target)&&main.World.GetTargets().Contains(target)&&target.IsInsideTree()&&target.IsActive&&target.IsVisibleInTree()&&!target.HasMeta("binding_error");
     public bool TryObserve(ObservationHotspot target)
     {

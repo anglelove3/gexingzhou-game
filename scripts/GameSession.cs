@@ -49,6 +49,13 @@ public partial class GameSession : Node
     public string EventWarning {get;private set;}="";
     public string FontWarning {get;private set;}="";
     public FlowState Flow {get;set;} = FlowState.Field;
+    // Autoload outlives detached scene candidates and retains notifications they cannot receive.
+    public bool ApplicationFocused {get;private set;}=true;
+    public override void _Notification(int what)
+    {
+        if(what==NotificationApplicationFocusOut)ApplicationFocused=false;
+        else if(what==NotificationApplicationFocusIn)ApplicationFocused=true;
+    }
     private readonly Dictionary<string,double> activeSeconds=new();
     public void UpdatePosition(Position2 position) => Snapshot=Snapshot with {PlayerPosition=position};
     public void UpdateScene(string sceneId,Position2 position)=>Snapshot=Snapshot with {SceneId=sceneId,PlayerPosition=position};

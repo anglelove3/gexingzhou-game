@@ -1,0 +1,32 @@
+{
+  "created_on": "2026-10-16",
+  "timezone": "Asia/Shanghai",
+  "scope": "Approved B street discoveries/residents/audio and bounded C narrative polish; A art, collision, navigation, save schema4 and frozen protocols unchanged.",
+  "audio": {
+    "path": "assets/audio/vs03/ambience-street-soft.wav",
+    "sha256": "D71CD6232F9A2BED1B55CD548B35E1B2EDD95825DF91F250E6DA68E95787B036",
+    "manifest": "assets/audio/vs03/manifest.json",
+    "generator": "tools/audio/generate-vs03-audio.mjs",
+    "checker": "tools/audio/check-vs03-audio.mjs",
+    "provenance": "licenses/AUDIO_VS03.md",
+    "source": "Project-authored deterministic synthesis, seed20261016; freezer hum, sparse soft bicycle bells, distant filtered footsteps. No voices, field recordings or third-party samples.",
+    "sample_rate": 44100,
+    "channels": 1,
+    "bits": 16,
+    "duration_seconds": 32,
+    "human_listening": "pending"
+  },
+  "residents": {
+    "art": ["assets/atlases/npc-2.tres", "assets/atlases/npc-3.tres"],
+    "source": "Reuse existing anonymous raster NPC assets; no new images or real-person photos.",
+    "north_route": [[520,220],[800,220]],
+    "south_route": [[700,660],[920,660]],
+    "behavior": "No interaction/collision/names/quest facts. Freeze position and visual state during non-field flow, loss of application focus or reduced motion. Resume without catch-up."
+  },
+  "narrative": {
+    "source": "Original in-project Chinese prose; no copied reference-game content or private biographies.",
+    "street_copy": "Seven approved paragraphs from docs/superpowers/specs/2026-10-14-便利店街环形探索-design.md, stored in static scene hotspots.",
+    "polished_dialogues": ["hey.delivery", "hey.stay", "soup.set_chopsticks", "soup.tomorrow"],
+    "journal_and_end": "Pure projection of stable completed facts and known discovered IDs. No new branches, rewards, schema or saved journal state; no invented unobserved events or reconstruction of lost first-food choices from live replay."
+  }
+}

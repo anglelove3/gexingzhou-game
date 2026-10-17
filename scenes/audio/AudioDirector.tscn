@@ -1,6 +1,7 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 [ext_resource type="AudioStream" path="res://assets/audio/vs02/piano-quiet-theme.wav" id="MusicStream"]
 [ext_resource type="AudioStream" path="res://assets/audio/vs02/ambience-outdoor-soft.wav" id="OutdoorStream"]
+[ext_resource type="AudioStream" path="res://assets/audio/vs03/ambience-street-soft.wav" id="StreetStream"]
 [ext_resource type="AudioStream" path="res://assets/audio/vs02/ambience-indoor-soft.wav" id="IndoorStream"]
 [ext_resource type="AudioStream" path="res://assets/audio/vs01/footstep.wav" id="FootstepStream"]
 [ext_resource type="AudioStream" path="res://assets/audio/vs01/phone-message.wav" id="PhoneMessageStream"]
@@ -14,6 +15,7 @@
 script=ExtResource("Script")
 MusicStream=ExtResource("MusicStream")
 OutdoorStream=ExtResource("OutdoorStream")
+StreetStream=ExtResource("StreetStream")
 IndoorStream=ExtResource("IndoorStream")
 FootstepStream=ExtResource("FootstepStream")
 PhoneMessageStream=ExtResource("PhoneMessageStream")

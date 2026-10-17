@@ -11,6 +11,9 @@ try {
     $known+='Journal'
     $known+=@('UiPolish','MovementPolish','CommunityPolish')
     $known+='SceneRefinement'
+    $known+='StreetObservation'
+    $known+='StreetLife'
+    $known+='NarrativeReflection'
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -34,6 +37,9 @@ try {
         if(!$Suite){$suites+=@('UiPolish','MovementPolish','CommunityPolish')}
         if(!$Suite){$suites+=@('Community','CommunityUpgrade','CommunityRest','CommunityObservation','Street','StreetUpgrade')}
         if(!$Suite){$suites+='SceneRefinement'}
+        if(!$Suite){$suites+='StreetObservation'}
+        if(!$Suite){$suites+='StreetLife'}
+        if(!$Suite){$suites+='NarrativeReflection'}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
             if($name -in @('ResumeSeed','ResumeRead')){$arguments+="--test-save-root=$resumeRoot"}

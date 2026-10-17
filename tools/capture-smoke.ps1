@@ -1,4 +1,4 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
+param([string]$GodotExe,[ValidateSet('All','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
 . "$PSScriptRoot/Common.ps1"
 try {
     if(!$Sizes -or $Sizes.Count -eq 0 -or @($Sizes|Where-Object {$_ -notin @('1280x720','1920x1080','1440x1080','1440x900','1024x768')}).Count -gt 0){throw 'INVALID_CAPTURE_SIZES: select nonempty supported dimensions'}
@@ -28,6 +28,12 @@ try {
     $refinement=@();foreach($font in @(20,24,32)){foreach($state in @('community','street','goal-expanded','notice','north','curb','east','wall','soup')){$refinement+='refinement-'+$state+'-'+$font}}
     $required+=$refinement
     if($Batch -eq 'CaptureRefinement'){$required=$refinement}
+    $street=@();foreach($font in @(20,24,32)){
+        foreach($state in @('entry','main','north','south','east','journal-top','journal-bottom','residents-front','residents-back','soup-locked','hey-before','hey-after','soup-ready')){$street+='street-'+$state+'-'+$font}
+        foreach($id in @('doorplate','newsstand','bike_shed','drain','wall_paint','laundry_rack','stool')){$street+='street-observe-'+$id+'-'+$font}
+        foreach($state in @('end','end-save-failed')){$street+=$state+'-'+$font}
+    }
+    if($Batch -eq 'CaptureStreet'){$required=$street}
     if($Batch -eq 'CaptureCommunity'){$required=$community}
     if($Batch -eq 'CaptureFeedback'){
         $required=$feedback

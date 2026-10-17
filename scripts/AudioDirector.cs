@@ -6,6 +6,7 @@ public partial class AudioDirector : Node
 {
     [Export] public AudioStream? MusicStream {get;set;}
     [Export] public AudioStream? OutdoorStream {get;set;}
+    [Export] public AudioStream? StreetStream {get;set;}
     [Export] public AudioStream? IndoorStream {get;set;}
     [Export] public AudioStream? FootstepStream {get;set;}
     [Export] public AudioStream? PhoneMessageStream {get;set;}
@@ -81,7 +82,7 @@ public partial class AudioDirector : Node
         if(!ready)return;
         StopTransient();
         Loop(music,MusicStream,"music");
-        var environment=sceneId is "soup_shop" or "memory_soup_table"?IndoorStream:OutdoorStream;
+        var environment=sceneId is "soup_shop" or "memory_soup_table"?IndoorStream:sceneId=="convenience_street"?StreetStream:OutdoorStream;
         if(ambience.Stream==null||!ambience.Playing){changingAmbience=false;Loop(ambience,environment,"environment:"+sceneId);}
         else if(ambience.Stream!=environment){nextAmbience=environment;nextAmbienceName="environment:"+sceneId;changingAmbience=true;}
         else changingAmbience=false;
