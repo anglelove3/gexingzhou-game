@@ -1,0 +1,62 @@
+[gd_resource type="SpriteFrames" load_steps=12 format=3]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v8-feedback/resident-beige-walk-v2.png" id="Walk"]
+[ext_resource type="Texture2D" path="res://assets/art/vs01-v1/npcs-v1.png" id="Idle"]
+[sub_resource type="AtlasTexture" id="F0"]
+atlas=ExtResource("Walk")
+region=Rect2(0,0,314,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(179,596)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F1"]
+atlas=ExtResource("Walk")
+region=Rect2(314,0,313,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(183,596)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F2"]
+atlas=ExtResource("Walk")
+region=Rect2(627,0,313,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(161,597)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F3"]
+atlas=ExtResource("Walk")
+region=Rect2(940,0,314,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(162,596)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F4"]
+atlas=ExtResource("Walk")
+region=Rect2(0,627,314,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(172,522)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F5"]
+atlas=ExtResource("Walk")
+region=Rect2(314,627,313,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(168,522)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F6"]
+atlas=ExtResource("Walk")
+region=Rect2(627,627,313,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(179,521)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="F7"]
+atlas=ExtResource("Walk")
+region=Rect2(940,627,314,627)
+filter_clip=true
+metadata/foot_pivot=Vector2(170,522)
+metadata/body_height=441
+[sub_resource type="AtlasTexture" id="IdleFrame"]
+atlas=ExtResource("Idle")
+region=Rect2(219,11,158,497)
+filter_clip=true
+metadata/foot_pivot=Vector2(85,495)
+metadata/body_height=493
+[resource]
+animations=[
+{"name":&"idle","loop":true,"speed":1.0,"frames":[{"duration":1.0,"texture":SubResource("IdleFrame")}]},
+{"name":&"walk","loop":true,"speed":8.0,"frames":[{"duration":1.0,"texture":SubResource("F0")},{"duration":1.0,"texture":SubResource("F1")},{"duration":1.0,"texture":SubResource("F2")},{"duration":1.0,"texture":SubResource("F3")},{"duration":1.0,"texture":SubResource("F4")},{"duration":1.0,"texture":SubResource("F5")},{"duration":1.0,"texture":SubResource("F6")},{"duration":1.0,"texture":SubResource("F7")}]}
+]

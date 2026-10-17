@@ -6,7 +6,8 @@ public partial class InteractionController : Node
     public string Prompt {get;private set;}="";
     private InteractionPolicy policy=null!;private readonly Interaction2DPolicy depthPolicy=new();
     private string? selected;private double elapsed;
-    private static Vector2 InteractionPoint(Interactable target)=>target is BenchView bench?bench.StandAnchor.GlobalPosition:target.GlobalPosition;
+    public string? SelectedId=>selected;
+    private Vector2 InteractionPoint(Interactable target)=>target is BenchView bench?bench.StandAnchor.GlobalPosition:target.NearestInteractionPoint(Player.GlobalPosition);
     public override void _Ready(){var p=GetNode<GameSession>("/root/GameSession").Catalog!.Parameters;policy=new((float)p["interact.radius"],(float)p["interact.hysteresis"],p["interact.repeat_guard"]);}
     private bool Reachable(WorldView world,Interactable target)
     {

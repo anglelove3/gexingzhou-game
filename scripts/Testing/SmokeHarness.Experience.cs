@@ -23,8 +23,8 @@ public partial class SmokeHarness
         var cannon=main.World.GetTarget("cannon")!.GetNodeOrNull<Label>("NameLabel");Require(cannon is {Visible:true}&&cannon.Text=="张大炮","Missing near actor name");
         Require(hint.Visible&&hint.Text.Contains("Tab"),"Missing first message hint");await Capture("guidance-cannon");
         main.World.Player.Position=new(1480,460);await Frames(3);
-        var exit=main.World.GetNodeOrNull<Label>("StreetExit/NameLabel");Require(exit is {Visible:true}&&exit.Text.Contains("便利店街"),"Missing exit destination");Require(!cannon!.Visible,"Distant actor name stayed visible");await Capture("guidance-exit");
-        main.World.Player.Position=new(800,460);await Frames(3);Require(!exit!.Visible,"Distant exit name stayed visible");
+        var exit=main.World.GetNodeOrNull<Label>("StreetExit/DirectionSign");Require(exit is {Visible:true}&&exit.Text.Contains("便利店街"),"Missing exit destination");Require(main.World.Interactions.SelectedId=="street"&&hint.Visible&&hint.Text.StartsWith("E "),"Exit destination lacks actionable E guidance");Require(!cannon!.Visible,"Distant actor name stayed visible");await Capture("guidance-exit");
+        main.World.Player.Position=new(800,460);await Frames(3);GD.Print($"EXIT_FAR_DIAGNOSTIC selected={main.World.Interactions.SelectedId} visible={hint.Visible} hint={hint.Text}");Require(main.World.Interactions.SelectedId!="street"&&!(hint.Visible&&hint.Text.StartsWith("E ")&&hint.Text.Contains("便利店街")),"Distant exit still promises E");
         Require(main.ChangeWorld("convenience_street",new(800,520)),"Guidance street fixture failed");await Frames(3);Require(main.World.GetTarget("hey")!.GetNode<Label>("NameLabel").Visible,"Hey name absent");
         main.ChangeWorld("soup_shop",new(400,430));await Frames(3);Require(main.World.GetNode<Label>("DepthLayers/Actors/Cannon/NameLabel").Visible,"Soup actor name absent");
         main.Free();await Frames(2);

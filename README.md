@@ -11,7 +11,7 @@
 
 ## 🎮 下载试玩
 
-本轮更新时间：**2026-10-17 17:28:04（北京时间，UTC+8）**。求职试玩精修版已发布为试玩预览。
+最新操作与表现精修已完成本机验收，正在准备新版发行；下方下载暂为 **2026-10-17 17:28:04（北京时间）** 的上一轮包，发布后替换入口。
 
 - **[下载 Windows x64 试玩 ZIP（约 130 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-hr-20261017/gexingzhou-demo-vs01-hr-20261017-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-hr-20261017)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
@@ -37,6 +37,8 @@
 安置小区、便利店街和汤店均可四向探索，带脚底碰撞、遮挡和就近互动。
 沿主街可以推进故事，也可以看看旧门牌、报刊亭、落叶排水沟和晾晒架。
 十三项可选见闻不会变成必须找齐的清单，不附加奖励或主线门槛。
+
+本轮改善人物成年比例和居民迈步、小区近景构图，路口沿道路区域响应E；菜单采用随包思源宋体与秋日飘叶，支持减少动效。更新证据与发行状态见[本轮验收](docs/development/21_试玩反馈操作与表现精修验收.md)。
 
 ![便利店街与递喜糖后的目标](docs/media/street.png)
 

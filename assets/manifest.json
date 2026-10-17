@@ -1,8 +1,50 @@
 {
-  "version": 9,
-  "status": "vs01_recruitment_demo_polish; street discoveries and resident movement enabled",
+  "version": 10,
+  "status": "vs01_playtest_feedback; road entrance region, visible adult gait, closer camera and literary autumn menu",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
+    {
+      "id": "resident-green-walk",
+      "file": "assets/art/vs01-v8-feedback/resident-green-walk.png",
+      "size": [1254,1254],
+      "sha256": "7FE0C2267E5AF3F8402647AD0EFD56889756755EBDD74CAA1839C502445A76B9",
+      "usage": "8 independent distance-driven side-walk poses; visible alpha foot anchoring",
+      "source": "built-in image_gen; original game NPC identity reference; metadata compilation only",
+      "generated_on": "2026-10-17",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_FEEDBACK_20261017.md"
+    },
+    {
+      "id": "resident-apron-walk",
+      "file": "assets/art/vs01-v8-feedback/resident-apron-walk.png",
+      "size": [1254,1254],
+      "sha256": "40ECFF0A48331A8F03BAFDC24D096ECCFF0FDF674172DABBB2D6BF55ED01A35F",
+      "usage": "8 independent distance-driven side-walk poses; visible alpha foot anchoring",
+      "source": "built-in image_gen; original game NPC identity reference; metadata compilation only",
+      "generated_on": "2026-10-17",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_FEEDBACK_20261017.md"
+    },
+    {
+      "id": "resident-beige-walk",
+      "file": "assets/art/vs01-v8-feedback/resident-beige-walk-v2.png",
+      "size": [1254,1254],
+      "sha256": "8AE29955882DD515A14434E98D037677CA288456FE9E2EC9E33FB9F8206748E0",
+      "usage": "8 standing side-walk poses replacing a translated seated resident",
+      "source": "built-in image_gen; padded revision of generated poses; metadata compilation only",
+      "generated_on": "2026-10-17",
+      "license_status": "AI_generated_for_project; commercial_release_review_required",
+      "provenance": "licenses/AI_ART_FEEDBACK_20261017.md"
+    },
+    {
+      "id": "menu-source-han-serif",
+      "file": "assets/fonts/SourceHanSerifSC-SemiBold.otf",
+      "sha256": "FAF16CAEAF207E1926E01AF8D9F1A8E71B0E9D8F51BF3B5D9A78F9F30E7E3E31",
+      "usage": "bundled menu title font; no dependency on player-installed fonts",
+      "source": "Adobe official adobe-fonts/source-han-serif release branch; original unmodified font",
+      "license_status": "SIL Open Font License 1.1",
+      "provenance": "licenses/SourceHanSerif-OFL.txt"
+    },
     {
       "id": "street-background-aligned",
       "file": "assets/art/vs01-v7-street/street-background-aligned.png",
@@ -390,11 +432,12 @@
   "concept_images_exported": false,
   "private_documents_exported": false,
   "third_party_art_imported": false,
+  "third_party_fonts_included": true,
   "generated_new_images": true,
   "audio_included": true,
   "audio_manifest": "assets/audio/vs02/manifest.json",
   "audio_provenance": "licenses/AUDIO_VS01.md",
-  "export_note": "PNG paths explicitly included by preset. Standalone Windows validation and release receipt: docs/development/19_求职试玩精修验收与发行.md.",
+  "export_note": "PNG/font paths explicitly included by preset. Current feedback update validation and release receipt: docs/development/21_试玩反馈操作与表现精修验收.md; prior release: 19.",
   "audio_note": "Original sparse piano-like synthesized theme and soft ambience: assets/audio/vs02; short action cues remain vs01. Zero sliders pause active output; ordinary changes fade.",
   "audio_legacy_manifest": "assets/audio/vs01/manifest.json",
   "audio_street_manifest": "assets/audio/vs03/manifest.json",

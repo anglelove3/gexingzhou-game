@@ -26,6 +26,7 @@ try {
     $files+=$streetDocs
     $refinementDocs=@('docs/project/2026-10-15_场景精修资源记录.json')
     $refinementDocs+='docs/project/2026-10-16_街区生活与叙事资源记录.json'
+    $refinementDocs+='docs/project/2026-10-17_操作与表现精修资源记录.json'
     $files+=$refinementDocs
     $showcaseImages=@('docs/media/menu.png','docs/media/street.png','docs/media/memory.png')
     $files+=$showcaseImages

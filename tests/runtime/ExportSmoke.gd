@@ -104,21 +104,51 @@ func run() -> void:
 	await frames(5)
 	if not need(not boot.get_node("MenuScroll/Menu/StartButton").disabled, "Exported new game disabled"):
 		return
+	if not need(boot.get_node("MenuScroll/Menu/Title").get_theme_font("font") is FontFile, "Bundled literary title font missing"):
+		return
 	await capture("boot")
 	boot.get_node("MenuScroll/Menu/StartButton").pressed.emit()
 	await frames(8)
 	game = current_scene
 	if not need(game != null and game.name == "Main", "Exported new-game scene did not open"):
 		return
+	var player: Node2D = world().get_node("DepthLayers/Actors/Player")
+	var start_x := player.position.x
+	var walk_down := InputEventKey.new()
+	walk_down.keycode = KEY_D
+	walk_down.physical_keycode = KEY_D
+	walk_down.pressed = true
+	Input.parse_input_event(walk_down)
+	await create_timer(0.3).timeout
+	var walk_up := InputEventKey.new()
+	walk_up.keycode = KEY_D
+	walk_up.physical_keycode = KEY_D
+	Input.parse_input_event(walk_up)
+	await frames(5)
+	if not need(player.position.x > start_x + 5, "Packaged physical D input does not walk"):
+		return
+	print("EXPORT_MOVEMENT_PASS PhysicalD")
 	# Controlled position/time fixtures exercise the packaged scenes, not human navigation speed.
 	session.call("AdvanceClock", 53.0)
 	await frames(5)
 	if not interact("cannon") or not await finish_dialogue():
 		return
-	if not interact("street"):
+	world().get_node("DepthLayers/Actors/Player").position = Vector2(1480, 340)
+	await frames(5)
+	if not need(world().get_node("Interactions").get("Prompt").contains("便利店街"), "Packaged road entrance upper approach not selectable"):
 		return
+	await key(KEY_E)
 	if not await wait_until(func(): return world().get("SceneId") == "convenience_street" and session.get("Flow") == 0, "street transition"):
 		return
+	for id in ["ResidentNorth", "ResidentSouth"]:
+		var resident: Node = world().get_node("DepthLayers/Actors/" + id)
+		var poses: SpriteFrames = resident.get("WalkFrames")
+		if not need(poses != null and poses.get_frame_count("walk") >= 8, "Packaged resident gait missing " + id):
+			return
+		for frame in range(8):
+			if not need(poses.get_frame_texture("walk", frame) != null, "Packaged resident image missing " + id):
+				return
+	print("EXPORT_FEEDBACK_PASS BundledFont RoadEntranceUpperKeyboard ResidentWalkFrames")
 	if not interact("hey") or not await finish_dialogue() or not await choose(2) or not await finish_dialogue():
 		return
 	await capture("street")

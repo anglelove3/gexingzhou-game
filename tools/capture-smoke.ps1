@@ -1,4 +1,4 @@
-param([string]$GodotExe,[ValidateSet('All','CaptureArt','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
+param([string]$GodotExe,[ValidateSet('All','CaptureArt','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet','CapturePlaytestFeedback')][string]$Batch='All',[AllowEmptyCollection()][string[]]$Sizes=@('1280x720','1920x1080','1440x1080'))
 . "$PSScriptRoot/Common.ps1"
 try {
     if(!$Sizes -or $Sizes.Count -eq 0 -or @($Sizes|Where-Object {$_ -notin @('1280x720','1920x1080','1440x1080','1440x900','1024x768')}).Count -gt 0){throw 'INVALID_CAPTURE_SIZES: select nonempty supported dimensions'}
@@ -29,6 +29,10 @@ try {
     $required+=$feedback
     $refinement=@();foreach($font in @(20,24,32)){foreach($state in @('community','street','goal-expanded','notice','north','curb','east','wall','soup')){$refinement+='refinement-'+$state+'-'+$font}}
     $required+=$refinement
+    $playtest=@();foreach($font in @(20,24,32)){foreach($state in @('menu','menu-reduced','community','entrance-upper','entrance-lower','street')){$playtest+='feedback2-'+$state+'-'+$font}}
+    foreach($identity in @('green','apron','beige')){foreach($frame in 0..7){$playtest+='feedback2-walk-'+$identity+'-'+$frame}}
+    if($Batch -eq 'All'){$required+=$playtest}
+    if($Batch -eq 'CapturePlaytestFeedback'){$required=$playtest}
     if($Batch -eq 'CaptureRefinement'){$required=$refinement}
     $street=@();foreach($font in @(20,24,32)){
         foreach($state in @('entry','main','north','south','east','journal-top','journal-bottom','residents-front','residents-back','soup-locked','hey-before','hey-after','soup-ready')){$street+='street-'+$state+'-'+$font}
@@ -51,7 +55,7 @@ try {
     if($Batch -eq 'CaptureCoins'){$required=@($required|Where-Object {$_ -match '^memory-(table|partial|complete|help)-'})}
     if($Batch -eq 'CaptureExperience'){$required=@($required|Where-Object {$_ -match '^guidance-|^dialogue-'})}
     if($Batch -eq 'CaptureSoupSeat'){$required=@($required|Where-Object {$_ -match '^soup-.+|^candy-handover$'})}
-    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet')}else{@($Batch)}
+    $batches=if($Batch -eq 'All'){@('Capture','CaptureNarrative','CapturePolish','CaptureExperience','CaptureSoupSeat','CaptureCoins','CapturePause','CaptureEnd','CaptureExploration','CaptureDepthSeat','CapturePhoneChat','CaptureJournal','CaptureCommunity','CaptureFeedback','CaptureRefinement','CaptureStreet','CapturePlaytestFeedback')}else{@($Batch)}
     $supplemental=if($batches -contains 'CaptureCommunity'){@('community-sign-back','community-sign-front')}else{@()}
     foreach($size in $Sizes) {
         $outputDir=Join-Path $script:ProjectRoot 'test-output/captures'

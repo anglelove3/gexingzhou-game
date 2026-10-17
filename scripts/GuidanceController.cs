@@ -21,8 +21,9 @@ public partial class GuidanceController : Node
         foreach(var name in main.World.FindChildren("NameLabel","Label",true,false).OfType<Label>())
         {
             var owner=(Node2D)name.GetParent();var target=owner as Interactable;
-            var distance=main.World.Mode==WorldMode.Depth2D?owner.GlobalPosition.DistanceTo(main.World.Player.GlobalPosition):Math.Abs(owner.GlobalPosition.X-main.World.Player.GlobalPosition.X);
-            name.Visible=field&&(target?.IsActive??true)&&owner.IsVisibleInTree()&&distance<=(target==null?200:140);
+            var point=target?.NearestInteractionPoint(main.World.Player.GlobalPosition)??owner.GlobalPosition;
+            var distance=main.World.Mode==WorldMode.Depth2D?point.DistanceTo(main.World.Player.GlobalPosition):Math.Abs(point.X-main.World.Player.GlobalPosition.X);
+            name.Visible=field&&(target?.IsActive??true)&&owner.IsVisibleInTree()&&distance<=(target==null?200:140)&&target?.Id!="street";
             name.AddThemeFontSizeOverride("font_size",s.Options.SubtitleSize);
             name.AddThemeColorOverride("font_color",new Color(.98f,.94f,.84f,1));
             name.AddThemeColorOverride("font_outline_color",new Color(.06f,.045f,.025f,1));
@@ -43,9 +44,9 @@ public partial class GuidanceController : Node
         else if(nearbyObservation&&!observationShown&&!s.Snapshot.CompletedActions.Contains("observation.community.first"))
         {observationShown=true;current="E 观察 · 可以看看，也可以继续走";remaining=4;}
         var street=main.World.SceneId=="community_gate"?targets.FirstOrDefault(t=>t.Id=="street"&&t.IsActive&&t.IsVisibleInTree()):null;
-        var streetDistance=street==null?float.PositiveInfinity:street.GlobalPosition.DistanceTo(main.World.Player.GlobalPosition);
+        var streetDistance=street==null?float.PositiveInfinity:street.NearestInteractionPoint(main.World.Player.GlobalPosition).DistanceTo(main.World.Player.GlobalPosition);
         if(field&&streetDistance<=125){
-            hint.Text=streetDistance<=40?"E 前往便利店街":"走近便利店街路口 · 按 E 进入";
+            hint.Text=main.World.Interactions.SelectedId=="street"?"E 进入便利店街":"沿道路走近右侧的便利店街标记";
             hint.Visible=true;return;
         }
         hint.Text=current;

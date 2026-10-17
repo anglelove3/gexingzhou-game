@@ -19,6 +19,14 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite=="PlaytestFeedback"){await PlaytestFeedbackChecks();GD.Print("GODOT_CHECKS_PASS PlaytestFeedback");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="CapturePlaytestFeedback"){
+                if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");
+                var requested=OS.GetCmdlineUserArgs().First(a=>a.StartsWith("--capture-size=")).Split('=')[1].Split('x');
+                GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(requested[0]),int.Parse(requested[1]));await Frames(3);
+                var size=DisplayServer.WindowGetSize();captureDirectory=ProjectSettings.GlobalizePath($"res://test-output/captures/{size.X}x{size.Y}");
+                await CapturePlaytestFeedback();GD.Print("GODOT_CHECKS_PASS CapturePlaytestFeedback");await DrainAudio();GetTree().Quit();return;
+            }
             if(suite=="RecruitDemo"){await RecruitDemoChecks();GD.Print("GODOT_CHECKS_PASS RecruitDemo");await DrainAudio();GetTree().Quit();return;}
             if(suite=="SceneRefinement"){await SceneRefinementChecks();GD.Print("GODOT_CHECKS_PASS SceneRefinement");await DrainAudio();GetTree().Quit();return;}
             if(suite=="Street"){await StreetChecks();GD.Print("GODOT_CHECKS_PASS Street");await DrainAudio();GetTree().Quit();return;}

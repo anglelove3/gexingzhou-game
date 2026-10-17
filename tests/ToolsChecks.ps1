@@ -171,5 +171,22 @@ if($args -contains '--check-capture-records'){
         Write-Output 'PASS DefaultCaptureSizesUnchanged Phone48 Journal54 DepthSeat54 ActualRecords'
     }catch{$failures++;Write-Output "FAIL DefaultCaptureSizesUnchanged $_"}
 }
+try {
+    $record=Get-Content -LiteralPath (Join-Path $projectRoot 'docs/project/2026-10-17_操作与表现精修资源记录.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    foreach($asset in @($record.assets)+@($record.font)){
+        foreach($root in @($projectRoot,$destination)){
+            if((Get-FileHash -LiteralPath (Join-Path $root $asset.file)).Hash -ne $asset.sha256){throw "FEEDBACK2_ASSET_HASH_MISMATCH $($asset.file)"}
+        }
+    }
+    foreach($path in @('assets/animations/resident-green-walk.tres','assets/animations/resident-apron-walk.tres','assets/animations/resident-beige-walk.tres','assets/ui/menu-literary.tres','tools/build-resident-frames.ps1','licenses/AI_ART_FEEDBACK_20261017.md','licenses/SourceHanSerif-OFL.txt','docs/project/2026-10-17_操作与表现精修资源记录.json')){
+        if((Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $destination $path)).Hash){throw "FEEDBACK2_PACKAGE_MISMATCH $path"}
+    }
+    if($preset -notmatch 'assets/art/vs01-v8-feedback/\*\.png' -or $preset -notmatch 'assets/fonts/\*\.otf'){throw 'FEEDBACK2_EXPORT_FILTER_MISSING'}
+    $before=@{};foreach($path in @('assets/animations/resident-green-walk.tres','assets/animations/resident-apron-walk.tres','assets/animations/resident-beige-walk.tres')){$before[$path]=(Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash}
+    $rebuild=& $shellExe -NoProfile -ExecutionPolicy Bypass -File "$projectRoot/tools/build-resident-frames.ps1"
+    if($LASTEXITCODE -ne 0){throw "FEEDBACK2_REBUILD_FAILED $rebuild"}
+    foreach($path in $before.Keys){if($before[$path] -ne (Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash){throw "FEEDBACK2_FRAME_REBUILD_DRIFT $path"}}
+    Write-Output 'PASS PlaytestFeedbackWhitelist FontLicense ArtHashes SourceBundle FrameMetadataReproducible'
+}catch{$failures++;Write-Output "FAIL PlaytestFeedbackWhitelist $_"}
 Write-Output "TOOLS_FAILURES $failures"
 if($failures -gt 0){exit 1}else{exit 0}

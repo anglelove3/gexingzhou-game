@@ -16,9 +16,9 @@ public partial class WorldDisplayController : SubViewportContainer
         var bounds=world.ViewBounds;float aspect=(float)viewport.Size.X/viewport.Size.Y;
         // Frame the community closer while retaining authored foot/furniture and save coordinates.
         var framingBounds=world.SceneId=="community_gate"?new Rect2(bounds.Position,new Vector2(bounds.Size.X,Math.Min(bounds.Size.Y,520))):bounds;
-        float preferredHeight=world.SceneId=="community_gate"?460:framingBounds.Size.Y;
+        float preferredHeight=world.SceneId=="community_gate"?400:framingBounds.Size.Y;
         float height=Math.Min(preferredHeight,framingBounds.Size.X/aspect);var viewSize=new Vector2(height*aspect,height);
-        var wanted=world.Player.GlobalPosition+new Vector2(0,-100);
+        var wanted=world.Player.GlobalPosition+new Vector2(0,world.SceneId=="community_gate"?-130:-100);
         var center=new Vector2(Math.Clamp(wanted.X,bounds.Position.X+viewSize.X/2,bounds.End.X-viewSize.X/2),
             Math.Clamp(wanted.Y,framingBounds.Position.Y+viewSize.Y/2,framingBounds.End.Y-viewSize.Y/2));
         VisibleWorldRect=new Rect2(center-viewSize/2,viewSize);

@@ -1,0 +1,49 @@
+{
+  "created_on": "2026-10-17",
+  "timezone": "Asia/Shanghai",
+  "scope": "User-approved bounded road entrance, resident proportions and gait, community camera, literary menu typography and autumn leaves; preserve navigation, story IDs and schema4.",
+  "source_reference": "assets/art/vs01-v1/npcs-v1.png",
+  "generator": "built-in image_gen",
+  "compiler": "tools/build-resident-frames.ps1",
+  "compilation": "Read alpha >24 transparent gutters and visible body/foot bounds; generate AtlasTexture/SpriteFrames metadata only. PNG bytes unchanged.",
+  "assets": [
+    {
+      "file": "assets/art/vs01-v8-feedback/resident-green-walk.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "7FE0C2267E5AF3F8402647AD0EFD56889756755EBDD74CAA1839C502445A76B9",
+      "prompt": "Use case: identity-preserve / game animation sprite sheet. Input image is the existing game's NPC identity and drawing-style reference; do NOT edit that source image. Produce ONE transparent-background sprite sheet for ONLY the olive-green-jacket young Chinese man in the TOP CENTER of the reference (olive overshirt, white undershirt, brown trousers, dark canvas sneakers, black side-parted hair). Preserve his face, clothing, adult proportions and painterly illustrated outlines. Output square 1536x1536, EXACT 4 columns x 2 rows equal cells (384x768 pixels per cell). Eight consecutive SIDE-VIEW WALKING RIGHT animation phases, read left-to-right top row then bottom row: left-foot heel strike, left loading/right heel lift, right leg passing, right swing, right-foot heel strike, right loading/left heel lift, left leg passing, left swing. Visible alternating legs, knee bends and opposite arm swings, no sliding identical standing frames. SAME identity, scale, viewpoint, lighting every frame. Full body head to shoes inside EACH cell, generous margin, soles around 92% down each cell, body around 82% cell height. Consistent gently warm light. Transparent alpha everywhere except character pixels; no floor, no shadows, no stool, no gradient/matte, no labels, no text, no grid lines, no other characters. Do not duplicate first pose eight times, do not change clothes or turn towards camera."
+    },
+    {
+      "file": "assets/art/vs01-v8-feedback/resident-apron-walk.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "40ECFF0A48331A8F03BAFDC24D096ECCFF0FDF674172DABBB2D6BF55ED01A35F",
+      "prompt": "Use case: identity-preserve / game animation sprite sheet. Reference image supplies original NPC identity and illustrated drawing style. Generate ONE square transparent sprite sheet for ONLY the gray-haired middle-aged Chinese man in the TOP RIGHT of the reference, dark teal rolled-sleeve shirt, simple off-white waist apron, dark trousers and black work shoes. Preserve his adult face, hair, clothes and warm painterly outlined game style. EXACT 4 columns x 2 rows equal cells, eight successive side-profile WALKING RIGHT frames, full head and both shoes inside every cell, identical scale and level camera across all eight. Row 1: left foot forward heel planted, right leg lifting behind, legs crossing/passing with lifted knee, right leg extending forward. Row 2: opposite right-foot contact, left leg lifting behind, left leg passing with lifted knee, left leg extending forward. Opposite arms swing, visible elbow and knee changes, apron drapes naturally. Eight DIFFERENT useful walk-cycle poses, not standing copies. Body occupies 80-83% of each cell height with soles on the same baseline about 92% from each cell top. Leave clear transparent gutters so neighboring characters never touch. No background/matte/gradient, no floor, no shadows, no utensils or cloth in hands, no labels, no lines, no text, no other people. No stool; he is walking standing upright. Output a high-resolution square sheet."
+    },
+    {
+      "file": "assets/art/vs01-v8-feedback/resident-beige-walk-v2.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "8AE29955882DD515A14434E98D037677CA288456FE9E2EC9E33FB9F8206748E0",
+      "initial_prompt": "Use case: identity-preserve / game walk-cycle sprite asset. Input is the original NPC identity and painting-style reference. Generate ONE transparent-background sprite sheet for ONLY the beige-jacket Chinese young adult in the TOP LEFT of reference. Preserve his face and tousled dark hair, tan/beige jacket over plain white shirt, charcoal trousers, dark canvas sneakers, normal adult proportions and warm outlined illustrated style. Do not include the seated version or any stool. Square image, EXACT FOUR columns by TWO rows, eight full-body side-view WALKING RIGHT poses in equal cells. A continuous gait with contact, down, passing, up for the first step then opposite-leg contact, down, passing, up. Clear knee bends, lifted trailing heel and opposite arm swings; both left and right legs visibly alternate. Same scale, viewpoint, lighting and clothes in every frame; head never clipped, shoes never clipped, each figure isolated with transparent gutters. Soles on a consistent baseline near 92% of each cell height; body about 82% cell height. No text, no labels, no numbering, no grid, no extra people, no shadows, no floor, no background/matte/gradient; genuine alpha transparency. No sitting, no long idle duplicates.",
+      "revision_prompt": "Edit target: this beige-jacket resident walking sprite sheet. Keep exactly the same person, clothing, illustration style, eight DIFFERENT walking poses, rightward side view, and genuine alpha transparency. Change ONLY layout and padding: shrink each figure by approximately 20 percent, preserving its proportions, and center the eight figures in EXACT 4 equal columns by 2 equal rows with large EMPTY TRANSPARENT gutters. Each figure must remain strictly inside its own cell with at least 28 pixels of transparent horizontal padding on BOTH sides, even at the widest outstretched shoe. Never let shoes, shadows or any pixel from two characters touch or overlap. Keep soles on the same row baseline near 90% of each cell's height. Full head and feet visible. No background, no lines, no text, no additional figures. The purpose is eight individually extractable game animation frames; the current lower-left two characters' shoes overlap, fix that specific layout defect.",
+      "note": "First beige sheet had touching shoes and is kept locally in ignored references; revised sheet has extractable transparent gutters. Not claiming handmade pixel art or frame-perfect anatomical animation."
+    }
+  ],
+  "font": {
+    "file": "assets/fonts/SourceHanSerifSC-SemiBold.otf",
+    "sha256": "FAF16CAEAF207E1926E01AF8D9F1A8E71B0E9D8F51BF3B5D9A78F9F30E7E3E31",
+    "source": "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/OTF/SimplifiedChinese/SourceHanSerifSC-SemiBold.otf",
+    "license": "licenses/SourceHanSerif-OFL.txt",
+    "modification": "None; full original OTF redistributed under SIL OFL 1.1."
+  },
+  "native_effects": "Godot Polygon2D falling leaves, road floor highlight and existing furniture grounding; no third-party game images copied.",
+  "known_limits": "Human feel, gait continuity and other machines require player feedback. Previous ObjectDB/resources exit warning and export hang remain tracked, not claimed fixed by this scope."
+}

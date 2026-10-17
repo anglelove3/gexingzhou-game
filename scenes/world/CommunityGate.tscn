@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=25 format=3]
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v5-community/community-background.png" id="Bg"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="Player"]
@@ -18,6 +18,8 @@
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="Resident1"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="Resident2"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v6-polish/living-details.png" id="LivingArt"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/resident-green-walk.tres" id="GreenWalk"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/resident-apron-walk.tres" id="ApronWalk"]
 [sub_resource type="AtlasTexture" id="BicycleDetails"]
 atlas=ExtResource("LivingArt")
 region=Rect2(0,150,1050,650)
@@ -108,21 +110,31 @@ y_sort_enabled=true
 [node name="ResidentByGate" type="Node2D" parent="DepthLayers/Actors/BackgroundResidents"]
 position=Vector2(470,326)
 script=ExtResource("Ambient")
-StepSpeed=8.0
+StepSpeed=28.0
 PauseSeconds=4.0
+WalkFrames=ExtResource("GreenWalk")
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByGate"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.18)
+polygon=PackedVector2Array(-13,0,-11,-3,-5,-4,5,-4,11,-3,13,0,11,3,5,4,-5,4,-11,3)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByGate"]
 texture_filter=2
 position=Vector2(0,-36)
 scale=Vector2(0.145,0.145)
 texture=ExtResource("Resident1")
 [node name="Waypoint" type="Marker2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByGate"]
-position=Vector2(24,0)
+position=Vector2(130,0)
 [node name="ResidentByStreet" type="Node2D" parent="DepthLayers/Actors/BackgroundResidents"]
 position=Vector2(1270,343)
 script=ExtResource("Ambient")
-StepSpeed=6.0
+StepSpeed=24.0
 PauseSeconds=5.0
 IdlePhase=1.8
+WalkFrames=ExtResource("ApronWalk")
+[node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByStreet"]
+z_index=-1
+color=Color(0.08,0.07,0.04,0.18)
+polygon=PackedVector2Array(-13,0,-11,-3,-5,-4,5,-4,11,-3,13,0,11,3,5,4,-5,4,-11,3)
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByStreet"]
 texture_filter=2
 position=Vector2(0,-35)
@@ -130,7 +142,7 @@ scale=Vector2(0.138,0.138)
 texture=ExtResource("Resident2")
 flip_h=true
 [node name="Waypoint" type="Marker2D" parent="DepthLayers/Actors/BackgroundResidents/ResidentByStreet"]
-position=Vector2(-20,0)
+position=Vector2(-90,0)
 [node name="Props" type="Node2D" parent="DepthLayers"]
 y_sort_enabled=true
 [node name="Bench" parent="DepthLayers/Props" instance=ExtResource("Bench")]
@@ -259,6 +271,15 @@ Id="street"
 Caption="去便利店街"
 ActionId="scene:convenience_street"
 IsActive=true
+InteractionRegion=Rect2(-40,-152,104,208)
+[node name="EntryZone" type="Polygon2D" parent="StreetExit"]
+z_index=-1
+color=Color(0.95,0.72,0.32,0.10)
+polygon=PackedVector2Array(-38,-150,62,-150,62,54,-38,54)
+[node name="EntryEdge" type="Line2D" parent="StreetExit"]
+points=PackedVector2Array(54,-140,62,-140,62,44,54,44)
+width=2.0
+default_color=Color(1,0.82,0.47,0.55)
 [node name="Marker" type="Label" parent="StreetExit"]
 offset_left=-8.0
 offset_top=-88.0

@@ -44,7 +44,7 @@ public partial class SmokeHarness
                 {s.Flow=flow;resident._Process(30);Require(resident.Position==at&&art.Position==artAt&&art.Rotation==rotation,"Resident moved during modal "+flow);}
                 s.Flow=FlowState.Field;resident._Notification((int)NotificationApplicationFocusOut);resident._Process(30);Require(resident.Position==at,"Resident moved unfocused");
                 resident._Notification((int)NotificationApplicationFocusIn);s.SetOptions(s.Options with{ReducedMotion=true},false);resident._Process(30);Require(resident.Position==at&&art.Position==artAt,"Reduced motion reset or advanced resident");
-                s.SetOptions(s.Options with{ReducedMotion=false},false);resident._Process(.1);Require(resident.Position.DistanceTo(at)<1.01f&&resident.Position!=at,"Resume teleported or failed");
+                s.SetOptions(s.Options with{ReducedMotion=false},false);resident._Process(.1);Require(resident.Position.DistanceTo(at)<=resident.StepSpeed*.1f+.01f&&resident.Position!=at,"Resume teleported or failed");
                 for(int i=0;i<400;i++){resident._Process(.5);Require(NavigationGeometry.CanStand(world.Navigation,new(resident.Position.X,resident.Position.Y)),"Resident left legal route");}
                 Require(before==StreetLifeSnapshot(s),"Resident wrote story/save state");
             }

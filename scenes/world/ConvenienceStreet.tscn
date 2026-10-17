@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/WorldView.cs" id="World"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/street-background-aligned.png" id="Bg"]
@@ -11,6 +11,8 @@
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-1.tres" id="HeyArt"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-2.tres" id="ResidentNorthArt"]
 [ext_resource type="Texture2D" path="res://assets/atlases/npc-3.tres" id="ResidentSouthArt"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/resident-apron-walk.tres" id="ApronWalk"]
+[ext_resource type="SpriteFrames" path="res://assets/animations/resident-beige-walk.tres" id="BeigeWalk"]
 [ext_resource type="Texture2D" path="res://assets/atlases/candy-bag.tres" id="Candy"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/doorplate.png" id="DoorplateArt"]
 [ext_resource type="Texture2D" path="res://assets/art/vs01-v7-street/newsstand.png" id="NewsstandArt"]
@@ -53,8 +55,8 @@ Caption="Hey哥 · 递喜糖 / 聊两句"
 ActionId="candy.hey.delivered"
 [node name="Artwork" type="Sprite2D" parent="DepthLayers/Actors/Hey"]
 texture_filter=2
-position=Vector2(0,-40)
-scale=Vector2(0.145,0.145)
+position=Vector2(0,-46.3701)
+scale=Vector2(0.1866,0.1866)
 texture=ExtResource("HeyArt")
 flip_h=true
 [node name="NameLabel" type="Label" parent="DepthLayers/Actors/Hey"]
@@ -92,8 +94,9 @@ texture=ExtResource("Candy")
 [node name="ResidentNorth" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(520,220)
 script=ExtResource("Ambient")
-StepSpeed=8.0
+StepSpeed=28.0
 PauseSeconds=4.0
+WalkFrames=ExtResource("ApronWalk")
 [node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/ResidentNorth"]
 z_index=-1
 color=Color(0.08,0.07,0.04,0.18)
@@ -109,9 +112,10 @@ position=Vector2(280,0)
 [node name="ResidentSouth" type="Node2D" parent="DepthLayers/Actors"]
 position=Vector2(700,660)
 script=ExtResource("Ambient")
-StepSpeed=6.0
+StepSpeed=24.0
 PauseSeconds=5.0
 IdlePhase=1.7
+WalkFrames=ExtResource("BeigeWalk")
 [node name="GroundShadow" type="Polygon2D" parent="DepthLayers/Actors/ResidentSouth"]
 z_index=-1
 color=Color(0.08,0.07,0.04,0.18)
