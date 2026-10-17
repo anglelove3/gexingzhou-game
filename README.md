@@ -11,11 +11,11 @@
 
 ## 🎮 下载试玩
 
-最新操作与表现精修已完成本机验收，正在准备新版发行；下方下载暂为 **2026-10-17 17:28:04（北京时间）** 的上一轮包，发布后替换入口。
+本轮更新时间：**2026-10-17 22:02:41（北京时间，UTC+8）**。入口、人物与秋日菜单精修版已发布为试玩预览。
 
-- **[下载 Windows x64 试玩 ZIP（约 130 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-hr-20261017/gexingzhou-demo-vs01-hr-20261017-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-hr-20261017)
+- **[下载最新版 Windows x64 试玩 ZIP（约 154 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-feedback-20261017/gexingzhou-demo-vs01-feedback-20261017-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-feedback-20261017)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
-- [2026-10-14 历史旧版](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01)保留，不包含本轮精修。
+- [10月17日17:28上一轮试玩](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-hr-20261017)和[10月14日历史旧版](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01)保留，不包含本轮入口/步态/菜单精修。
 - 试玩范围：小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。不是完整多日游戏。
 - 建议为首次阅读与探索预留 10–15 分钟；这是体验安排建议，不是实测通关时长。不设探索倒计时。
 
@@ -99,6 +99,6 @@ powershell -NoProfile -File tools/verify.ps1 -GodotExe '你的 Godot .NET 控制
 
 当前提供首段叙事探索，不包含完整多日时段经营、楼层探索、自由编辑日记、联网聊天或移动端版本。公开仓库不包含私人原稿、现实照片、真实玩家存档或本机配置；公开素材不等于已完成商业发行权利审查。
 
-试玩预览仍有退出时的 ObjectDB / resources 释放警告待查；本机启动及受控剧情流程检查通过，不等于其它显卡、纯净电脑或真人声音与阅读节奏均已验收。详细证据与限制见[本轮验收记录](docs/development/19_求职试玩精修验收与发行.md)。
+试玩预览仍有退出时的 ObjectDB / resources 释放警告待查；本机启动及受控剧情流程检查通过，不等于其它显卡、纯净电脑或真人声音与阅读节奏均已验收。详细证据与限制见[本轮验收记录](docs/development/21_试玩反馈操作与表现精修验收.md)。
 
 历史首页已归档至[开发记录](docs/development/18_历史首页归档.md)，不再把多轮历史接续堆在试玩入口之前。
