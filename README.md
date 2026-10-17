@@ -11,10 +11,11 @@
 
 ## 🎮 下载试玩
 
-本轮更新时间：**2026-10-17（北京时间，UTC+8）**。求职试玩精修已进入验证阶段，新版 Windows 包尚未发布；发布结果以 [Releases](https://github.com/anglelove3/gexingzhou-game/releases) 为准。
+本轮更新时间：**2026-10-17 17:28:04（北京时间，UTC+8）**。求职试玩精修版已发布为试玩预览。
 
-- [现有旧版 Windows x64 试玩](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01)：2026-10-14 发布，不包含本轮精修。
-- 不需要克隆源码才能玩。新版验收后，本节会替换为 ZIP 的直接下载入口。
+- **[下载 Windows x64 试玩 ZIP（约 130 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-hr-20261017/gexingzhou-demo-vs01-hr-20261017-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-hr-20261017)
+- 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
+- [2026-10-14 历史旧版](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01)保留，不包含本轮精修。
 - 试玩范围：小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。不是完整多日游戏。
 - 建议为首次阅读与探索预留 10–15 分钟；这是体验安排建议，不是实测通关时长。不设探索倒计时。
 
