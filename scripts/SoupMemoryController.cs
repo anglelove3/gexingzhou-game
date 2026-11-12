@@ -14,6 +14,7 @@ public partial class SoupMemoryController : Control
     private int selected, dragged=-1;
     private Vector2 dragStart, grabOffset;
     private bool foodReady;
+    private bool focused=true;
     private MemoryState? shown;
     private GameSession Session=>GetNode<GameSession>("/root/GameSession");
     public void ValidateBindings()
@@ -31,6 +32,7 @@ public partial class SoupMemoryController : Control
     {
         try
         {
+            focused=Session.ApplicationFocused;
             ValidateBindings();
             table=SceneBindings.Require<Control>(this,"Table");
             Resized+=UpdateTableLayout;UpdateTableLayout();
@@ -66,6 +68,24 @@ public partial class SoupMemoryController : Control
         if(HasMeta("binding_failure"))return;
         var state=Session.Snapshot.MemoryState;
         if(state!=shown)RestoreCoinPositions();
+        SetMotionPaused(Session.Flow!=FlowState.Memory||!focused||!Session.ApplicationFocused);
+    }
+    public override void _Notification(int what)
+    {
+        if(what==NotificationApplicationFocusOut){focused=false;CancelDrag();SetMotionPaused(true);}
+        else if(what==NotificationApplicationFocusIn)focused=true;
+    }
+    private void SetMotionPaused(bool paused)
+    {
+        // Flow-based overlays do not pause SceneTree. Retain tween progress while the
+        // phone owns input, and keep completion callbacks from stealing its focus.
+        foreach(var move in moves.Values)SyncTween(move,paused);
+        if(bowlMove!=null)SyncTween(bowlMove,paused);
+    }
+    private static void SyncTween(Tween tween,bool paused)
+    {
+        if(!tween.IsValid())return;
+        if(paused)tween.Pause();else if(!tween.IsRunning())tween.Play();
     }
     private void SetStatus(MemoryState state)=>status.Text=$"那年清晨 · 已推过 {state.PushedCoinIds.Count}/4 枚"+(state.Replay?" · 重看":"");
     public void RestoreCoinPositions()

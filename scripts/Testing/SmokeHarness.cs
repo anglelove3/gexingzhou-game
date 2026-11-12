@@ -20,6 +20,7 @@ public partial class SmokeHarness : Node
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="PhoneAudio"){await PhoneAudioChecks();GD.Print("GODOT_CHECKS_PASS PhoneAudio");await DrainAudio();GetTree().Quit();return;}
+            if(suite=="MemoryInterruption"){await MemoryInterruptionChecks();GD.Print("GODOT_CHECKS_PASS MemoryInterruption");await DrainAudio();GetTree().Quit();return;}
             if(suite=="PlaytestFeedback"){await PlaytestFeedbackChecks();GD.Print("GODOT_CHECKS_PASS PlaytestFeedback");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CapturePlaytestFeedback"){
                 if(DisplayServer.GetName()=="headless")throw new Exception("Capture requires real rendering");

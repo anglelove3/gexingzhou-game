@@ -17,6 +17,7 @@ try {
     $known+='RecruitDemo'
     $known+='PlaytestFeedback'
     $known+='PhoneAudio'
+    $known+='MemoryInterruption'
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -46,6 +47,7 @@ try {
         if(!$Suite){$suites+='RecruitDemo'}
         if(!$Suite){$suites+='PlaytestFeedback'}
         if(!$Suite){$suites+='PhoneAudio'}
+        if(!$Suite){$suites+='MemoryInterruption'}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
             if($name -in @('ResumeSeed','ResumeRead')){$arguments+="--test-save-root=$resumeRoot"}

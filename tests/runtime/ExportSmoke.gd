@@ -194,8 +194,25 @@ func run() -> void:
 		return
 	for _i in range(4):
 		await key(KEY_E)
+	await key(KEY_TAB)
+	if not need(game.get_node("Phone").visible, "Memory phone did not open during bowl movement"):
+		return
+	await frames(2)
+	var paused_bowl = memory.get_node("Table/Bowl").position
+	var paused_coin = memory.get_node("Table/Coin4").position
+	var phone_focus = root.gui_get_focus_owner()
+	await create_timer(0.8).timeout
+	if not need(memory.get_node("Table/Bowl").position == paused_bowl and memory.get_node("Table/Coin4").position == paused_coin, "Packaged memory moved behind phone"):
+		return
+	if not need(memory.get_node("Table/Foods/Take").disabled and root.gui_get_focus_owner() == phone_focus, "Packaged memory stole phone focus"):
+		return
+	await capture("memory-phone")
+	await key(KEY_TAB)
 	if not await wait_until(func(): return not memory.get_node("Table/Foods/Take").disabled, "coin and bowl movement"):
 		return
+	if not need(root.gui_get_focus_owner() == memory.get_node("Table/Foods/Take"), "Packaged memory keyboard focus did not resume"):
+		return
+	print("EXPORT_MEMORY_RESUME_PASS PhoneFreezesMotion FocusPreserved KeyboardResumes")
 	if not need(memory.get_node("Status").text.contains("4/4"), "Packaged coin progress incorrect"):
 		return
 	await capture("memory")
