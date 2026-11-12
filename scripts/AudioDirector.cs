@@ -17,6 +17,7 @@ public partial class AudioDirector : Node
     [Export] public AudioStream? CandyStream {get;set;}
     private AudioStreamPlayer music=null!,ambience=null!;
     private AudioStreamPlayer[] slots=Array.Empty<AudioStreamPlayer>();
+    private AudioCue?[] activeCues=Array.Empty<AudioCue?>();
     private GameSettings options=new();private bool paused,ready;
     private const float FadeSeconds=.8f;
     private float musicTarget,ambienceTarget,musicRate,ambienceRate;
@@ -30,6 +31,7 @@ public partial class AudioDirector : Node
         {
             music=SceneBindings.Require<AudioStreamPlayer>(this,"Music");ambience=SceneBindings.Require<AudioStreamPlayer>(this,"Ambience");
             slots=Enumerable.Range(1,8).Select(i=>SceneBindings.Require<AudioStreamPlayer>(this,"Effects/Slot"+i)).ToArray();
+            activeCues=new AudioCue?[slots.Length];
             music.VolumeLinear=0;ambience.VolumeLinear=0;
             ready=true;ApplySettings(GetNode<GameSession>("/root/GameSession").Options);
         }
@@ -93,11 +95,17 @@ public partial class AudioDirector : Node
         if(!ready||paused&&cue==AudioCue.Footstep||options.MasterVolume*options.EffectsVolume==0)return false;
         var stream=cue switch{AudioCue.Footstep=>FootstepStream,AudioCue.PhoneMessage=>PhoneMessageStream,AudioCue.PhoneRing=>PhoneRingStream,AudioCue.Bowl=>BowlStream,AudioCue.Chopsticks=>ChopsticksStream,AudioCue.Coin=>CoinStream,AudioCue.Candy=>CandyStream,_=>null};
         if(stream==null){Missing(cue.ToString());return false;}
-        var slot=slots.FirstOrDefault(p=>!p.Playing);if(slot==null)return false;
-        slot.Stream=stream;slot.Play();return true;
+        var index=Array.FindIndex(slots,p=>!p.Playing);if(index<0)return false;
+        var slot=slots[index];activeCues[index]=cue;slot.Stream=stream;slot.Play();return true;
+    }
+    public void StopCue(AudioCue cue)
+    {
+        // Cues can share a WAV. Track the current owner of each reusable slot rather
+        // than stopping every player with an equal stream (or a stale slot handle).
+        for(int i=0;i<slots.Length;i++)if(activeCues[i]==cue){slots[i].Stop();slots[i].Stream=null;activeCues[i]=null;}
     }
     public void SetPaused(bool value){if(value==paused)return;paused=value;if(value)StopTransient();ApplySettings(options);}
-    public void StopTransient(){foreach(var slot in slots){slot.Stop();slot.Stream=null;}}
+    public void StopTransient(){foreach(var slot in slots){slot.Stop();slot.Stream=null;}Array.Clear(activeCues);}
     public void StopAll(){StopTransient();changingAmbience=false;nextAmbience=null;if(ready){music.Stop();ambience.Stop();music.Stream=null;ambience.Stream=null;}}
     public void BeginShutdown(){StopAll();ready=false;SetProcess(false);}
     public override void _ExitTree(){StopAll();ready=false;}

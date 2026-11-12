@@ -85,6 +85,7 @@ public partial class MainView : Control
         var invitation=s.Snapshot.InvitationState;
         if(invitation.VoiceReceived&&!heardVoice)Audio.PlayCue(AudioCue.PhoneMessage);
         if(invitation.PhoneRinging&&!heardRing)Audio.PlayCue(AudioCue.PhoneRing);
+        if(!invitation.PhoneRinging)Audio.StopCue(AudioCue.PhoneRing);
         heardVoice=invitation.VoiceReceived;heardRing=invitation.PhoneRinging;
         if(lastFont!=s.Options.SubtitleSize){lastFont=s.Options.SubtitleSize;Theme=s.CreateUiTheme();}
         if(Rest.IsActive)prompt.Text=GetNode<RestOptionsController>("RestOptions").IsOpen?"Esc 收起选项":"E 休息选项 · Esc 起身 · Tab 手机";

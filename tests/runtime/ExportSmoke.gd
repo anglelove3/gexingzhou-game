@@ -129,8 +129,31 @@ func run() -> void:
 		return
 	print("EXPORT_MOVEMENT_PASS PhysicalD")
 	# Controlled position/time fixtures exercise the packaged scenes, not human navigation speed.
-	session.call("AdvanceClock", 53.0)
-	await frames(5)
+	session.call("AdvanceClock", 23.0)
+	await frames(2)
+	await key(KEY_TAB)
+	if not need(game.get_node("Phone").visible, "Packaged incoming phone did not open"):
+		return
+	var audio := game.get_node("Audio")
+	var ring_stream = audio.get("PhoneRingStream")
+	var ring_players: Array = []
+	for slot in audio.get_node("Effects").get_children():
+		if slot.stream == ring_stream and slot.playing:
+			ring_players.append(slot)
+	if not need(ring_players.size() == 1, "Packaged live ringtone missing before answer"):
+		return
+	await capture("phone")
+	await key(KEY_ENTER)
+	for slot in ring_players:
+		if not need(not slot.playing and slot.stream == null, "Packaged ringtone survived keyboard answer"):
+			return
+	if not need(audio.get_node("Music").playing and audio.get_node("Ambience").playing, "Answer stopped packaged background audio"):
+		return
+	if not await finish_dialogue():
+		return
+	print("EXPORT_PHONE_AUDIO_PASS KeyboardAnswer RingStopped BedsContinue")
+	session.call("AdvanceClock", 30.0)
+	await frames(3)
 	if not interact("cannon") or not await finish_dialogue():
 		return
 	world().get_node("DepthLayers/Actors/Player").position = Vector2(1480, 340)
