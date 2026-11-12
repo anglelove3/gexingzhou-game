@@ -11,11 +11,11 @@
 
 ## 🎮 下载试玩
 
-本轮更新时间：**2026-10-17 22:02:41（北京时间，UTC+8）**。入口、人物与秋日菜单精修版已发布为试玩预览。
+本轮发布时间：**2026-11-12 19:16:25（北京时间，UTC+8）**。现有首段退出稳定性修复版，仍为试玩预览。
 
-- **[下载最新版 Windows x64 试玩 ZIP（约 154 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-feedback-20261017/gexingzhou-demo-vs01-feedback-20261017-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-feedback-20261017)
+- **[下载最新版 Windows x64 试玩 ZIP（约 154 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-stability-20261112/gexingzhou-demo-vs01-stability-20261112-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-stability-20261112)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
-- 下载入口整理：**2026-10-17 22:26（北京时间）**。GitHub 仅保留本版试玩 Release；旧试玩已撤下并在本地备份，避免误下载。游戏内容和 ZIP 未改变。
+- GitHub 仅保留最新版试玩 Release；旧试玩先备份发行元数据、ZIP及解压目录，再撤下公开入口，保留源码和Git标签。
 - 试玩范围：小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。不是完整多日游戏。
 - 建议为首次阅读与探索预留 10–15 分钟；这是体验安排建议，不是实测通关时长。不设探索倒计时。
 
@@ -38,7 +38,7 @@
 沿主街可以推进故事，也可以看看旧门牌、报刊亭、落叶排水沟和晾晒架。
 十三项可选见闻不会变成必须找齐的清单，不附加奖励或主线门槛。
 
-本轮改善人物成年比例和居民迈步、小区近景构图，路口沿道路区域响应E；菜单采用随包思源宋体与秋日飘叶，支持减少动效。更新证据与发行状态见[本轮验收](docs/development/21_试玩反馈操作与表现精修验收.md)。
+已有成年人物比例、居民迈步、小区近景构图和沿道路区域响应E的路口；菜单采用随包思源宋体与秋日飘叶，支持减少动效。本轮统一菜单、保存退出与窗口关闭的音频收尾，保留现有故事和schema4进度，证据见[本轮验收](docs/development/22_退出稳定性验收与发行.md)。
 
 ![便利店街与递喜糖后的目标](docs/media/street.png)
 
@@ -82,6 +82,7 @@
 dotnet build GeXingzhou.csproj
 dotnet run --project tests/DomainChecks
 powershell -NoProfile -File tools/verify.ps1 -GodotExe '你的 Godot .NET 控制台程序路径'
+powershell -NoProfile -File tests/ShutdownChecks.ps1 -GodotExe '你的 Godot .NET 控制台程序路径'
 ```
 
 构建完成后，在 Godot 打开 `project.godot`，F5 运行。
@@ -99,6 +100,6 @@ powershell -NoProfile -File tools/verify.ps1 -GodotExe '你的 Godot .NET 控制
 
 当前提供首段叙事探索，不包含完整多日时段经营、楼层探索、自由编辑日记、联网聊天或移动端版本。公开仓库不包含私人原稿、现实照片、真实玩家存档或本机配置；公开素材不等于已完成商业发行权利审查。
 
-试玩预览仍有退出时的 ObjectDB / resources 释放警告待查；本机启动及受控剧情流程检查通过，不等于其它显卡、纯净电脑或真人声音与阅读节奏均已验收。详细证据与限制见[本轮验收记录](docs/development/21_试玩反馈操作与表现精修验收.md)。
+本轮定位并修复循环音轨退出时序问题：本机七种退出路径及冷解压原生EXE关闭日志未见此前的 ObjectDB / resources 残留。历史冷导入崩溃和导出挂起仍保留待查；本轮启动及受控流程通过，不等于其它显卡、纯净电脑或真人声音与阅读节奏均已验收。详细证据与限制见[本轮验收记录](docs/development/22_退出稳定性验收与发行.md)。
 
 历史首页已归档至[开发记录](docs/development/18_历史首页归档.md)，不再把多轮历史接续堆在试玩入口之前。
