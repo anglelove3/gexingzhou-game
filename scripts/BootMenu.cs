@@ -61,7 +61,7 @@ public partial class BootMenu : Control
                 if(a.Source is VersionedResumeSource.Current or VersionedResumeSource.Blocked||m.Source is VersionedResumeSource.Current or VersionedResumeSource.Blocked)
                     choices.Open("开始新游戏？当前版本两槽会先保留副本，旧版文件不会改动。",new (string,Action)[]{("保留副本并开始",BeginNew),("返回",()=>{})});else BeginNew();
             };
-            settings.Pressed+=preferences.Open;quit.Pressed+=()=>GetTree().Quit();
+            settings.Pressed+=preferences.Open;quit.Pressed+=s.RequestQuit;
             if(s.ContentError.Length>0||s.Catalog==null)
             {
                 foreach(var b in GetNode("MenuScroll/Menu").GetChildren().OfType<Button>())if(b!=settings&&b!=quit)b.Disabled=true;

@@ -51,6 +51,31 @@ public partial class GameSession : Node
     public FlowState Flow {get;set;} = FlowState.Field;
     // Autoload outlives detached scene candidates and retains notifications they cannot receive.
     public bool ApplicationFocused {get;private set;}=true;
+    private bool quitting;
+    public void RequestQuit()
+    {
+        if(quitting||!IsInsideTree())return;
+        quitting=true;
+        var tree=GetTree();tree.Paused=true;
+        foreach(var audio in tree.Root.FindChildren("*","",true,false).OfType<AudioDirector>())audio.BeginShutdown();
+        FinishQuit(tree);
+    }
+    private async void FinishQuit(SceneTree tree)
+    {
+        // Stop() queues playback retirement on the audio thread. Tree teardown in the same
+        // frame can leave looping WAV/playback references alive. Observe two mixer cycles;
+        // process frames alone are insufficient on an uncapped/headless renderer.
+        var started=Time.GetTicksMsec();var previous=AudioServer.GetTimeSinceLastMix();var mixes=0;
+        while(mixes<2&&Time.GetTicksMsec()-started<500)
+        {
+            await ToSignal(tree,SceneTree.SignalName.ProcessFrame);
+            var current=AudioServer.GetTimeSinceLastMix();
+            if(current<previous)mixes++;
+            previous=current;
+        }
+        tree.Quit();
+    }
+    public override void _ExitTree()=>GetTree().Root.CloseRequested-=RequestQuit;
     public override void _Notification(int what)
     {
         if(what==NotificationApplicationFocusOut)ApplicationFocused=false;
@@ -67,6 +92,7 @@ public partial class GameSession : Node
     }
     public override void _Ready()
     {
+        GetTree().AutoAcceptQuit=false;GetTree().Root.CloseRequested+=RequestQuit;
         foreach(var path in new[]{"res://scenes/Main.tscn","res://scenes/world/CommunityGate.tscn","res://scenes/world/ConvenienceStreet.tscn","res://scenes/world/SoupShop.tscn","res://scenes/world/MemorySoupTable.tscn"})
             if(GD.Load<PackedScene>(path) is {} scene)sceneResources[path]=scene;
         var result=ContentCatalog.LoadText(name => Godot.FileAccess.GetFileAsString("res://content/vs01/"+name));

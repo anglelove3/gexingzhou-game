@@ -99,5 +99,6 @@ public partial class AudioDirector : Node
     public void SetPaused(bool value){if(value==paused)return;paused=value;if(value)StopTransient();ApplySettings(options);}
     public void StopTransient(){foreach(var slot in slots){slot.Stop();slot.Stream=null;}}
     public void StopAll(){StopTransient();changingAmbience=false;nextAmbience=null;if(ready){music.Stop();ambience.Stop();music.Stream=null;ambience.Stream=null;}}
+    public void BeginShutdown(){StopAll();ready=false;SetProcess(false);}
     public override void _ExitTree(){StopAll();ready=false;}
 }

@@ -192,4 +192,5 @@ func run() -> void:
 	notices.store_string(JSON.stringify({"engine_license": Engine.get_license_text(), "third_party_licenses": Engine.get_license_info(), "copyright": Engine.get_copyright_info()}, "\t"))
 	notices.close()
 	print("EXPORT_SMOKE_PASS Boot NewGame Invitation Street Candy Soup Memory Keyboard Ending")
-	quit(0)
+	session.call("RequestQuit")
+	need(paused, "Packaged shutdown freezes gameplay before teardown")

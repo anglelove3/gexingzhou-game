@@ -62,7 +62,7 @@ public partial class PauseController : Control
     public bool TryExit()
     {
         if(!SaveForNavigation())return false;
-        main.Audio.StopAll();GetTree().Quit();return true;
+        GetNode<GameSession>("/root/GameSession").RequestQuit();return true;
     }
     private void ShowMessage(string text){message.Text=text;message.Visible=true;CallDeferred(nameof(RevealMessage));}
     private async void RevealMessage()
