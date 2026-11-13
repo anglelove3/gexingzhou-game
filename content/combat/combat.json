@@ -1,0 +1,271 @@
+{
+  "version": "combat-0.1",
+  "levels": [
+    0,
+    60,
+    160,
+    300,
+    480
+  ],
+  "items": [
+    {
+      "id": "wraps",
+      "name": "旧护手",
+      "slot": "weapon",
+      "description": "均衡出手，适合观察招式与距离。"
+    },
+    {
+      "id": "gloves",
+      "name": "轻拳套",
+      "slot": "weapon",
+      "attack": -2,
+      "lightTime": 0.85,
+      "lightCost": 0.75,
+      "reach": 0.9,
+      "heavyPower": 0.75,
+      "description": "轻击更快、更省耐力，重击与距离较弱。"
+    },
+    {
+      "id": "stick",
+      "name": "练习短棍",
+      "slot": "weapon",
+      "attack": 4,
+      "attackTime": 1.2,
+      "attackCost": 1.25,
+      "reach": 1.3,
+      "heavyPower": 1.1,
+      "description": "距离与重击收益提高，出手更慢且费耐力。"
+    },
+    {
+      "id": "jacket",
+      "name": "日常外套",
+      "slot": "coat",
+      "defense": 8,
+      "description": "基础防护，保持移动速度。"
+    },
+    {
+      "id": "canvas",
+      "name": "帆布上衣",
+      "slot": "coat",
+      "defense": 4,
+      "stamina": 12,
+      "description": "防护较轻，支持更长的连续进攻。"
+    },
+    {
+      "id": "padded",
+      "name": "加厚夹克",
+      "slot": "coat",
+      "defense": 16,
+      "move": 0.92,
+      "description": "提高防护，移动速度降低。"
+    },
+    {
+      "id": "trainers",
+      "name": "旧运动鞋",
+      "slot": "shoes",
+      "description": "均衡步伐与闪避恢复。"
+    },
+    {
+      "id": "light",
+      "name": "轻便鞋",
+      "slot": "shoes",
+      "health": -8,
+      "move": 1.1,
+      "description": "提高走位速度，最大生命降低8点。"
+    },
+    {
+      "id": "steady",
+      "name": "稳步鞋",
+      "slot": "shoes",
+      "dodgeAdjustment": -0.06,
+      "recovery": -2,
+      "move": 0.95,
+      "description": "闪避收势缩短0.06秒，恢复与移动较慢。"
+    }
+  ],
+  "moves": [
+    {
+      "id": "light1",
+      "name": "轻击一",
+      "power": 0.8,
+      "startup": 7,
+      "active": 4,
+      "recovery": 12,
+      "cost": 12,
+      "reach": 58,
+      "depth": 22,
+      "stun": 0.2,
+      "push": 10
+    },
+    {
+      "id": "light2",
+      "name": "轻击二",
+      "power": 0.9,
+      "startup": 8,
+      "active": 4,
+      "recovery": 14,
+      "cost": 12,
+      "reach": 58,
+      "depth": 22,
+      "stun": 0.23,
+      "push": 12
+    },
+    {
+      "id": "light3",
+      "name": "轻击三",
+      "power": 1.1,
+      "startup": 10,
+      "active": 5,
+      "recovery": 20,
+      "cost": 18,
+      "reach": 58,
+      "depth": 22,
+      "stun": 0.32,
+      "push": 24
+    },
+    {
+      "id": "heavy",
+      "name": "重击",
+      "power": 1.8,
+      "startup": 16,
+      "active": 5,
+      "recovery": 24,
+      "cost": 20,
+      "reach": 68,
+      "depth": 24,
+      "stun": 0.36,
+      "push": 30
+    },
+    {
+      "id": "charged",
+      "name": "蓄力重击",
+      "power": 2.4,
+      "startup": 16,
+      "active": 6,
+      "recovery": 28,
+      "cost": 28,
+      "reach": 72,
+      "depth": 26,
+      "stun": 0.36,
+      "push": 42
+    }
+  ],
+  "enemies": [
+    {
+      "id": "quick",
+      "name": "快拳手",
+      "health": 72,
+      "attack": 12,
+      "defense": 6,
+      "speed": 165,
+      "warning": 0.45,
+      "interval": 1.35
+    },
+    {
+      "id": "guard",
+      "name": "守势手",
+      "health": 104,
+      "attack": 16,
+      "defense": 18,
+      "speed": 120,
+      "warning": 0.7,
+      "interval": 1.9
+    },
+    {
+      "id": "roamer",
+      "name": "游走手",
+      "health": 82,
+      "attack": 14,
+      "defense": 8,
+      "speed": 190,
+      "warning": 0.6,
+      "interval": 1.65
+    },
+    {
+      "id": "leader",
+      "name": "领队",
+      "health": 240,
+      "attack": 24,
+      "defense": 22,
+      "speed": 150,
+      "warning": 0.7,
+      "interval": 1.8
+    }
+  ],
+  "waves": [
+    {
+      "id": "a1",
+      "name": "一 · 接近与出拳",
+      "hint": "沿纵深接近，让脚底处于同一条攻击线。J连续轻击，第三段击退更远。",
+      "enemies": [
+        "quick"
+      ],
+      "experience": 30,
+      "items": []
+    },
+    {
+      "id": "a2",
+      "name": "一 · 留出退路",
+      "hint": "L正面防御，Space闪避。看见预警后再判断，留意耐力。",
+      "enemies": [
+        "quick"
+      ],
+      "experience": 30,
+      "items": [
+        "gloves",
+        "canvas"
+      ]
+    },
+    {
+      "id": "b1",
+      "name": "二 · 破解守势",
+      "hint": "按住K蓄力后松开，破开正面防御。也可纵深绕到侧后方。",
+      "enemies": [
+        "guard"
+      ],
+      "experience": 50,
+      "items": [
+        "stick"
+      ]
+    },
+    {
+      "id": "b2",
+      "name": "二 · 走位与节奏",
+      "hint": "对手会侧移。短棍距离更远，收势与耗耐力也更多。",
+      "enemies": [
+        "roamer",
+        "quick"
+      ],
+      "experience": 50,
+      "items": [
+        "light"
+      ]
+    },
+    {
+      "id": "c1",
+      "name": "三 · 应对围攻",
+      "hint": "先调整位置，让对手聚在一侧。连续空挥会耗尽耐力。",
+      "enemies": [
+        "guard",
+        "roamer",
+        "quick"
+      ],
+      "experience": 140,
+      "items": [
+        "padded",
+        "steady"
+      ]
+    },
+    {
+      "id": "c2",
+      "name": "三 · 领队",
+      "hint": "领队循环使用单拳、二连和重击。两次有效重击能将他击倒。",
+      "enemies": [
+        "leader",
+        "quick"
+      ],
+      "experience": 180,
+      "items": []
+    }
+  ]
+}
