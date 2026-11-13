@@ -161,7 +161,17 @@ public partial class CombatDemo : Control
         if (!saved.Success)
         {
             var latest = repository.Load();
-            if (latest.Progress is { } current && current.Experience >= candidate.Experience &&
+            if (latest.Progress is { } restarted && restarted.RunId != candidate.RunId)
+            {
+                saved = repository.PreserveAttempt(candidate);
+                if (saved.Success)
+                {
+                    candidate = restarted;
+                    saved = new(true, "另一窗口已重开或恢复练习，已保留本次进度副本并读取当前周目。");
+                    GetNode<Label>(ResultPath + "Reward").Text = "练习周目已更新\n本次旧周目进度已另存副本，当前周目已保留。";
+                }
+            }
+            else if (latest.Progress is { } current && current.Experience >= candidate.Experience &&
                 candidate.Completed.All(current.Completed.Contains))
             {
                 candidate = current; saved = new(true, "已同步另一窗口保存的进度，本波奖励已包含。");

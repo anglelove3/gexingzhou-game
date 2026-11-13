@@ -113,6 +113,13 @@ public partial class SmokeHarness
         bool advanced = false;
         for (int tick = 0; tick < 12000 && loaded.Match!.Result == CombatResult.Running; tick++)
         {
+            if (loaded.Screen == "pause")
+            {
+                foreach (var key in pressed.ToArray()) SetKey(key, false);
+                await Frames(2);
+                if (session.ApplicationFocused) loaded.ResumeCombat();
+                continue;
+            }
             if (!advanced && loaded.Match.Enemies.Sum(e => e.Health) <= 30)
             {
                 var directory = (string)DiagnosticField(loaded, "saveDirectory")!;
@@ -127,6 +134,33 @@ public partial class SmokeHarness
         loaded.GetNode<Button>("Result/Panel/Scroll/Content/Continue").EmitSignal(Button.SignalName.Pressed); await Frames(2);
         Require(loaded.Screen == "prepare" && loaded.Progress.Experience == 60, "Concurrent settlement blocked navigation");
         GD.Print("COMBAT_CONCURRENT_REWARD_PASS NewerProgressIncludesReward NavigationAvailable");
+        Require(loaded.StartWave(), "Cross-run fixture could not start");
+        bool restarted = false;
+        var crossRunDirectory = (string)DiagnosticField(loaded, "saveDirectory")!;
+        for (int tick = 0; tick < 12000 && loaded.Match!.Result == CombatResult.Running; tick++)
+        {
+            if (loaded.Screen == "pause")
+            {
+                foreach (var key in pressed.ToArray()) SetKey(key, false);
+                await Frames(2);
+                if (session.ApplicationFocused) loaded.ResumeCombat();
+                continue;
+            }
+            if (!restarted && loaded.Match.Enemies.Sum(e => e.Health) <= 40)
+            {
+                var remote = new CombatRepository(crossRunDirectory, loaded.Catalog);
+                Require(remote.PreserveForNewGame().Success && remote.Save(CombatProgress.New(loaded.Catalog)).Success, "Remote restart failed");
+                restarted = true;
+            }
+            ApplyInput(CombatAutomation.Decide(loaded.Match)); await Frames(1);
+        }
+        foreach (var key in pressed.ToArray()) SetKey(key, false);
+        Require(restarted && loaded.Progress.Experience == 0 && new CombatRepository(crossRunDirectory, loaded.Catalog).Load().Progress!.Experience == 0,
+            "Cross-run candidate replaced restarted progress");
+        Require(System.IO.Directory.GetFiles(crossRunDirectory, "preserved-attempt-*.json").Length == 1, "Old-run reward candidate was not preserved");
+        loaded.GetNode<Button>("Result/Panel/Scroll/Content/Continue").EmitSignal(Button.SignalName.Pressed); await Frames(2);
+        Require(loaded.Screen == "prepare" && loaded.Progress.Experience == 0, "Cross-run settlement blocked navigation");
+        GD.Print("COMBAT_NEW_RUN_PASS RestartProtected OldCandidatePreserved NavigationAvailable");
         loaded.Free(); await Frames(3);
         session.SetOptions(oldOptions, false);
         GD.Print("COMBAT_GROWTH_PASS SixWaves PhysicalKeys Level5 NineItems SavedResume StorySnapshotPreserved");

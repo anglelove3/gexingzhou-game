@@ -262,5 +262,67 @@ public static class CombatChecks
                 Check.Equal(CombatState.Idle, target.State);
             }
         }));
+        tests.Add(("Combat", "NewRunRejectsPreviousWindow", () =>
+        {
+            var c = Catalog(); var old = CombatProgress.New(c).Reward("a1", c).Reward("a2", c);
+            var dir = Path.Combine("test-output", "combat-new-run-" + Guid.NewGuid().ToString("N"));
+            var a = new CombatRepository(dir, c); var b = new CombatRepository(dir, c);
+            Check.True(a.Save(old).Success); Check.True(b.PreserveForNewGame().Success);
+            Check.True(b.Save(CombatProgress.New(c)).Success);
+            Check.True(!a.Save(old.Reward("b1", c)).Success);
+            Check.Equal(0, b.Load().Progress!.Experience);
+        }));
+        tests.Add(("Combat", "PreserveDoesNotAuthorizeRacingOverwrite", () =>
+        {
+            var c = Catalog(); var p = CombatProgress.New(c);
+            var dir = Path.Combine("test-output", "combat-preserve-race-" + Guid.NewGuid().ToString("N"));
+            var a = new CombatRepository(dir, c); var b = new CombatRepository(dir, c);
+            Check.True(a.Save(p).Success); Check.True(a.PreserveForNewGame().Success);
+            Check.True(b.Save(p.Reward("a1", c)).Success);
+            Check.True(!a.Save(CombatProgress.New(c)).Success);
+            Check.Equal(30, b.Load().Progress!.Experience);
+        }));
+        tests.Add(("Combat", "OriginalCombatSaveStillLoads", () =>
+        {
+            var c = Catalog(); var p = CombatProgress.New(c).Reward("a1", c).Reward("a2", c);
+            var dir = Path.Combine("test-output", "combat-original-save-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            var data = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(p))!;
+            data.AsObject().Remove("RunId");
+            File.WriteAllText(Path.Combine(dir, "save.json"), data.ToJsonString());
+            var repo = new CombatRepository(dir, c); var loaded = repo.Load();
+            Check.Equal(LoadStatus.Loaded, loaded.Status); Check.Equal(60, loaded.Progress!.Experience);
+            Check.True(repo.Save(loaded.Progress.Equip("gloves", c)).Success);
+            Check.Equal(60, repo.Load().Progress!.Experience);
+        }));
+        tests.Add(("Combat", "PreserveAttemptFailureAndRetry", () =>
+        {
+            var c = Catalog(); var candidate = CombatProgress.New(c).Reward("a1", c);
+            var dir = Path.Combine("test-output", "combat-attempt-" + Guid.NewGuid().ToString("N"));
+            var repo = new CombatRepository(dir, c); var current = CombatProgress.New(c);
+            Check.True(repo.Save(current).Success);
+            using (var lease = new FileStream(Path.Combine(dir, "write.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                Check.True(!repo.PreserveAttempt(candidate).Success);
+            Check.Equal(0, Directory.GetFiles(dir, "preserved-attempt-*.json").Length);
+            Check.True(repo.PreserveAttempt(candidate).Success);
+            var restored = JsonSerializer.Deserialize<CombatProgress>(File.ReadAllText(Directory.GetFiles(dir, "preserved-attempt-*.json").Single()))!;
+            Check.Equal(candidate.RunId, restored.RunId); Check.Equal(30, restored.Experience);
+            Check.Equal(current.RunId, repo.Load().Progress!.RunId);
+        }));
+        tests.Add(("Combat", "RestoredRunRejectsPreviousWindow", () =>
+        {
+            var c = Catalog(); var original = CombatProgress.New(c);
+            var dir = Path.Combine("test-output", "combat-restore-run-" + Guid.NewGuid().ToString("N"));
+            var a = new CombatRepository(dir, c); var b = new CombatRepository(dir, c);
+            Check.True(a.Save(original).Success);
+            Check.True(a.Save(original.Reward("a1", c)).Success);
+            using (var lease = new FileStream(Path.Combine(dir, "write.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                Check.True(!b.RecoverBackup().Success);
+            Check.Equal(30, b.Load().Progress!.Experience);
+            Check.True(b.RecoverBackup().Success);
+            Check.True(!a.Save(original.Reward("a1", c).Reward("a2", c)).Success);
+            Check.Equal(0, b.Load().Progress!.Experience);
+            Check.True(b.Load().Progress!.RunId != original.RunId);
+        }));
     }
 }

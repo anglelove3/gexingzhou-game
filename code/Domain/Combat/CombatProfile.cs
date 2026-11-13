@@ -4,6 +4,7 @@ public sealed record CombatProgress
 {
     public int SchemaVersion { get; init; }
     public string ContentVersion { get; init; } = "";
+    public string RunId { get; init; } = "";
     public int Experience { get; init; }
     public List<string> Owned { get; init; } = new();
     public Dictionary<string, string> Equipment { get; init; } = new();
@@ -13,7 +14,7 @@ public sealed record CombatProgress
 
     public static CombatProgress New(CombatCatalog c) => new()
     {
-        SchemaVersion = 1, ContentVersion = c.Version, Owned = new() { "wraps", "jacket", "trainers" },
+        SchemaVersion = 1, ContentVersion = c.Version, RunId = Guid.NewGuid().ToString("N"), Owned = new() { "wraps", "jacket", "trainers" },
         Equipment = new() { ["weapon"] = "wraps", ["coat"] = "jacket", ["shoes"] = "trainers" }, LastWave = c.Waves[0].Id
     };
 
@@ -43,6 +44,7 @@ public sealed record CombatProgress
     public string? Validate(CombatCatalog c)
     {
         if (SchemaVersion != 1 || ContentVersion != c.Version) return "战斗存档版本不兼容。";
+        if (RunId == null || RunId.Length > 0 && !Guid.TryParse(RunId, out _)) return "战斗周目标识异常。";
         if (Owned == null || Equipment == null || Completed == null || Completed.Count > c.Waves.Count ||
             !Completed.SequenceEqual(c.Waves.Take(Completed.Count).Select(w => w.Id)) ||
             Experience != c.Waves.Take(Completed.Count).Sum(w => w.Experience) || CompletedRun != (Completed.Count == c.Waves.Count))
