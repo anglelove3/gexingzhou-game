@@ -30,7 +30,7 @@ try {
     $files+=$refinementDocs
     $combatDocs=@('docs/superpowers/specs/2026-11-13-战斗成长试玩-design.md','docs/superpowers/plans/2026-11-13-combat-growth.md','docs/design/06_战斗数值与调优记录.md','docs/project/2026-11-13_战斗试玩资源记录.json')
     $files+=$combatDocs
-    $showcaseImages=@('docs/media/menu.png','docs/media/street.png','docs/media/memory.png')
+    $showcaseImages=@('docs/media/menu.png','docs/media/street.png','docs/media/memory.png','docs/media/combat.png')
     $files+=$showcaseImages
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
         foreach($item in Get-ChildItem -LiteralPath (Join-Path $script:ProjectRoot $folder) -File -Recurse -Force) {
