@@ -227,5 +227,40 @@ public static class CombatChecks
             for (int i = 0; i < 30; i++) m.Step(new CombatInput(GuardHeld: true));
             Check.True(Math.Abs(m.Enemies[2].Y - m.Player.Y) >= 20);
         }));
+        tests.Add(("Combat", "GuardRepeatsDefensiveCycle", () =>
+        {
+            var c = Catalog(); var p = CombatProgress.New(c).Reward("a1", c).Reward("a2", c);
+            var m = new CombatMatch(c, p, "b1"); var e = m.Enemies[0];
+            e.X = m.Player.X + 45; e.Y = m.Player.Y;
+            int entries = 1, guardFrames = 0; var previous = e.State;
+            for (int i = 0; i < 650; i++)
+            {
+                m.Step(new CombatInput(GuardHeld: true));
+                if (e.State == CombatState.Guard) { guardFrames++; if (previous != CombatState.Guard) entries++; }
+                previous = e.State;
+            }
+            Check.True(entries >= 3); Check.True(guardFrames >= 100);
+        }));
+        tests.Add(("Combat", "SuspendDropsQueuedCombo", () =>
+        {
+            var c = Catalog(); var m = new CombatMatch(c, CombatProgress.New(c), "a1");
+            m.Step(new CombatInput(LightPressed: true));
+            for (int i = 0; i < 16; i++) m.Step(default);
+            m.Step(new CombatInput(LightPressed: true)); m.SuspendInput();
+            for (int i = 0; i < 30; i++) m.Step(default);
+            Check.Equal(1, m.Statistics.LightAttacks);
+        }));
+        tests.Add(("Combat", "RecoveryTimerDoesNotExtendHitStun", () =>
+        {
+            var c = Catalog(); var stats = c.Stats(CombatProgress.New(c));
+            var attacker = new CombatFighter("p", "葛行舟", stats, 400, 480);
+            foreach (var id in new[] { "quick", "leader" })
+            {
+                var target = CombatFighter.FromEnemy("e", c.Enemies.Single(e => e.Id == id), 440, 480);
+                target.Recover(30); target.ReceiveHit(attacker, c.Move("light1"));
+                for (int i = 0; i < 12; i++) target.Tick();
+                Check.Equal(CombatState.Idle, target.State);
+            }
+        }));
     }
 }

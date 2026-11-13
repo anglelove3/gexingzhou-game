@@ -31,9 +31,9 @@ Create `content/combat/combat.json`、`code/Domain/Combat/CombatCatalog.cs`、`C
 
 Interfaces `CombatCatalog.Parse(string)` / `LoadDefault`由调用者传JSON，`CombatProgress.New(CombatCatalog)`，`CombatProgress.Reward(string,CombatCatalog)` 返回新快照，`CombatCatalog.Stats(CombatProgress)` 返回最终属性，`CombatRepository.Load()/Save(CombatProgress)` 提供结果与备份恢复。
 
-- [ ] 先写成长阈值、伤害11/12/15、九装备、六波去重、损坏/未来版及保存失败测试，运行filter Combat观察失败。
-- [ ] 实现JSON校验、属性推导、固定奖励与原子保存，运行 `dotnet run --project tests/DomainChecks -- --filter Combat`，预期全绿。
-- [ ] 提交这一可测试数据层。
+- [x] 先写成长阈值、伤害11/12/15、九装备、六波去重、损坏/未来版及保存失败测试，运行filter Combat观察失败。
+- [x] 实现JSON校验、属性推导、固定奖励与原子保存，运行 `dotnet run --project tests/DomainChecks -- --filter Combat`，预期全绿。
+- [x] 提交这一可测试数据层。
 
 ## Task 2 攻防状态、敌人协作与统计
 
@@ -41,9 +41,9 @@ Create `code/Domain/Combat/CombatFighter.cs`、`CombatMatch.cs`、`CombatStatist
 
 Interfaces `CombatMatch(CombatCatalog,CombatProgress,string waveId)`，`Step(CombatInput)` 固定60Hz，公开Player/Enemies/Events/Statistics/Result给呈现层，`CombatFighter`保存脚底位置/面朝/状态/动作时间/生命耐力/攻击实例。
 
-- [ ] 先写范围与纵深、耗耐力/恢复、三连、格挡方向、蓄力破防、闪避窗、单次命中、领队二次击倒、进攻资格测试，观察失败。
-- [ ] 实现固定步状态转换、碰撞约束、敌人决策和单次尝试统计，测试通过。
-- [ ] 提交可独立模拟的战斗规则。
+- [x] 先写范围与纵深、耗耐力/恢复、三连、格挡方向、蓄力破防、闪避窗、单次命中、领队二次击倒、进攻资格测试，观察失败。
+- [x] 实现固定步状态转换、碰撞约束、敌人决策和单次尝试统计，测试通过。
+- [x] 提交可独立模拟的战斗规则。
 
 ## Task 3 可玩入口、装备与战斗界面
 
@@ -51,17 +51,17 @@ Create `scenes/combat/CombatDemo.tscn`、`scripts/Combat/CombatDemo.cs`、`Comba
 
 Interfaces CombatDemo加载目录/配置，管理准备、战斗、暂停和结算，Arena仅呈现CombatMatch。装备列表读取同一Catalog，Settings复用现有场景。主菜单提供独立入口。
 
-- [ ] 先写真实键盘进入、选择装备、攻防输入、失焦暂停、奖励与模式往返回归，观察入口缺失失败。
-- [ ] 实现场景与控制器，耗时只累计有效战斗步，保存失败留结算重试，所有控件设焦点循环。
-- [ ] 执行新增引擎套件与领域回归，预期通过。提交可玩版本。
+- [x] 先写真实键盘进入、选择装备、攻防输入、失焦暂停、奖励与模式往返回归，观察入口缺失失败。
+- [x] 实现场景与控制器，耗时只累计有效战斗步，保存失败留结算重试，所有控件设焦点循环。
+- [x] 执行新增引擎套件与领域回归，预期通过。提交可玩版本。
 
 ## Task 4 美术、声音和可读性
 
 Create `assets/art/combat-v1/`与来源许可记录，动作使用独立栅格图集。新增命中/格挡/挥击短音效，保留现有音量与停音流程。补配置说明、理论收益与本次统计导出。
 
-- [ ] 捕获准备/装备/单挑/围攻/领队/结算，核对脚底、朝向、动画阶段、减动效与字体缩放。
-- [ ] 接入制作并保存来源的场地、角色动作、装备图集，补判定与表现一致性回归。
-- [ ] GPU实际运行与音频生命周期回归通过，提交。
+- [x] 捕获准备/装备/单挑/围攻/领队/结算，核对脚底、朝向、动画阶段、减动效与字体缩放。
+- [x] 接入制作并保存来源的场地、角色动作、装备图集，补判定与表现一致性回归。
+- [x] GPU实际运行与音频生命周期回归通过，提交。
 
 ## Task 5 最终审查、回归与发行
 

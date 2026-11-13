@@ -24,6 +24,7 @@ public sealed class CombatFighter
     public int LastActiveOffset => SecondHitOffset + (Attack?.Active ?? 0);
     public int AttackSequence { get; private set; }
     public bool FinishedAttack { get; private set; }
+    public bool FinishedRecovery { get; private set; }
     public int Cooldown { get; set; }
     public int WaitingFrames { get; set; }
     public int AttackCount { get; set; }
@@ -145,7 +146,9 @@ public sealed class CombatFighter
             else
             {
                 var added = Math.Min(stun, 36 - continuousStun);
-                continuousStun += added; remainingFrames = Math.Max(remainingFrames, added);
+                continuousStun += added;
+                var previousStun = State == CombatState.Hurt ? remainingFrames : 0;
+                remainingFrames = Math.Max(previousStun, added);
                 if (continuousStun >= 36) protectionFrames = remainingFrames + 21;
             }
             Enter(CombatState.Hurt);
@@ -159,7 +162,7 @@ public sealed class CombatFighter
 
     public void Tick()
     {
-        FinishedAttack = false; IsMoving = false;
+        FinishedAttack = false; FinishedRecovery = false; IsMoving = false;
         if (State == CombatState.Dead) return;
         if (protectionFrames > 0) protectionFrames--;
         if (dodgeCooldown > 0) dodgeCooldown--;
@@ -179,7 +182,11 @@ public sealed class CombatFighter
                 break;
             case CombatState.Hurt:
             case CombatState.Recovery:
-                if (--remainingFrames <= 0) { Enter(CombatState.Idle); continuousStun = 0; }
+                if (--remainingFrames <= 0)
+                {
+                    FinishedRecovery = State == CombatState.Recovery;
+                    Enter(CombatState.Idle); continuousStun = 0;
+                }
                 break;
             case CombatState.Down:
                 if (--remainingFrames <= 0) { Enter(CombatState.Rising); remainingFrames = 21; }

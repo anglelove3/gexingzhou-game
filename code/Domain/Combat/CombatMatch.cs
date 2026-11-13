@@ -48,6 +48,11 @@ public sealed class CombatMatch
         if (Result != CombatResult.Running) Events.Add(new(Result == CombatResult.Won ? "win" : "loss", "player", "", 0, Player.X, Player.Y));
     }
 
+    public void SuspendInput()
+    {
+        queued = null; queueFrames = 0; Player.CancelCharge();
+    }
+
     private void BufferInput(CombatInput input)
     {
         if (input.LightPressed)
@@ -123,6 +128,7 @@ public sealed class CombatMatch
         foreach (var e in Enemies)
         {
             if (e.Health <= 0) continue;
+            if (e.FinishedRecovery && e.Enemy!.Id == "guard") e.SetGuard(true);
             if (e.FinishedAttack)
             {
                 e.RoamSide *= -1; e.Recover(e.Enemy!.Id == "guard" ? 30 : 22);
@@ -163,7 +169,6 @@ public sealed class CombatMatch
                 var length = Math.Sqrt(dx * dx + aimY * aimY);
                 if (length > 0) e.Move(dx / length, aimY / length);
             }
-            else if (e.Enemy!.Id == "guard" && e.Cooldown > 0) e.SetGuard(true);
         }
         if (permitOwner != null || TickCount < nextPermit) return;
         var ready = Enemies.Where(e => e.State == CombatState.Idle && e.Cooldown == 0 &&

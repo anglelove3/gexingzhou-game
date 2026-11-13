@@ -85,7 +85,7 @@ public partial class SmokeHarness
     {
         using var assets=System.Text.Json.JsonDocument.Parse(Godot.FileAccess.GetFileAsString("res://assets/manifest.json"));
         Require(assets.RootElement.GetProperty("audio_included").GetBoolean(),"Audio provenance still says excluded");
-        foreach(var (version,count) in new[]{("vs01",10),("vs02",3)})
+        foreach(var (version,count) in new[]{("vs01",10),("vs02",3),("combat-v1",4)})
         {
           Require(Godot.FileAccess.FileExists($"res://assets/audio/{version}/manifest.json"),"Missing formal audio manifest "+version);
           using var manifest=System.Text.Json.JsonDocument.Parse(Godot.FileAccess.GetFileAsString($"res://assets/audio/{version}/manifest.json"));

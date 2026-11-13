@@ -1,8 +1,60 @@
 {
-  "version": 10,
-  "status": "vs01_playtest_feedback; road entrance region, visible adult gait, closer camera and literary autumn menu",
+  "version": 11,
+  "status": "vs01_combat_growth; standalone street combat, equipment and original story demo",
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
+    {
+      "id": "combat-equipment",
+      "file": "assets/art/combat-v1/equipment.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "sha256": "32D34826239DCD2555EEACFBEFC633F8EAF773AEDDA023E64BF10D472F082591",
+      "usage": "nine equipment inventory portraits",
+      "source": "built-in image_gen",
+      "generated_on": "2026-11-13",
+      "provenance": "licenses/AI_ART_COMBAT_20261113.md"
+    },
+    {
+      "id": "combat-opponent-poses-v2",
+      "file": "assets/art/combat-v1/opponent-poses-v2.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "sha256": "BBE090867A601B55A97FA4735AB31DFFE2BE75780EFDC03A329FEF527F3E0C40",
+      "usage": "12 opponent poses, reused with archetype tint and size",
+      "source": "built-in image_gen",
+      "generated_on": "2026-11-13",
+      "provenance": "licenses/AI_ART_COMBAT_20261113.md"
+    },
+    {
+      "id": "combat-player-poses",
+      "file": "assets/art/combat-v1/player-poses.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "sha256": "9AB08F6223DF3F52A4135EA1A3C7C7C68F2E31417D92C13CD08538C02CE7094E",
+      "usage": "12 combat poses, foot-anchored phase presentation",
+      "source": "built-in image_gen",
+      "generated_on": "2026-11-13",
+      "provenance": "licenses/AI_ART_COMBAT_20261113.md"
+    },
+    {
+      "id": "combat-practice-court",
+      "file": "assets/art/combat-v1/practice-court.png",
+      "size": [
+        1672,
+        941
+      ],
+      "sha256": "FFE8473368C5DF3E6D112F3F596500AC6B5C285BEFC5A3C0D1146CFACD5C730C",
+      "usage": "autumn practice courtyard, depth movement arena",
+      "source": "built-in image_gen",
+      "generated_on": "2026-11-13",
+      "provenance": "licenses/AI_ART_COMBAT_20261113.md"
+    },
     {
       "id": "resident-green-walk",
       "file": "assets/art/vs01-v8-feedback/resident-green-walk.png",
@@ -437,9 +489,11 @@
   "audio_included": true,
   "audio_manifest": "assets/audio/vs02/manifest.json",
   "audio_provenance": "licenses/AUDIO_VS01.md",
-  "export_note": "PNG/font paths explicitly included by preset. Current feedback update validation and release receipt: docs/development/21_试玩反馈操作与表现精修验收.md; prior release: 19.",
+  "export_note": "PNG, combat atlas metadata, configuration and audio paths explicitly included by preset. Current combat verification and release receipt: docs/development/26_战斗成长试玩验收与发行.md.",
   "audio_note": "Original sparse piano-like synthesized theme and soft ambience: assets/audio/vs02; short action cues remain vs01. Zero sliders pause active output; ordinary changes fade.",
   "audio_legacy_manifest": "assets/audio/vs01/manifest.json",
   "audio_street_manifest": "assets/audio/vs03/manifest.json",
-  "audio_street_provenance": "licenses/AUDIO_VS03.md"
+  "audio_street_provenance": "licenses/AUDIO_VS03.md",
+  "audio_combat_manifest": "assets/audio/combat-v1/manifest.json",
+  "audio_combat_provenance": "licenses/AI_ART_COMBAT_20261113.md"
 }

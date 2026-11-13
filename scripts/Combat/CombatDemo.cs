@@ -156,8 +156,19 @@ public partial class CombatDemo : Control
     private bool CommitReward()
     {
         if (pendingReward == null) return true;
-        var saved = repository.Save(pendingReward);
-        if (saved.Success) { Progress = pendingReward; pendingReward = null; }
+        var candidate = pendingReward;
+        var saved = repository.Save(candidate);
+        if (!saved.Success)
+        {
+            var latest = repository.Load();
+            if (latest.Progress is { } current && current.Experience >= candidate.Experience &&
+                candidate.Completed.All(current.Completed.Contains))
+            {
+                candidate = current; saved = new(true, "已同步另一窗口保存的进度，本波奖励已包含。");
+                GetNode<Label>(ResultPath + "Reward").Text = $"进度已同步 · Lv.{Catalog.Level(current.Experience)}\n本波奖励包含在已保存的进度中。";
+            }
+        }
+        if (saved.Success) { Progress = candidate; pendingReward = null; }
         GetNode<Label>(ResultPath + "Message").Text = saved.Message;
         GetNode<Button>(ResultPath + "Continue").Text = saved.Success ? "继续准备" : "重试保存并继续";
         GetNode<Button>(ResultPath + "Retry").Disabled = !saved.Success;
@@ -206,6 +217,7 @@ public partial class CombatDemo : Control
     private bool Down(params Key[] keys) => keys.Any(held.Contains);
     private void ClearCombatInput()
     {
+        Match?.SuspendInput();
         foreach (var key in CombatKeys) if (Input.IsPhysicalKeyPressed(key)) suppressed.Add(key);
         held.Clear(); pendingInput = default;
     }
@@ -314,11 +326,12 @@ public partial class CombatDemo : Control
         if (Match == null) return result;
         var p = Match.Player;
         result["x"] = p.X; result["y"] = p.Y; result["health"] = p.Health; result["stamina"] = p.Stamina;
-        result["facing"] = p.Facing; result["state"] = p.State.ToString(); result["frame"] = p.StateFrame;
+        result["facing"] = p.Facing; result["state"] = p.State.ToString(); result["frame"] = p.StateFrame; result["tick"] = Match.TickCount;
         result["attack"] = p.Attack?.Id ?? ""; result["total"] = p.Attack?.Total ?? 0;
         var enemies = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var e in Match.Enemies)
-            enemies.Add(new() { ["id"] = e.Enemy!.Id, ["x"] = e.X, ["y"] = e.Y, ["health"] = e.Health, ["state"] = e.State.ToString(), ["frame"] = e.StateFrame });
+            enemies.Add(new() { ["id"] = e.Enemy!.Id, ["x"] = e.X, ["y"] = e.Y, ["health"] = e.Health, ["state"] = e.State.ToString(), ["frame"] = e.StateFrame,
+                ["startup"] = e.Attack?.Startup ?? 0, ["active_end"] = e.Attack == null ? 0 : e.Attack.Startup + e.LastActiveOffset });
         result["enemies"] = enemies; return result;
     }
 }

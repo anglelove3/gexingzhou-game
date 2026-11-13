@@ -37,6 +37,14 @@ public partial class SmokeHarness
         demo.Notification((int)NotificationApplicationFocusIn); demo.ReturnToPreparation(); await Frames(3);
         Require(demo.Match == null && demo.Progress.Experience == 0, "Abandoning wave granted reward");
         Require(!demo.TryEquip("stick"), "Unowned equipment could be worn");
+        Require(demo.StartWave(), "Pause-charge fixture failed");
+        Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.K, Keycode = Key.K, Pressed = true });
+        await Frames(29); Require(demo.Match!.Player.State == CombatState.Charging, "Charge fixture failed");
+        KeyPress(Key.Escape); await Frames(2);
+        Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.K, Keycode = Key.K, Pressed = false });
+        KeyPress(Key.Escape); await Frames(30);
+        Require(demo.Match.Statistics.HeavyAttacks == 0, "Pause released a stale charged attack without a new press");
+        demo.ReturnToPreparation(); await Frames(3);
         var story = System.Text.Json.JsonSerializer.Serialize(GetNode<GameSession>("/root/GameSession").Snapshot);
         var pressed = new HashSet<Key>();
         void SetKey(Key key, bool down, bool pulse = false)
@@ -46,6 +54,14 @@ public partial class SmokeHarness
                 Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = key, Keycode = key, Pressed = false }); pressed.Remove(key);
             }
             if (down && pressed.Add(key)) Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = key, Keycode = key, Pressed = true });
+        }
+        void ApplyInput(CombatInput input)
+        {
+            SetKey(Key.A, input.MoveX < 0); SetKey(Key.D, input.MoveX > 0);
+            SetKey(Key.W, input.MoveY < 0); SetKey(Key.S, input.MoveY > 0);
+            SetKey(Key.J, input.LightPressed, input.LightPressed);
+            SetKey(Key.K, input.HeavyPressed || input.HeavyHeld, input.HeavyPressed);
+            SetKey(Key.L, input.GuardHeld); SetKey(Key.Space, input.DodgePressed, input.DodgePressed);
         }
         foreach (var wave in demo.Catalog.Waves)
         {
@@ -67,11 +83,7 @@ public partial class SmokeHarness
                     Require(directory.StartsWith(ProjectSettings.GlobalizePath("res://test-output/")), "Unsafe combat save fixture");
                     blockedWrite = new System.IO.FileStream(System.IO.Path.Combine(directory, "write.lock"), System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
                 }
-                SetKey(Key.A, input.MoveX < 0); SetKey(Key.D, input.MoveX > 0);
-                SetKey(Key.W, input.MoveY < 0); SetKey(Key.S, input.MoveY > 0);
-                SetKey(Key.J, input.LightPressed, input.LightPressed);
-                SetKey(Key.K, input.HeavyPressed || input.HeavyHeld, input.HeavyPressed);
-                SetKey(Key.L, input.GuardHeld); SetKey(Key.Space, input.DodgePressed, input.DodgePressed);
+                ApplyInput(input);
                 await Frames(1);
                 if (captureDirectory != null && tick == 100) await Capture("combat-" + wave.Id + "-action");
             }
@@ -95,6 +107,26 @@ public partial class SmokeHarness
         demo.Free(); await Frames(3);
         var loaded = scene.Instantiate<CombatDemo>(); AddChild(loaded); await Frames(3);
         Require(loaded.Progress.Experience == 480 && loaded.Progress.CompletedRun, "Completed combat progress failed to resume");
+        loaded.GetNode<Button>("Prepare/Footer/Content/Actions/Reset").EmitSignal(Button.SignalName.Pressed); await Frames(2);
+        loaded.GetNode<Button>("Choices/Panel/Content/Options/Option1").EmitSignal(Button.SignalName.Pressed); await Frames(3);
+        Require(loaded.Progress.Experience == 0 && loaded.StartWave(), "Concurrent fixture reset failed");
+        bool advanced = false;
+        for (int tick = 0; tick < 12000 && loaded.Match!.Result == CombatResult.Running; tick++)
+        {
+            if (!advanced && loaded.Match.Enemies.Sum(e => e.Health) <= 30)
+            {
+                var directory = (string)DiagnosticField(loaded, "saveDirectory")!;
+                var remote = new CombatRepository(directory, loaded.Catalog);
+                Require(remote.Save(loaded.Progress.Reward("a1", loaded.Catalog).Reward("a2", loaded.Catalog)).Success, "Concurrent source advance failed");
+                advanced = true;
+            }
+            ApplyInput(CombatAutomation.Decide(loaded.Match)); await Frames(1);
+        }
+        foreach (var key in pressed.ToArray()) SetKey(key, false);
+        Require(advanced && loaded.Progress.Experience == 60, "Concurrent newer save did not resolve pending reward");
+        loaded.GetNode<Button>("Result/Panel/Scroll/Content/Continue").EmitSignal(Button.SignalName.Pressed); await Frames(2);
+        Require(loaded.Screen == "prepare" && loaded.Progress.Experience == 60, "Concurrent settlement blocked navigation");
+        GD.Print("COMBAT_CONCURRENT_REWARD_PASS NewerProgressIncludesReward NavigationAvailable");
         loaded.Free(); await Frames(3);
         session.SetOptions(oldOptions, false);
         GD.Print("COMBAT_GROWTH_PASS SixWaves PhysicalKeys Level5 NineItems SavedResume StorySnapshotPreserved");

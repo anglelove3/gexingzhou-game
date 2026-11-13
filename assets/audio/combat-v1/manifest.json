@@ -1,0 +1,27 @@
+{
+  "version": "combat-0.1",
+  "format": "PCM 44100Hz 16-bit mono",
+  "provenance": "licenses/AI_ART_COMBAT_20261113.md",
+  "files": [
+    {
+      "file": "block.wav",
+      "sha256": "d7de621a0415d5d80fab8d9fd3a386663bcb7b9801fe3e0d1f55b7c00990d3ce",
+      "source": "tools/build-combat-audio.ps1 deterministic synthesis"
+    },
+    {
+      "file": "down.wav",
+      "sha256": "02cc86e63a4281f5b8e69b2a113800ba0e1b16e3abf0ae57376e3f3a713cba0e",
+      "source": "tools/build-combat-audio.ps1 deterministic synthesis"
+    },
+    {
+      "file": "hit.wav",
+      "sha256": "5b10b12a01618b1726eba4d3ae901401c44c606df061128c718297c48c0914e0",
+      "source": "tools/build-combat-audio.ps1 deterministic synthesis"
+    },
+    {
+      "file": "swing.wav",
+      "sha256": "fc02dd1958c6a45717e74ea33e9c2632d24d47e595be19ca4cc07adff760051b",
+      "source": "tools/build-combat-audio.ps1 deterministic synthesis"
+    }
+  ]
+}
