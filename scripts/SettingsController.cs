@@ -29,6 +29,9 @@ public partial class SettingsController : Control
                 var path=System.IO.Path.Combine(s.SaveDirectory,"exports","events-"+Guid.NewGuid()+".jsonl");
                 var r=s.Recorder.Export(path);message.Text=r.Success?"已导出到："+path:r.Message;};
             SceneBindings.Require<Button>(this,Prefix+"CloseButton").Pressed+=Close;Visible=false;
+            var focus=new List<Control>{font.GetLineEdit(),speed,assistance,motion,records};
+            focus.AddRange(volumes);focus.AddRange(new[]{"ClearButton","ExportButton","CloseButton"}.Select(n=>GetNode<Control>(Prefix+n)));
+            SceneBindings.BindFocusLoop(focus);
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}
     }

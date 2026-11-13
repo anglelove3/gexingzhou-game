@@ -22,15 +22,17 @@ func frames(count: int = 3) -> void:
 	for _i in range(count):
 		await process_frame
 
-func key(code: Key) -> void:
+func key(code: Key, shift := false) -> void:
 	var down := InputEventKey.new()
 	down.keycode = code
 	down.physical_keycode = code
 	down.pressed = true
+	down.shift_pressed = shift
 	Input.parse_input_event(down)
 	var up := InputEventKey.new()
 	up.keycode = code
 	up.physical_keycode = code
+	up.shift_pressed = shift
 	Input.parse_input_event(up)
 	await create_timer(0.19).timeout
 
@@ -54,6 +56,17 @@ func finish_dialogue() -> bool:
 func choose(index: int) -> bool:
 	if not await wait_until(func(): return game.get_node("Choices").visible, "choice opens"):
 		return false
+	var options := game.get_node("Choices/Panel/Content/Options")
+	var first := options.get_child(0)
+	var last := options.get_child(options.get_child_count() - 1)
+	last.grab_focus()
+	await key(KEY_TAB)
+	if not need(first.has_focus(), "Choice Tab escaped the active options"):
+		return false
+	await key(KEY_TAB, true)
+	if not need(last.has_focus(), "Choice ShiftTab escaped the active options"):
+		return false
+	first.grab_focus()
 	for _i in range(index):
 		await key(KEY_DOWN)
 	await key(KEY_ENTER)
@@ -107,6 +120,22 @@ func run() -> void:
 	if not need(boot.get_node("MenuScroll/Menu/Title").get_theme_font("font") is FontFile, "Bundled literary title font missing"):
 		return
 	await capture("boot")
+	boot.get_node("MenuScroll/Menu/SettingsButton").grab_focus()
+	await key(KEY_ENTER)
+	var settings := boot.get_node("Settings")
+	if not need(settings.visible, "Boot settings keyboard entry failed"):
+		return
+	settings.get_node("Panel/Scroll/Content/CloseButton").grab_focus()
+	await key(KEY_TAB)
+	if not need(settings.is_ancestor_of(root.gui_get_focus_owner()), "Settings Tab escaped to menu"):
+		return
+	await key(KEY_TAB, true)
+	if not need(settings.get_node("Panel/Scroll/Content/CloseButton").has_focus(), "Settings reverse Tab did not wrap"):
+		return
+	await capture("settings")
+	await key(KEY_ESCAPE)
+	if not need(not settings.visible, "Boot settings Escape return changed"):
+		return
 	boot.get_node("MenuScroll/Menu/StartButton").pressed.emit()
 	await frames(8)
 	game = current_scene
@@ -223,6 +252,19 @@ func run() -> void:
 		return
 	if not need(game.get_node("SliceEnd/Panel/Scroll/Content/Reflection").text.contains("明天"), "Packaged coda missing"):
 		return
+	var continue_button := game.get_node("SliceEnd/Panel/Actions/Continue")
+	continue_button.grab_focus()
+	for _i in range(3):
+		await key(KEY_TAB)
+	if not need(continue_button.has_focus() and not game.get_node("Phone").visible, "Ending focus escaped its action row"):
+		return
+	await key(KEY_TAB, true)
+	if not need(game.get_node("SliceEnd/Panel/Actions/Restart").has_focus(), "Ending ShiftTab did not wrap to restart"):
+		return
+	await key(KEY_TAB)
+	if not need(continue_button.has_focus(), "Ending Tab did not return from restart"):
+		return
+	print("EXPORT_MODAL_FOCUS_PASS BootSettings Choices Ending Tab ShiftTab")
 	await capture("ending")
 	var directory := ProjectSettings.globalize_path("res://test-output")
 	DirAccess.make_dir_recursive_absolute(directory)

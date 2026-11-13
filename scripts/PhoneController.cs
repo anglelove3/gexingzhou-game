@@ -48,7 +48,9 @@ public partial class PhoneController : Control
         callNotice.Text=inv.PhoneRinging?"语音通话 · 正在呼叫你…":"未接听语音通话";
         task.Text="行程已记下，收起手机后按J查看";
         messageScroll.ScrollVertical=0;
-        answer.Visible=inv.PhoneRinging;if(answer.Visible)answer.GrabFocus();else close.GrabFocus();
+        answer.Visible=inv.PhoneRinging;
+        SceneBindings.BindFocusLoop(answer.Visible?new Control[]{answer,close}:new Control[]{close});
+        if(answer.Visible)answer.GrabFocus();else close.GrabFocus();
     }
     private void LayoutHandset()
     {

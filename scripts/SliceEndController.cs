@@ -17,6 +17,7 @@ public partial class SliceEndController : Control
             SceneBindings.Require<Button>(this,Actions+"Continue").Pressed+=Close;
             SceneBindings.Require<Button>(this,Actions+"Menu").Pressed+=()=>TryReturnToMenu();
             SceneBindings.Require<Button>(this,Actions+"Restart").Pressed+=()=>TryRestart();
+            SceneBindings.BindFocusLoop(new[]{"Continue","Menu","Restart"}.Select(n=>(Control)GetNode<Button>(Actions+n)).ToArray(),horizontal:true);
             Visible=false;
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}

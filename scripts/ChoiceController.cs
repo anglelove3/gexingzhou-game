@@ -26,11 +26,7 @@ public partial class ChoiceController : Control
             var option=options[i];var button=new Button{Name="Option"+(i+1),Text=option.Caption,CustomMinimumSize=new Vector2(0,56)};
             optionsBox.AddChild(button);buttons.Add(button);button.Pressed+=()=>{if(!IsOpen)return;Close();option.Act();};
         }
-        for(int i=0;i<buttons.Count;i++)
-        {
-            buttons[i].FocusNeighborBottom=buttons[i].GetPathTo(buttons[(i+1)%buttons.Count]);
-            buttons[i].FocusNeighborTop=buttons[i].GetPathTo(buttons[(i+buttons.Count-1)%buttons.Count]);
-        }
+        SceneBindings.BindFocusLoop(buttons);
         IsOpen=true;Visible=true;s.Flow=FlowState.Dialogue;buttons[0].GrabFocus();
     }
     public void Close(){if(!IsOpen)return;IsOpen=false;Visible=false;GetNode<GameSession>("/root/GameSession").Flow=source;}

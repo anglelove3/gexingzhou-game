@@ -20,6 +20,7 @@ public partial class PauseController : Control
             SceneBindings.Require<Button>(this,Prefix+"Controls").Pressed+=()=>help.Visible=!help.Visible;
             SceneBindings.Require<Button>(this,Prefix+"Menu").Pressed+=()=>TryReturnToMenu();
             SceneBindings.Require<Button>(this,Prefix+"Quit").Pressed+=()=>TryExit();
+            SceneBindings.BindFocusLoop(new[]{"Resume","Controls","Save","Settings","Menu","Quit"}.Select(n=>(Control)GetNode<Button>(Prefix+n)).ToArray());
             Visible=false;
         }
         catch(InvalidOperationException ex){SceneBindings.ReportFailure(this,ex.Message);}

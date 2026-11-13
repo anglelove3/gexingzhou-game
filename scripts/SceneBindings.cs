@@ -5,6 +5,17 @@ public static class SceneBindings
 {
     public static T Require<T>(Node owner,string path) where T:Node =>
         owner.GetNodeOrNull<T>(path)??throw new InvalidOperationException($"场景缺少 {owner.Name}/{path}（{typeof(T).Name}）。请恢复节点或引用。");
+    public static void BindFocusLoop(IReadOnlyList<Control> controls,bool horizontal=false)
+    {
+        for(int i=0;i<controls.Count;i++)
+        {
+            var control=controls[i];var previous=control.GetPathTo(controls[(i+controls.Count-1)%controls.Count]);
+            var next=control.GetPathTo(controls[(i+1)%controls.Count]);var self=control.GetPathTo(control);
+            control.FocusPrevious=previous;control.FocusNext=next;
+            control.FocusNeighborTop=horizontal?self:previous;control.FocusNeighborBottom=horizontal?self:next;
+            control.FocusNeighborLeft=horizontal?previous:self;control.FocusNeighborRight=horizontal?next:self;
+        }
+    }
     public static void ReportFailure(Node owner,string message)
     {
         owner.SetMeta("binding_error",message);owner.ProcessMode=Node.ProcessModeEnum.Disabled;
