@@ -55,7 +55,8 @@ func audit_pack(directory := "res://") -> bool:
 
 func capture(label: String) -> void:
 	await frames(3)
-	await RenderingServer.frame_post_draw
+	# An occluded desktop window can suspend frame_post_draw indefinitely.
+	RenderingServer.force_draw()
 	var directory := ProjectSettings.globalize_path("res://test-output/combat-packed-captures")
 	DirAccess.make_dir_recursive_absolute(directory)
 	var pixels := root.get_texture().get_image()

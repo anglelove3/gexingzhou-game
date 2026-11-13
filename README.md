@@ -11,9 +11,9 @@
 
 ## 🎮 下载试玩
 
-本轮发布时间为 **2026-11-13 16:41:45（北京时间，UTC+8）**。新增独立战斗成长流程，主菜单提供故事与战斗两个入口。
+本轮发布时间为 **2026-11-13 19:45:29（北京时间，UTC+8）**。修复多窗口重开、恢复备份和结算之间的进度覆盖，补充战斗更新频率回归。主菜单提供故事与战斗两个入口。
 
-- **[下载最新版 Windows x64 试玩 ZIP（约 156 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-combat-20261113/gexingzhou-demo-vs01-combat-20261113-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-combat-20261113)
+- **[下载最新版 Windows x64 试玩 ZIP（约 156 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-combat-fixes-20261113/gexingzhou-demo-vs01-combat-fixes-20261113-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-combat-fixes-20261113)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
 - GitHub 仅保留最新版试玩 Release；旧试玩先备份发行元数据、ZIP及解压目录，再撤下公开入口，保留源码和Git标签。
 - “回到故乡”包括小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。“战斗试玩 · 街头练习”提供5级、9件装备与三段六波挑战。
@@ -57,7 +57,7 @@
 
 准备界面显示基础属性、装备修正与最终值，可展开当前构筑的三连理论伤害、时长和耗耐力。结算提供本次战斗统计，数值记录注明自动策略条件、失败复现与调整原因。
 
-装备成长和战斗参数由同一JSON驱动，源码包含伤害公式、收益核算及回归证据。[配置](content/combat/combat.json) · [数值与调优记录](docs/design/06_战斗数值与调优记录.md) · [本轮验收](docs/development/26_战斗成长试玩验收与发行.md)
+装备成长和战斗参数由同一JSON驱动，源码包含伤害公式、收益核算及回归证据。战斗进度按周目标识隔离，多窗口结算可保留旧周目候选，已发布旧档可以继续读取。[配置](content/combat/combat.json) · [数值与调优记录](docs/design/06_战斗数值与调优记录.md) · [战斗首版验收](docs/development/26_战斗成长试玩验收与发行.md) · [本轮存档回归](docs/development/27_战斗存档隔离与帧率回归验收.md)
 
 ![街头练习中的三类对手](docs/media/combat.png)
 
@@ -117,6 +117,6 @@ powershell -NoProfile -File tests/ShutdownChecks.ps1 -GodotExe '你的 Godot .NE
 
 当前提供首段叙事探索与独立战斗成长样板。战斗对手复用十二姿态图集，以颜色、尺寸、名称和行为区分，步行使用有限姿态交替。公开仓库保留制作来源和许可记录，私人原稿、现实照片、真实玩家存档及本机配置按现行约定保管。
 
-根工程与冷源码副本166项规则、50组引擎回归通过。实际发行PCK完成战斗成长及故事首段，冷解压原生EXE菜单、战斗入口、出招和关闭通过，正常退出日志未见旧释放警告。本轮首次导入重现原生崩溃后串行复验通过，历史冷导入/导出问题继续待查。真人手感、听感、时长及其它电脑仍待验证。[本轮验收记录](docs/development/26_战斗成长试玩验收与发行.md)
+171项规则及冷源码51组引擎回归通过，包含30/60/120物理更新频率下的战斗速度与暂停检查。实际发行PCK完成战斗成长及故事首段，冷解压原生EXE菜单、战斗入口、出招和关闭通过，正常退出日志未见旧释放警告。历史冷导入/导出问题继续待查，真人手感、听感、时长及其它电脑仍待验证。外置驱动的首次抓图等待和焦点干扰记录保留。[本轮验收记录](docs/development/27_战斗存档隔离与帧率回归验收.md)
 
 历史首页已归档至[开发记录](docs/development/18_历史首页归档.md)，不再把多轮历史接续堆在试玩入口之前。
