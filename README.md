@@ -11,9 +11,9 @@
 
 ## 🎮 下载试玩
 
-本轮发布时间：**2026-11-12 21:00:16（北京时间，UTC+8）**。现有首段回忆中断恢复修复版，仍为试玩预览。
+本轮发布时间为 **2026-11-13 13:11:09（北京时间，UTC+8）**。现有首段界面键盘焦点修复版，仍为试玩预览。
 
-- **[下载最新版 Windows x64 试玩 ZIP（约 154 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-memory-20261112/gexingzhou-demo-vs01-memory-20261112-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-memory-20261112)
+- **[下载最新版 Windows x64 试玩 ZIP（约 154 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-focus-20261113/gexingzhou-demo-vs01-focus-20261113-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-focus-20261113)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
 - GitHub 仅保留最新版试玩 Release；旧试玩先备份发行元数据、ZIP及解压目录，再撤下公开入口，保留源码和Git标签。
 - 试玩范围：小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。不是完整多日游戏。
@@ -38,7 +38,7 @@
 沿主街可以推进故事，也可以看看旧门牌、报刊亭、落叶排水沟和晾晒架。
 十三项可选见闻不会变成必须找齐的清单，不附加奖励或主线门槛。
 
-已有成年人物比例、居民迈步、小区近景构图和沿道路区域响应E的路口；菜单采用随包思源宋体与秋日飘叶，支持减少动效。本轮改善推币/移碗被手机或失焦中断后的恢复：动画保留进度，手机焦点不会被抢走，恢复后可继续键盘选择；此前声音及退出修复保留。证据见[本轮验收](docs/development/24_回忆中断恢复验收与发行.md)。
+已有成年人物比例、居民迈步、小区近景构图和沿道路区域响应E的路口，菜单采用随包思源宋体与秋日飘叶，支持减少动效。本轮补齐选项、手机、暂停、设置和收尾的键盘焦点循环，Tab、Shift+Tab与方向键留在当前面板，暂停顺序与画面一致。此前回忆恢复、声音及退出修复保留。证据见[本轮验收](docs/development/25_界面键盘焦点验收与发行.md)。
 
 ![便利店街与递喜糖后的目标](docs/media/street.png)
 
