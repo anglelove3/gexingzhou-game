@@ -1,5 +1,10 @@
 {
   "version": "combat-0.1",
+  "growth": {
+    "health": 100, "attack": 14, "defense": 8, "stamina": 100,
+    "recovery": 24, "moveSpeed": 180, "dodgeSeconds": 0.34,
+    "levelHealth": 12, "levelAttack": 2, "levelDefense": 2, "levelStamina": 5
+  },
   "levels": [
     0,
     60,

@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup><ProjectReference Include="../../code/Domain/GeXingzhou.Domain.csproj" /></ItemGroup>
+  <ItemGroup><Compile Include="../../scripts/Testing/CombatAutomation.cs" Link="Fixtures/CombatAutomation.cs" /></ItemGroup>
 </Project>

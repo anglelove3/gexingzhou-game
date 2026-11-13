@@ -52,8 +52,11 @@ public sealed class CombatRepository
         {
             if (p.Validate(catalog) is { } error) return new(false, error);
             Directory.CreateDirectory(directory);
+            using var lease = new FileStream(PathTo("write.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             var current = Load(); var backup = LoadBackup();
             if (current.Status == LoadStatus.IoError) return new(false, current.Message);
+            if (!preserved && current.Progress != null && current.Progress.Experience > p.Experience)
+                return new(false, "战斗进度已在另一窗口更新，请返回主菜单重新读取。");
             if (!preserved && (current.Status is not (LoadStatus.Loaded or LoadStatus.NotFound) ||
                 current.Status == LoadStatus.NotFound && backup.Status != LoadStatus.NotFound))
                 return new(false, "请先恢复备份或保留原档副本。");
@@ -78,6 +81,7 @@ public sealed class CombatRepository
         try
         {
             Directory.CreateDirectory(directory);
+            using var lease = new FileStream(PathTo("write.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             foreach (var name in new[] { "save.json", "save.bak.json" })
                 if (File.Exists(PathTo(name))) File.Copy(PathTo(name), PathTo("preserved-" + Guid.NewGuid().ToString("N") + ".json"));
             preserved = true; return new(true, "战斗进度副本已保留。");

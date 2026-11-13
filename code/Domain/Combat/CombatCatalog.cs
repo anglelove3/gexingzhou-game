@@ -65,10 +65,15 @@ public sealed record CombatWave
 public sealed record CombatStats(int Health, int Attack, int Defense, int Stamina,
     double Recovery, double MoveSpeed, double DodgeSeconds, CombatItem Weapon);
 
+public sealed record CombatGrowth(int Health, int Attack, int Defense, int Stamina, double Recovery,
+    double MoveSpeed, double DodgeSeconds, int LevelHealth, int LevelAttack, int LevelDefense, int LevelStamina);
+
 public sealed class CombatCatalog
 {
     public string Version { get; init; } = "";
     public int[] Levels { get; init; } = Array.Empty<int>();
+    public CombatGrowth? Growth { get; init; }
+    public int ExperienceCap => Levels[^1];
     public List<CombatItem> Items { get; init; } = new();
     public List<CombatMove> Moves { get; init; } = new();
     public List<CombatEnemy> Enemies { get; init; } = new();
@@ -79,7 +84,11 @@ public sealed class CombatCatalog
         try
         {
             var c = JsonSerializer.Deserialize<CombatCatalog>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if (c == null || c.Version != "combat-0.1" || c.Levels == null || !c.Levels.SequenceEqual(new[] { 0, 60, 160, 300, 480 }) ||
+            if (c == null || c.Version != "combat-0.1" || c.Levels == null || c.Levels.Length != 5 || c.Levels[0] != 0 ||
+                c.Levels.Zip(c.Levels.Skip(1)).Any(pair => pair.First >= pair.Second) ||
+                c.Growth == null || c.Growth.Health <= 0 || c.Growth.Attack <= 0 || c.Growth.Defense < 0 || c.Growth.Stamina <= 0 ||
+                c.Growth.LevelHealth < 0 || c.Growth.LevelAttack < 0 || c.Growth.LevelDefense < 0 || c.Growth.LevelStamina < 0 ||
+                new[] { c.Growth.Recovery, c.Growth.MoveSpeed, c.Growth.DodgeSeconds }.Any(v => !double.IsFinite(v) || v <= 0) ||
                 c.Items == null || c.Moves == null || c.Enemies == null || c.Waves == null ||
                 c.Items.Count != 9 || c.Moves.Count != 5 || c.Enemies.Count != 4 || c.Waves.Count != 6)
                 throw new ArgumentException("战斗配置结构或版本异常。");
@@ -105,7 +114,7 @@ public sealed class CombatCatalog
                 if (w.Experience <= 0 || w.Enemies == null || w.Items == null || w.Enemies.Length is < 1 or > 3 ||
                     w.Enemies.Any(id => !c.Enemies.Any(e => e.Id == id)) || w.Items.Any(id => !c.Items.Any(i => i.Id == id)))
                     throw new ArgumentException("波次配置异常。");
-            if (c.Waves.Sum(w => w.Experience) != 480) throw new ArgumentException("经验预算异常。");
+            if (c.Waves.Sum(w => w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");
             foreach (var id in new[] { "wraps", "jacket", "trainers" }) c.Item(id);
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
             return c;
@@ -128,12 +137,20 @@ public sealed class CombatCatalog
 
     public CombatStats Stats(CombatProgress p)
     {
-        var rank = Level(p.Experience) - 1;
+        var b = BaseStats(p.Experience);
         var items = p.Equipment.Values.Select(Item).ToArray();
-        return new(100 + rank * 12 + items.Sum(i => i.Health), 14 + rank * 2 + items.Sum(i => i.Attack),
-            8 + rank * 2 + items.Sum(i => i.Defense), 100 + rank * 5 + items.Sum(i => i.Stamina),
-            24 + items.Sum(i => i.Recovery), 180 * items.Aggregate(1d, (v, i) => v * i.Move),
-            .34 + items.Sum(i => i.DodgeAdjustment), Item(p.Equipment["weapon"]));
+        return new(b.Health + items.Sum(i => i.Health), b.Attack + items.Sum(i => i.Attack),
+            b.Defense + items.Sum(i => i.Defense), b.Stamina + items.Sum(i => i.Stamina),
+            b.Recovery + items.Sum(i => i.Recovery), b.MoveSpeed * items.Aggregate(1d, (v, i) => v * i.Move),
+            b.DodgeSeconds + items.Sum(i => i.DodgeAdjustment), Item(p.Equipment["weapon"]));
+    }
+
+    public CombatStats BaseStats(int experience)
+    {
+        var g = Growth!; var rank = Level(experience) - 1;
+        return new(g.Health + rank * g.LevelHealth, g.Attack + rank * g.LevelAttack,
+            g.Defense + rank * g.LevelDefense, g.Stamina + rank * g.LevelStamina,
+            g.Recovery, g.MoveSpeed, g.DodgeSeconds, new CombatItem());
     }
 
     public CombatMove EquippedMove(string id, CombatStats stats)

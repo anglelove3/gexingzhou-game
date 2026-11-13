@@ -1,7 +1,7 @@
 using Godot;
 using GeXingzhou.Domain;
 
-public enum AudioCue { Footstep, PhoneMessage, PhoneRing, Bowl, Chopsticks, Coin, Candy }
+public enum AudioCue { Footstep, PhoneMessage, PhoneRing, Bowl, Chopsticks, Coin, Candy, CombatSwing, CombatHit, CombatBlock, CombatDown }
 public partial class AudioDirector : Node
 {
     [Export] public AudioStream? MusicStream {get;set;}
@@ -15,6 +15,10 @@ public partial class AudioDirector : Node
     [Export] public AudioStream? ChopsticksStream {get;set;}
     [Export] public AudioStream? CoinStream {get;set;}
     [Export] public AudioStream? CandyStream {get;set;}
+    [Export] public AudioStream? CombatSwingStream {get;set;}
+    [Export] public AudioStream? CombatHitStream {get;set;}
+    [Export] public AudioStream? CombatBlockStream {get;set;}
+    [Export] public AudioStream? CombatDownStream {get;set;}
     private AudioStreamPlayer music=null!,ambience=null!;
     private AudioStreamPlayer[] slots=Array.Empty<AudioStreamPlayer>();
     private AudioCue?[] activeCues=Array.Empty<AudioCue?>();
@@ -93,7 +97,7 @@ public partial class AudioDirector : Node
     public bool PlayCue(AudioCue cue)
     {
         if(!ready||paused&&cue==AudioCue.Footstep||options.MasterVolume*options.EffectsVolume==0)return false;
-        var stream=cue switch{AudioCue.Footstep=>FootstepStream,AudioCue.PhoneMessage=>PhoneMessageStream,AudioCue.PhoneRing=>PhoneRingStream,AudioCue.Bowl=>BowlStream,AudioCue.Chopsticks=>ChopsticksStream,AudioCue.Coin=>CoinStream,AudioCue.Candy=>CandyStream,_=>null};
+        var stream=cue switch{AudioCue.Footstep=>FootstepStream,AudioCue.PhoneMessage=>PhoneMessageStream,AudioCue.PhoneRing=>PhoneRingStream,AudioCue.Bowl=>BowlStream,AudioCue.Chopsticks=>ChopsticksStream,AudioCue.Coin=>CoinStream,AudioCue.Candy=>CandyStream,AudioCue.CombatSwing=>CombatSwingStream,AudioCue.CombatHit=>CombatHitStream,AudioCue.CombatBlock=>CombatBlockStream,AudioCue.CombatDown=>CombatDownStream,_=>null};
         if(stream==null){Missing(cue.ToString());return false;}
         var index=Array.FindIndex(slots,p=>!p.Playing);if(index<0)return false;
         var slot=slots[index];activeCues[index]=cue;slot.Stream=stream;slot.Play();return true;

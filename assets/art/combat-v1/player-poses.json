@@ -1,0 +1,127 @@
+{
+    "SourceSha256":  "9AB08F6223DF3F52A4135EA1A3C7C7C68F2E31417D92C13CD08538C02CE7094E",
+    "Columns":  4,
+    "Rows":  3,
+    "Frames":  [
+                   {
+                       "X":  0,
+                       "Y":  0,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  181.5,
+                       "PivotY":  355,
+                       "VisibleHeight":  346,
+                       "Margin":  6
+                   },
+                   {
+                       "X":  362,
+                       "Y":  0,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  180.5,
+                       "PivotY":  355,
+                       "VisibleHeight":  340,
+                       "Margin":  6
+                   },
+                   {
+                       "X":  724,
+                       "Y":  0,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  176.5,
+                       "PivotY":  355,
+                       "VisibleHeight":  328,
+                       "Margin":  6
+                   },
+                   {
+                       "X":  1086,
+                       "Y":  0,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  176,
+                       "PivotY":  355,
+                       "VisibleHeight":  338,
+                       "Margin":  6
+                   },
+                   {
+                       "X":  0,
+                       "Y":  362,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  181.5,
+                       "PivotY":  352,
+                       "VisibleHeight":  343,
+                       "Margin":  9
+                   },
+                   {
+                       "X":  362,
+                       "Y":  362,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  174,
+                       "PivotY":  351,
+                       "VisibleHeight":  300,
+                       "Margin":  10
+                   },
+                   {
+                       "X":  724,
+                       "Y":  362,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  179.5,
+                       "PivotY":  351,
+                       "VisibleHeight":  339,
+                       "Margin":  10
+                   },
+                   {
+                       "X":  1086,
+                       "Y":  362,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  223.5,
+                       "PivotY":  345,
+                       "VisibleHeight":  332,
+                       "Margin":  14
+                   },
+                   {
+                       "X":  0,
+                       "Y":  724,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  160,
+                       "PivotY":  341,
+                       "VisibleHeight":  237,
+                       "Margin":  20
+                   },
+                   {
+                       "X":  362,
+                       "Y":  724,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  178.5,
+                       "PivotY":  330,
+                       "VisibleHeight":  102,
+                       "Margin":  5
+                   },
+                   {
+                       "X":  724,
+                       "Y":  724,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  183,
+                       "PivotY":  333,
+                       "VisibleHeight":  243,
+                       "Margin":  28
+                   },
+                   {
+                       "X":  1086,
+                       "Y":  724,
+                       "Width":  362,
+                       "Height":  362,
+                       "PivotX":  183.5,
+                       "PivotY":  341,
+                       "VisibleHeight":  337,
+                       "Margin":  5
+                   }
+               ]
+}

@@ -66,7 +66,7 @@ public sealed class CombatFighter
         ClampPosition();
     }
 
-    public void ClampPosition() { X = Math.Clamp(X, 92, 1188); Y = Math.Clamp(Y, 332, 624); }
+    public void ClampPosition() { X = Math.Clamp(X, 92, 1188); Y = Math.Clamp(Y, 390, 624); }
 
     public bool TryAttack(CombatMove move, int secondHitOffset = 0)
     {

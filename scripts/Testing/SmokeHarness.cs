@@ -19,6 +19,18 @@ public partial class SmokeHarness : Node
         try
         {
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
+            if(suite is "Combat" or "CombatCapture")
+            {
+                if(suite=="CombatCapture")
+                {
+                    if(DisplayServer.GetName()=="headless")throw new Exception("Combat capture requires rendering");
+                    var sizeText=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=')[1]??"1280x720";
+                    var size=sizeText.Split('x');GetWindow().Borderless=true;GetWindow().Size=new(int.Parse(size[0]),int.Parse(size[1]));
+                    var suffix=OS.GetCmdlineUserArgs().Contains("--combat-font=32")?"-font32":"";
+                    captureDirectory=ProjectSettings.GlobalizePath("res://test-output/combat-growth-20261113/captures/"+sizeText+suffix);
+                }
+                await CombatChecks();GD.Print("GODOT_CHECKS_PASS Combat");await DrainAudio();GetTree().Quit();return;
+            }
             if(suite=="PhoneAudio"){await PhoneAudioChecks();GD.Print("GODOT_CHECKS_PASS PhoneAudio");await DrainAudio();GetTree().Quit();return;}
             if(suite=="MemoryInterruption"){await MemoryInterruptionChecks();GD.Print("GODOT_CHECKS_PASS MemoryInterruption");await DrainAudio();GetTree().Quit();return;}
             if(suite=="ModalFocus"){await ModalFocusChecks();GD.Print("GODOT_CHECKS_PASS ModalFocus");await DrainAudio();GetTree().Quit();return;}

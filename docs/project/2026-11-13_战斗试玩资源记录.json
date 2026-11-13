@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-13",
+  "scope": "standalone combat demo",
+  "art_source": "built-in image_gen",
+  "player_identity_reference": "assets/art/vs01-v1/player-v1.png",
+  "provenance": "licenses/AI_ART_COMBAT_20261113.md",
+  "assets": [
+    {
+      "file": "assets/art/combat-v1/equipment.json",
+      "sha256": "3FDFB6F9F65F6419FBD3D9AA5F2290D40D90DB3F1307B40411C4E7E05BA90104",
+      "generator_output": null
+    },
+    {
+      "file": "assets/art/combat-v1/equipment.png",
+      "sha256": "32D34826239DCD2555EEACFBEFC633F8EAF773AEDDA023E64BF10D472F082591",
+      "generator_output": "exec-2acb4008-0f44-4518-9a0a-1af566690b41"
+    },
+    {
+      "file": "assets/art/combat-v1/opponent-poses-v2.json",
+      "sha256": "724D23E4854490A5EEA6449B9B419F5969953C29BB174E31F80E571D034930DB",
+      "generator_output": null
+    },
+    {
+      "file": "assets/art/combat-v1/opponent-poses-v2.png",
+      "sha256": "BBE090867A601B55A97FA4735AB31DFFE2BE75780EFDC03A329FEF527F3E0C40",
+      "generator_output": "exec-41d56c06-0490-46d6-9c23-2b88bdd22890"
+    },
+    {
+      "file": "assets/art/combat-v1/player-poses.json",
+      "sha256": "02E06E57F51B99960B79CE6A3F47D6A5350D6F19BB21811D22BE4F6BBF5DC293",
+      "generator_output": null
+    },
+    {
+      "file": "assets/art/combat-v1/player-poses.png",
+      "sha256": "9AB08F6223DF3F52A4135EA1A3C7C7C68F2E31417D92C13CD08538C02CE7094E",
+      "generator_output": "exec-4ba90bb9-0810-4313-9837-aa5074610935"
+    },
+    {
+      "file": "assets/art/combat-v1/practice-court.png",
+      "sha256": "FFE8473368C5DF3E6D112F3F596500AC6B5C285BEFC5A3C0D1146CFACD5C730C",
+      "generator_output": "exec-0efe57cd-e566-42f2-9906-c655daaccf1a"
+    },
+    {
+      "file": "assets/audio/combat-v1/block.wav",
+      "sha256": "D7DE621A0415D5D80FAB8D9FD3A386663BCB7B9801FE3E0D1F55B7C00990D3CE",
+      "generator": "tools/build-combat-audio.ps1"
+    },
+    {
+      "file": "assets/audio/combat-v1/down.wav",
+      "sha256": "02CC86E63A4281F5B8E69B2A113800BA0E1B16E3ABF0AE57376E3F3A713CBA0E",
+      "generator": "tools/build-combat-audio.ps1"
+    },
+    {
+      "file": "assets/audio/combat-v1/hit.wav",
+      "sha256": "5B10B12A01618B1726EBA4D3AE901401C44C606DF061128C718297C48C0914E0",
+      "generator": "tools/build-combat-audio.ps1"
+    },
+    {
+      "file": "assets/audio/combat-v1/swing.wav",
+      "sha256": "FC02DD1958C6A45717E74EA33E9C2632D24D47E595BE19CA4CC07ADFF760051B",
+      "generator": "tools/build-combat-audio.ps1"
+    }
+  ]
+}

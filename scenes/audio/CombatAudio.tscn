@@ -1,0 +1,11 @@
+[gd_scene load_steps=6 format=3]
+[ext_resource type="PackedScene" path="res://scenes/audio/AudioDirector.tscn" id="Base"]
+[ext_resource type="AudioStream" path="res://assets/audio/combat-v1/swing.wav" id="Swing"]
+[ext_resource type="AudioStream" path="res://assets/audio/combat-v1/hit.wav" id="Hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/combat-v1/block.wav" id="Block"]
+[ext_resource type="AudioStream" path="res://assets/audio/combat-v1/down.wav" id="Down"]
+[node name="Audio" instance=ExtResource("Base")]
+CombatSwingStream=ExtResource("Swing")
+CombatHitStream=ExtResource("Hit")
+CombatBlockStream=ExtResource("Block")
+CombatDownStream=ExtResource("Down")

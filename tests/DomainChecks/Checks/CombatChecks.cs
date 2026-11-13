@@ -173,5 +173,59 @@ public static class CombatChecks
                 Check.Equal(a.Player.Y, b.Player.Y);
             }
         }));
+        tests.Add(("Combat", "SixWavesPlayableGrowth", () =>
+        {
+            var c = Catalog(); var p = CombatProgress.New(c);
+            foreach (var wave in c.Waves)
+            {
+                foreach (var id in new[] { "stick", "padded", "steady" }) if (p.Owned.Contains(id)) p = p.Equip(id, c);
+                var m = new CombatMatch(c, p, wave.Id);
+                for (int tick = 0; tick < 12000 && m.Result == CombatResult.Running; tick++)
+                {
+                    m.Step(CombatAutomation.Decide(m));
+                    if (Environment.GetEnvironmentVariable("COMBAT_TRACE") == wave.Id && m.Events.Count > 0)
+                        Console.WriteLine($"TRACE {tick} p={m.Player.State} x={m.Player.X:0} hp={m.Player.Health} st={m.Player.Stamina:0} e={m.Enemies[0].State} ex={m.Enemies[0].X:0} ehp={m.Enemies[0].Health} events={string.Join(',',m.Events.Select(e=>e.Kind+e.Damage))}");
+                }
+                Console.WriteLine($"COMBAT_AUTO {wave.Id} {m.Result} hp={m.Player.Health} seconds={m.Statistics.ActiveSeconds:0.0} damage={m.Statistics.DamageDealt} hits={m.Statistics.HitsTaken}");
+                Check.Equal(CombatResult.Won, m.Result);
+                p = p.Reward(wave.Id, c);
+            }
+            Check.Equal(5, c.Level(p.Experience)); Check.Equal(9, p.Owned.Count);
+        }));
+        tests.Add(("Combat", "MoveAndAttackTurnsFacing", () =>
+        {
+            var c = Catalog(); var m = new CombatMatch(c, CombatProgress.New(c), "a1");
+            m.Step(new CombatInput(MoveX: -1, LightPressed: true));
+            Check.Equal(-1, m.Player.Facing);
+        }));
+        tests.Add(("Combat", "GrowthIsDataDriven", () =>
+        {
+            var data = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText("content/combat/combat.json"))!;
+            data["growth"] = System.Text.Json.Nodes.JsonNode.Parse("{\"health\":100,\"attack\":18,\"defense\":8,\"stamina\":100,\"recovery\":24,\"moveSpeed\":180,\"dodgeSeconds\":0.34,\"levelHealth\":12,\"levelAttack\":2,\"levelDefense\":2,\"levelStamina\":5}");
+            data["levels"]![1] = 50;
+            var changed = CombatCatalog.Parse(data.ToJsonString());
+            Check.Equal(18, changed.Stats(CombatProgress.New(changed)).Attack);
+            Check.Equal(2, changed.Level(50));
+        }));
+        tests.Add(("Combat", "StaleSaveCannotRegressGrowth", () =>
+        {
+            var c = Catalog(); var p = CombatProgress.New(c);
+            var dir = Path.Combine("test-output", "combat-concurrent-" + Guid.NewGuid().ToString("N"));
+            var a = new CombatRepository(dir, c); var b = new CombatRepository(dir, c);
+            Check.True(a.Save(p).Success); Check.True(a.Save(p.Reward("a1", c)).Success);
+            Check.True(!b.Save(p).Success); Check.Equal(30, a.Load().Progress!.Experience);
+            using (var lease = new FileStream(Path.Combine(dir, "write.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+                Check.True(!b.Save(p.Reward("a1", c)).Success);
+            Check.True(a.PreserveForNewGame().Success); Check.True(a.Save(p).Success);
+        }));
+        tests.Add(("Combat", "WaitingEnemySpacing", () =>
+        {
+            var c = Catalog(); var p = CombatProgress.New(c);
+            foreach (var wave in c.Waves.Take(4)) p = p.Reward(wave.Id, c);
+            var m = new CombatMatch(c, p, "c1");
+            foreach (var e in m.Enemies) { e.X = m.Player.X + 45; e.Y = m.Player.Y; }
+            for (int i = 0; i < 30; i++) m.Step(new CombatInput(GuardHeld: true));
+            Check.True(Math.Abs(m.Enemies[2].Y - m.Player.Y) >= 20);
+        }));
     }
 }

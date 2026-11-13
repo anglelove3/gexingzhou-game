@@ -28,6 +28,8 @@ try {
     $refinementDocs+='docs/project/2026-10-16_街区生活与叙事资源记录.json'
     $refinementDocs+='docs/project/2026-10-17_操作与表现精修资源记录.json'
     $files+=$refinementDocs
+    $combatDocs=@('docs/superpowers/specs/2026-11-13-战斗成长试玩-design.md','docs/superpowers/plans/2026-11-13-combat-growth.md','docs/design/06_战斗数值与调优记录.md','docs/project/2026-11-13_战斗试玩资源记录.json')
+    $files+=$combatDocs
     $showcaseImages=@('docs/media/menu.png','docs/media/street.png','docs/media/memory.png')
     $files+=$showcaseImages
     foreach($folder in @('code/Domain','tests','tools','docs/development','.vscode')) {
@@ -47,6 +49,7 @@ try {
     $explicit+=$polishDocs
     $explicit+=$streetDocs
     $explicit+=$refinementDocs
+    $explicit+=$combatDocs
     $explicit+=$showcaseImages
     foreach($relative in $files|Select-Object -Unique) {
         if($relative -notin $resources -and $relative -notin $explicit -and

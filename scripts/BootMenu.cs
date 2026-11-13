@@ -62,6 +62,7 @@ public partial class BootMenu : Control
                     choices.Open("开始新游戏？当前版本两槽会先保留副本，旧版文件不会改动。",new (string,Action)[]{("保留副本并开始",BeginNew),("返回",()=>{})});else BeginNew();
             };
             settings.Pressed+=preferences.Open;quit.Pressed+=s.RequestQuit;
+            SceneBindings.Require<Button>(this,"MenuScroll/Menu/CombatButton").Pressed+=()=>GetTree().ChangeSceneToFile("res://scenes/combat/CombatDemo.tscn");
             if(s.ContentError.Length>0||s.Catalog==null)
             {
                 foreach(var b in GetNode("MenuScroll/Menu").GetChildren().OfType<Button>())if(b!=settings&&b!=quit)b.Disabled=true;

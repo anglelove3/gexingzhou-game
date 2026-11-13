@@ -1,0 +1,508 @@
+[gd_scene load_steps=7 format=3]
+[ext_resource type="Script" path="res://scripts/Combat/CombatDemo.cs" id="Script"]
+[ext_resource type="Script" path="res://scripts/Combat/CombatArena.cs" id="ArenaScript"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Settings.tscn" id="Settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Choices.tscn" id="Choices"]
+[ext_resource type="PackedScene" path="res://scenes/audio/CombatAudio.tscn" id="Audio"]
+[ext_resource type="StyleBox" path="res://assets/ui/combat-panel.tres" id="PanelStyle"]
+[node name="CombatDemo" type="Control"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+script=ExtResource("Script")
+
+
+[node name="Letterbox" type="ColorRect" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0.025,0.035,0.025,1)
+mouse_filter=2
+
+
+[node name="Arena" type="Node2D" parent="."]
+script=ExtResource("ArenaScript")
+
+
+[node name="Hud" type="Control" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+mouse_filter=2
+
+
+[node name="Top" type="PanelContainer" parent="Hud"]
+layout_mode=1
+anchor_left=0.025
+anchor_right=0.47
+offset_top=18
+offset_bottom=145
+theme_override_styles/panel=ExtResource("PanelStyle")
+
+[node name="Content" type="VBoxContainer" parent="Hud/Top"]
+layout_mode=2
+
+[node name="Player" type="Label" parent="Hud/Top/Content"]
+layout_mode=2
+text="葛行舟 · Lv.1"
+autowrap_mode=3
+
+
+[node name="Health" type="ProgressBar" parent="Hud/Top/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,12)
+show_percentage=false
+
+
+[node name="Stamina" type="ProgressBar" parent="Hud/Top/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,12)
+show_percentage=false
+
+
+[node name="Action" type="Label" parent="Hud/Top/Content"]
+layout_mode=2
+text="准备"
+autowrap_mode=3
+theme_override_font_sizes/font_size=18
+
+[node name="Wave" type="Label" parent="Hud"]
+layout_mode=1
+anchor_left=0.5
+anchor_right=0.975
+offset_top=22
+offset_bottom=112
+horizontal_alignment=2
+autowrap_mode=3
+text="街头练习"
+
+
+[node name="Hint" type="Label" parent="Hud"]
+layout_mode=1
+anchor_left=0.025
+anchor_right=0.975
+anchor_top=0.91
+anchor_bottom=0.99
+autowrap_mode=3
+text="WASD 移动    J 轻击    K 蓄力重击    L 防御    Space 闪避    Esc 暂停"
+theme_override_font_sizes/font_size=18
+
+
+[node name="Prepare" type="Control" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+
+
+[node name="Dim" type="ColorRect" parent="Prepare"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0.025,0.035,0.025,0.78)
+
+
+[node name="Panel" type="PanelContainer" parent="Prepare"]
+layout_mode=1
+anchor_left=0.06
+anchor_right=0.94
+anchor_top=0.055
+anchor_bottom=0.945
+theme_override_styles/panel=ExtResource("PanelStyle")
+
+
+[node name="Scroll" type="ScrollContainer" parent="Prepare/Panel"]
+layout_mode=2
+horizontal_scroll_mode=0
+follow_focus=true
+
+[node name="Content" type="VBoxContainer" parent="Prepare/Panel/Scroll"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_constants/separation=10
+
+[node name="Pause" type="Control" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+
+
+[node name="Dim" type="ColorRect" parent="Pause"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0.025,0.035,0.025,0.78)
+
+
+[node name="Panel" type="PanelContainer" parent="Pause"]
+layout_mode=1
+anchor_left=0.19
+anchor_right=0.81
+anchor_top=0.055
+anchor_bottom=0.945
+theme_override_styles/panel=ExtResource("PanelStyle")
+
+
+[node name="Scroll" type="ScrollContainer" parent="Pause/Panel"]
+layout_mode=2
+horizontal_scroll_mode=0
+follow_focus=true
+
+[node name="Content" type="VBoxContainer" parent="Pause/Panel/Scroll"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_constants/separation=10
+
+[node name="Result" type="Control" parent="."]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+
+
+[node name="Dim" type="ColorRect" parent="Result"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+grow_horizontal=2
+grow_vertical=2
+color=Color(0.025,0.035,0.025,0.78)
+
+
+[node name="Panel" type="PanelContainer" parent="Result"]
+layout_mode=1
+anchor_left=0.19
+anchor_right=0.81
+anchor_top=0.055
+anchor_bottom=0.945
+theme_override_styles/panel=ExtResource("PanelStyle")
+
+
+[node name="Scroll" type="ScrollContainer" parent="Result/Panel"]
+layout_mode=2
+horizontal_scroll_mode=0
+follow_focus=true
+
+[node name="Content" type="VBoxContainer" parent="Result/Panel/Scroll"]
+layout_mode=2
+size_flags_horizontal=3
+theme_override_constants/separation=10
+
+
+[node name="Stats" type="Label" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+text="属性"
+autowrap_mode=3
+
+
+[node name="Wave" type="OptionButton" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+
+[node name="WaveHint" type="Label" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+
+
+[node name="Equipment" type="GridContainer" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+columns=3
+theme_override_constants/h_separation=12
+theme_override_constants/v_separation=8
+
+[node name="wraps" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="wraps"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="gloves" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="gloves"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="stick" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="stick"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="jacket" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="jacket"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="canvas" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="canvas"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="padded" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="padded"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="trainers" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="trainers"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="light" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="light"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="steady" type="Button" parent="Prepare/Panel/Scroll/Content/Equipment"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="steady"
+
+size_flags_horizontal=3
+expand_icon=true
+icon_max_width=44
+theme_override_font_sizes/font_size=19
+
+[node name="Preview" type="Label" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+text="选择装备查看变化"
+autowrap_mode=3
+
+
+[node name="TheoryToggle" type="CheckButton" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+text="查看数值与连段测算"
+
+[node name="Theory" type="Label" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+visible=false
+
+[node name="Controls" type="Label" parent="Prepare/Panel/Scroll/Content"]
+layout_mode=2
+text="WASD / 方向键移动 · J轻击 · 按住K蓄力后松开 · L防御 · Space闪避\nI查看装备 · Esc暂停。每波结束保存成长，波次内离开后从本波开场重试。"
+autowrap_mode=3
+theme_override_font_sizes/font_size=18
+
+[node name="Heading" type="Label" parent="Prepare"]
+layout_mode=1
+anchor_left=0.08
+anchor_right=0.92
+anchor_top=0.08
+anchor_bottom=0.15
+text="街头练习"
+theme_override_font_sizes/font_size=30
+[node name="Footer" type="Control" parent="Prepare"]
+layout_mode=1
+anchor_left=0.08
+anchor_right=0.92
+anchor_top=0.825
+anchor_bottom=0.93
+[node name="Content" type="VBoxContainer" parent="Prepare/Footer"]
+layout_mode=1
+anchors_preset=15
+anchor_right=1.0
+anchor_bottom=1.0
+[node name="Actions" type="HFlowContainer" parent="Prepare/Footer/Content"]
+layout_mode=2
+theme_override_constants/h_separation=12
+
+[node name="Start" type="Button" parent="Prepare/Footer/Content/Actions"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="开始这一波"
+
+
+[node name="Recover" type="Button" parent="Prepare/Footer/Content/Actions"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="恢复战斗备份"
+
+
+[node name="Reset" type="Button" parent="Prepare/Footer/Content/Actions"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="保留副本并重开"
+
+
+[node name="Menu" type="Button" parent="Prepare/Footer/Content/Actions"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="返回主菜单"
+
+
+[node name="Message" type="Label" parent="Prepare/Footer/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+
+
+[node name="Title" type="Label" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+text="暂停"
+autowrap_mode=3
+theme_override_font_sizes/font_size=34
+
+[node name="Resume" type="Button" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="继续练习"
+
+
+[node name="Help" type="Button" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="操作与招式说明"
+
+
+[node name="Settings" type="Button" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="设置"
+
+
+[node name="Prepare" type="Button" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="回准备界面"
+
+
+[node name="Menu" type="Button" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="返回主菜单"
+
+
+[node name="HelpText" type="Label" parent="Pause/Panel/Scroll/Content"]
+layout_mode=2
+text="J在收势末段再次按下可接下一段。\nK按住约半秒后松开可蓄力破防，普通重击按下后松开。\nL朝向对手时格挡，背后受到正常伤害。\nSpace闪避耗24耐力，中段短暂无敌。\n空耐力时留出恢复时间，纵深移动能避开攻击线。\n领队两次受到有效重击后倒地。"
+autowrap_mode=3
+visible=false
+
+[node name="Title" type="Label" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+text="本波完成"
+autowrap_mode=3
+theme_override_font_sizes/font_size=34
+
+[node name="Reward" type="Label" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+
+
+[node name="Statistics" type="Label" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+
+
+[node name="Continue" type="Button" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="继续"
+
+
+[node name="Retry" type="Button" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="重试本波"
+
+
+[node name="Export" type="Button" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="导出本次战斗统计"
+
+
+[node name="Menu" type="Button" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="返回主菜单"
+
+
+[node name="Message" type="Label" parent="Result/Panel/Scroll/Content"]
+layout_mode=2
+text=""
+autowrap_mode=3
+
+
+[node name="Settings" parent="." instance=ExtResource("Settings")]
+visible=false
+
+[node name="Choices" parent="." instance=ExtResource("Choices")]
+visible=false
+
+[node name="Audio" parent="." instance=ExtResource("Audio")]
+
+
+[node name="StartupError" type="Label" parent="."]
+offset_left=40
+offset_top=40
+offset_right=1240
+offset_bottom=680
+autowrap_mode=3
+visible=false
+z_index=200

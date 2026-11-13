@@ -26,7 +26,7 @@ public sealed record CombatProgress
         var wave = c.Wave(id); var completed = Completed.Append(id).ToList();
         return this with
         {
-            Experience = Math.Min(480, Experience + wave.Experience), Completed = completed,
+            Experience = Math.Min(c.ExperienceCap, Experience + wave.Experience), Completed = completed,
             Owned = Owned.Concat(wave.Items).Distinct(StringComparer.Ordinal).ToList(),
             LastWave = c.Waves[Math.Min(completed.Count, c.Waves.Count - 1)].Id, CompletedRun = completed.Count == c.Waves.Count
         };

@@ -81,6 +81,7 @@ public sealed class CombatMatch
         }
         if (Player.CanAct)
         {
+            if (Player.State == CombatState.Idle && Math.Abs(input.MoveX) > .01) Player.Facing = Math.Sign(input.MoveX);
             Player.SetGuard(input.GuardHeld);
             if (queueFrames > 0 && queued != null)
             {
@@ -143,6 +144,16 @@ public sealed class CombatMatch
             }
             if (e.State != CombatState.Idle) continue;
             e.WaitingFrames++;
+            if (permitOwner != null && permitOwner != e.Id)
+            {
+                var side = Enemies.IndexOf(e) % 2 == 0 ? -1 : 1;
+                var goalX = Math.Clamp(Player.X + (e.X >= Player.X ? 64 : -64), 92, 1188);
+                var goalY = Math.Clamp(Player.Y + side * 44, 390, 624);
+                var gapX = goalX - e.X; var gapY = goalY - e.Y;
+                var gap = Math.Sqrt(gapX * gapX + gapY * gapY);
+                if (gap > 4) e.Move(gapX / gap, gapY / gap, .6);
+                continue;
+            }
             var dx = Player.X - e.X; var dy = Player.Y - e.Y;
             if (Math.Abs(dx) > .1) e.Facing = Math.Sign(dx);
             if (Math.Abs(dx) > 48 || Math.Abs(dy) > 16)

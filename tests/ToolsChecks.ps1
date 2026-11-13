@@ -188,5 +188,24 @@ try {
     foreach($path in $before.Keys){if($before[$path] -ne (Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash){throw "FEEDBACK2_FRAME_REBUILD_DRIFT $path"}}
     Write-Output 'PASS PlaytestFeedbackWhitelist FontLicense ArtHashes SourceBundle FrameMetadataReproducible'
 }catch{$failures++;Write-Output "FAIL PlaytestFeedbackWhitelist $_"}
+try {
+    $record=Get-Content -LiteralPath (Join-Path $projectRoot 'docs/project/2026-11-13_战斗试玩资源记录.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    foreach($asset in $record.assets){
+        foreach($root in @($projectRoot,$destination)){
+            if((Get-FileHash -LiteralPath (Join-Path $root $asset.file)).Hash -ne $asset.sha256){throw "COMBAT_SOURCE_HASH_MISMATCH $($asset.file)"}
+        }
+    }
+    foreach($path in @('scenes/combat/CombatDemo.tscn','scenes/audio/CombatAudio.tscn','scripts/Combat/CombatDemo.cs','scripts/Combat/CombatArena.cs','content/combat/combat.json','docs/superpowers/specs/2026-11-13-战斗成长试玩-design.md','docs/superpowers/plans/2026-11-13-combat-growth.md','docs/design/06_战斗数值与调优记录.md','licenses/AI_ART_COMBAT_20261113.md')){
+        if((Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $destination $path)).Hash){throw "COMBAT_PACKAGE_MISMATCH $path"}
+    }
+    if($preset -notmatch 'scenes/combat/CombatDemo.tscn' -or $preset -notmatch 'content/combat/\*\.json' -or $preset -notmatch 'assets/art/combat-v1/\*\.json' -or $preset -notmatch 'assets/audio/combat-v1/\*\.wav'){throw 'COMBAT_EXPORT_DEPENDENCY_MISSING'}
+    $before=@{};foreach($asset in $record.assets){$before[$asset.file]=$asset.sha256}
+    & $shellExe -NoProfile -ExecutionPolicy Bypass -File "$projectRoot/tools/build-combat-atlas.ps1"
+    if($LASTEXITCODE -ne 0){throw 'COMBAT_ATLAS_REBUILD_FAILED'}
+    & $shellExe -NoProfile -ExecutionPolicy Bypass -File "$projectRoot/tools/build-combat-audio.ps1"
+    if($LASTEXITCODE -ne 0){throw 'COMBAT_AUDIO_REBUILD_FAILED'}
+    foreach($path in $before.Keys){if($before[$path] -ne (Get-FileHash -LiteralPath (Join-Path $projectRoot $path)).Hash){throw "COMBAT_REBUILD_DRIFT $path"}}
+    Write-Output 'PASS CombatWhitelist IndependentProgress DynamicDependencies AtlasAudioReproducible Hashes Provenance'
+}catch{$failures++;Write-Output "FAIL CombatWhitelist $_"}
 Write-Output "TOOLS_FAILURES $failures"
 if($failures -gt 0){exit 1}else{exit 0}
