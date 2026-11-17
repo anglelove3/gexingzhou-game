@@ -6,6 +6,7 @@ public partial class CombatDemo
     private CombatChallenge? challenge;
     private CombatChallengeRepository challengeRepository = null!;
     private bool challengeSavePending;
+    private string? historyRecoveryId;
     public CombatChallengeRecord? ChallengeRecord => challenge?.Record;
     private const string ChallengeRules = "通关后街头连战 · 六波\n5级，整轮锁定当前装备；生命逐波继承，每波耐力回满。\n失败或退出后从第一波重新挑战。完成后记录成绩，成长沿用普通练习。";
 
@@ -29,6 +30,7 @@ public partial class CombatDemo
             GetNode<Label>(ResultPath + "Statistics").Text = "";
             GetNode<Button>(ResultPath + "Continue").Text = "重试保存并开始";
             GetNode<Button>(ResultPath + "Retry").Disabled = true;
+            GetNode<Button>(ResultPath + "Export").Disabled = true;
             BindFocus(ResultPath, new[] { "Continue", "Export", "Menu" });
             return false;
         }
@@ -102,6 +104,12 @@ public partial class CombatDemo
 
     private void RetryCombat()
     {
+        if (Screen == "history")
+        {
+            if (historyRecoveryId == null) return;
+            var message = challengeRepository.RecoverBackup(historyRecoveryId).Message;
+            ShowChallengeHistory(); GetNode<Label>(ResultPath + "Message").Text = message; return;
+        }
         if (challenge == null) { StartWave(); return; }
         if (!EndChallenge()) return;
         Match = null; arena.Match = null; ShowPreparation();
@@ -115,7 +123,7 @@ public partial class CombatDemo
         var compatible = history.Records.Where(r => r.ConfigHash == Catalog.ConfigHash &&
             r.Progress.Equipment.OrderBy(x => x.Key).SequenceEqual(Progress.Equipment.OrderBy(x => x.Key))).ToArray();
         var best = compatible.Where(r => r.Outcome == ChallengeOutcome.Won).OrderBy(r => r.TotalSeconds).FirstOrDefault();
-        var lines = new List<string> { "街头连战记录", best == null ? "当前配置与装备尚无六波完成成绩。" : $"当前配置/装备最快六波 {best.TotalSeconds:0.0} 秒" };
+        var lines = new List<string> { $"最近 {Math.Min(8, history.Records.Count)} 条，共 {history.Records.Count} 条记录。\n可用滚轮或PgUp/PgDn查看，历史文件持续保留。" };
         foreach (var record in history.Records.Take(8))
         {
             var status = record.Outcome switch { ChallengeOutcome.Won => "完成", ChallengeOutcome.Lost => "失败", ChallengeOutcome.Abandoned => "主动结束", _ => "中断" };
@@ -125,15 +133,25 @@ public partial class CombatDemo
         }
         if (history.Records.Count == 0) lines.Add("暂无挑战记录，普通六波通关后可开始连战。");
         lines.AddRange(history.Issues.Take(4));
-        var actions = new List<(string, Action)>();
+        historyRecoveryId = null;
         foreach (var issue in history.Issues.Take(4))
         {
             var name = issue.Split(' ')[0];
             var id = name.StartsWith("attempt-") && name.EndsWith(".json") ? name[8..^5] : "";
-            if (Guid.TryParseExact(id, "N", out _)) actions.Add(("恢复该记录备份 " + id[..6], () => { Message(challengeRepository.RecoverBackup(id).Message); }));
+            if (Guid.TryParseExact(id, "N", out _) && historyRecoveryId == null) historyRecoveryId = id;
         }
-        actions.Add(("返回准备", () => { }));
-        choices.Open(string.Join("\n\n", lines), actions.ToArray());
+        ChangeScreen("history");
+        GetNode<Label>(ResultPath + "Title").Text = "街头连战记录";
+        GetNode<Label>(ResultPath + "Reward").Text = best == null ? "当前配置与装备尚无六波完成成绩。" : $"当前配置/装备最快六波 {best.TotalSeconds:0.0} 秒";
+        GetNode<Label>(ResultPath + "Statistics").Text = string.Join("\n\n", lines);
+        GetNode<Label>(ResultPath + "Message").Text = "";
+        GetNode<Button>(ResultPath + "Continue").Text = "返回准备界面";
+        GetNode<Button>(ResultPath + "Retry").Visible = historyRecoveryId != null;
+        GetNode<Button>(ResultPath + "Retry").Disabled = historyRecoveryId == null;
+        GetNode<Button>(ResultPath + "Retry").Text = "保留原文件并恢复首条异常记录备份";
+        GetNode<Button>(ResultPath + "Export").Disabled = true;
+        BindFocus(ResultPath, new[] { "Continue", "Retry", "Menu" });
+        GetNode<ScrollContainer>("Result/Panel/Scroll").ScrollVertical = 0;
     }
 
     private static string StatisticsText(CombatStatistics s) =>

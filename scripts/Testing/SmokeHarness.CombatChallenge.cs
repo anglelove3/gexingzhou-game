@@ -73,6 +73,16 @@ public partial class SmokeHarness
         Require(history.Records.Count == 3 && history.Records.Count(r => r.Outcome == ChallengeOutcome.Won) == 1, "Challenge history missing");
         Require(history.Records[0].Waves.All(w => w.Statistics.TotalFrames > 0), "Challenge statistics lost on reload");
         await Capture("challenge-history-ready");
+        var historyRepository = new CombatChallengeRepository(System.IO.Path.Combine(directory, "challenges-v1"));
+        for (int i = 0; i < 6; i++) Require(historyRepository.Save(CombatChallenge.Start(demo.Catalog, history.Records[0].Progress).Record).Success, "Long history fixture failed");
+        demo.GetNode<Button>("Prepare/Footer/Content/Actions/History").EmitSignal(Button.SignalName.Pressed); await Frames(3);
+        Require(demo.Screen == "history" && demo.GetNode<Control>("Result").Visible, "History did not use scrollable result view");
+        var historyScroll = demo.GetNode<ScrollContainer>("Result/Panel/Scroll"); historyScroll.ScrollVertical = 0;
+        await Capture("challenge-history");
+        SetKey(Key.Pagedown, true); SetKey(Key.Pagedown, false); await Frames(2);
+        Require(historyScroll.ScrollVertical > 0, "History PageDown did not scroll long records");
+        demo.GetNode<Button>("Result/Panel/Scroll/Content/Continue").EmitSignal(Button.SignalName.Pressed); await Frames(2);
+        Require(demo.Screen == "prepare", "History return failed");
         demo.Free(); await Frames(3); session.SetOptions(oldOptions, false);
         GD.Print("COMBAT_CHALLENGE_PASS LockedEntry KeyboardSixWaves Snapshot HealthCarry StaminaReset SaveRetry ConcurrentRestart History");
     }

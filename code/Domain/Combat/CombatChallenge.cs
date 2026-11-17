@@ -73,6 +73,7 @@ public sealed class CombatChallenge
     private CombatMatch? current;
     private bool awaitingContinue;
     public CombatChallengeRecord Record => record.Copy();
+    public int CompletedWaves => record.CompletedWaves;
 
     private CombatChallenge(CombatCatalog catalog, CombatChallengeRecord record)
     { this.catalog = catalog; this.record = record; }

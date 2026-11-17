@@ -129,7 +129,7 @@ public partial class CombatDemo : Control
     private void ChangeScreen(string screen)
     {
         Screen = screen; GetNode<Control>("Prepare").Visible = screen == "prepare";
-        GetNode<Control>("Pause").Visible = screen == "pause"; GetNode<Control>("Result").Visible = screen == "result";
+        GetNode<Control>("Pause").Visible = screen == "pause"; GetNode<Control>("Result").Visible = screen is "result" or "history";
         GetNode<Control>("Hud").Visible = screen is "fight" or "pause";
         audio.SetPaused(screen != "fight"); ClearCombatInput(); accumulator = 0;
     }
@@ -190,6 +190,8 @@ public partial class CombatDemo : Control
 
     private void ShowResult()
     {
+        GetNode<Button>(ResultPath + "Retry").Visible = true;
+        GetNode<Button>(ResultPath + "Export").Disabled = false;
         if (challenge != null) { ShowChallengeResult(); return; }
         ChangeScreen("result"); bool won = Match!.Result == CombatResult.Won;
         GetNode<Label>(ResultPath + "Title").Text = won ? "本波完成" : "调整一下，再试一次";
@@ -216,6 +218,7 @@ public partial class CombatDemo : Control
 
     private void ContinueResult()
     {
+        if (Screen == "history") { ReturnToPreparation(); return; }
         if (challenge != null) { ContinueChallengeResult(); return; }
         if (!CommitReward()) return;
         if (Match?.Result == CombatResult.Won) selectedWave = Progress.LastWave;
@@ -267,6 +270,12 @@ public partial class CombatDemo : Control
         if (code == Key.Escape)
         {
             if (Screen == "fight") PauseCombat(); else if (Screen == "pause") ResumeCombat();
+            else if (Screen == "history") ReturnToPreparation();
+            GetViewport().SetInputAsHandled(); return;
+        }
+        if (Screen == "history" && code is Key.Pageup or Key.Pagedown)
+        {
+            GetNode<ScrollContainer>("Result/Panel/Scroll").ScrollVertical += code == Key.Pageup ? -240 : 240;
             GetViewport().SetInputAsHandled(); return;
         }
         if (Screen == "prepare" && code == Key.I) { GetNode<Button>(Prep + "Equipment/" + Progress.Equipment["weapon"]).GrabFocus(); return; }
@@ -339,12 +348,15 @@ public partial class CombatDemo : Control
 
     public Godot.Collections.Dictionary ReadCombatState()
     {
-        var result = new Godot.Collections.Dictionary { ["screen"] = Screen, ["experience"] = Progress.Experience, ["wave"] = Match?.Wave.Id ?? selectedWave, ["challenge"] = challenge != null };
+        var result = new Godot.Collections.Dictionary { ["screen"] = Screen, ["experience"] = Progress.Experience, ["wave"] = Match?.Wave.Id ?? selectedWave,
+            ["challenge"] = challenge != null, ["challenge_completed"] = challenge?.CompletedWaves ?? 0 };
         if (Match == null) return result;
         var p = Match.Player;
         result["x"] = p.X; result["y"] = p.Y; result["health"] = p.Health; result["stamina"] = p.Stamina;
         result["facing"] = p.Facing; result["state"] = p.State.ToString(); result["frame"] = p.StateFrame; result["tick"] = Match.TickCount;
         result["attack"] = p.Attack?.Id ?? ""; result["total"] = p.Attack?.Total ?? 0;
+        result["light_reach"] = Catalog.EquippedMove("light1", p.Stats).Reach;
+        result["charged_reach"] = Catalog.EquippedMove("charged", p.Stats).Reach;
         var enemies = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var e in Match.Enemies)
             enemies.Add(new() { ["id"] = e.Enemy!.Id, ["x"] = e.X, ["y"] = e.Y, ["health"] = e.Health, ["state"] = e.State.ToString(), ["frame"] = e.StateFrame,

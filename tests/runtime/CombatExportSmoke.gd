@@ -92,7 +92,7 @@ func decide(info: Dictionary) -> Dictionary:
 		input.heavy_hold = int(info.frame) < 28
 		return input
 	if info.state == "Attack":
-		input.light = str(info.attack).begins_with("light") and int(info.total) - int(info.frame) <= 7 and absf(dx) < 75.0
+		input.light = str(info.attack).begins_with("light") and int(info.total) - int(info.frame) <= 7 and absf(dx) <= minf(64.0, float(info.get("light_reach", 58.0)) - 4.0)
 		return input
 	if not can_act:
 		return {}
@@ -102,8 +102,9 @@ func decide(info: Dictionary) -> Dictionary:
 			input.y = 0.0
 			input.guard = true
 			return input
-	var close: bool = absf(dx) <= 64.0 and absf(dy) <= 18.0
 	var heavy: bool = target.state in ["Guard", "Down", "Rising"] or target.id == "leader" and (target.state == "Recovery" or target.state == "Attack" and int(target.frame) >= int(target.active_end))
+	var reach: float = float(info.get("charged_reach", 72.0)) if heavy else float(info.get("light_reach", 58.0))
+	var close: bool = absf(dx) <= minf(68.0 if heavy else 64.0, reach - 4.0) and absf(dy) <= 18.0
 	input.light = close and not heavy
 	input.heavy_press = close and heavy
 	input.heavy_hold = close and heavy
@@ -123,6 +124,59 @@ func enter_combat(boot: Node) -> void:
 	await key(KEY_ENTER)
 	await frames(5)
 	game = current_scene
+
+func fight_wave(label: String) -> bool:
+	for tick in range(12000):
+		var info := state()
+		if info.screen == "result":
+			break
+		if info.screen == "pause":
+			release_keys()
+			root.grab_focus()
+			await frames(3)
+			game.get_node("Pause/Panel/Scroll/Content/Resume").grab_focus()
+			await key(KEY_ENTER)
+			continue
+		apply_input(decide(info))
+		await frames()
+		if tick == 100:
+			await capture(label)
+	release_keys()
+	return need(state().screen == "result", "Wave did not reach result " + label)
+
+func run_challenge() -> bool:
+	game.get_node("Prepare/Footer/Content/Actions/Challenge").grab_focus()
+	await key(KEY_ENTER)
+	if not need(game.get_node("Choices").visible, "Challenge confirmation missing"):
+		return false
+	game.get_node("Choices/Panel/Content/Options/Option1").grab_focus()
+	await key(KEY_ENTER)
+	if not need(state().screen == "fight" and state().challenge, "Challenge keyboard start failed"):
+		return false
+	var carried_health := int(state().health)
+	for index in range(6):
+		if not need(int(state().health) == carried_health, "Challenge health carry mismatch"):
+			return false
+		if not await fight_wave("challenge-wave-" + str(index + 1)):
+			return false
+		if not need(int(state().challenge_completed) == index + 1, "Challenge completion missing"):
+			return false
+		carried_health = int(state().health)
+		await capture("challenge-result-" + str(index + 1))
+		game.get_node("Result/Panel/Scroll/Content/Continue").grab_focus()
+		await key(KEY_ENTER)
+	if not need(state().screen == "prepare" and int(state().experience) == 480, "Challenge changed normal growth"):
+		return false
+	game.get_node("Prepare/Footer/Content/Actions/History").grab_focus()
+	await key(KEY_ENTER)
+	if not need(state().screen == "history" and "6/6" in game.get_node("Result/Panel/Scroll/Content/Statistics").text, "Challenge history missing"):
+		return false
+	await capture("challenge-history")
+	await key(KEY_ESCAPE)
+	if not need(state().screen == "prepare", "Challenge history keyboard return failed"):
+		return false
+	print("EXPORT_CHALLENGE_PASS KeyboardSixWaves HealthCarry History GrowthPreserved")
+	return true
 
 func run() -> void:
 	if not audit_pack():
@@ -151,22 +205,8 @@ func run() -> void:
 		var info := state()
 		if not need(info.screen == "fight", "Starting wave failed " + str(index)):
 			return
-		for tick in range(12000):
-			info = state()
-			if info.screen == "result":
-				break
-			if info.screen == "pause":
-				release_keys()
-				root.grab_focus()
-				await frames(3)
-				game.get_node("Pause/Panel/Scroll/Content/Resume").grab_focus()
-				await key(KEY_ENTER)
-				continue
-			apply_input(decide(info))
-			await frames()
-			if tick == 100:
-				await capture("combat-wave-" + str(index + 1))
-		release_keys()
+		if not await fight_wave("combat-wave-" + str(index + 1)):
+			return
 		if not need(state().screen == "result" and int(state().experience) == expected_xp[index], "Wave failed or growth missing " + str(index)):
 			return
 		print("EXPORT_COMBAT_WAVE_PASS " + str(index + 1) + " xp=" + str(state().experience))
@@ -186,5 +226,7 @@ func run() -> void:
 	if not need(int(state().experience) == 480, "Saved combat progress did not resume after menu"):
 		return
 	print("EXPORT_COMBAT_PASS MenuKeyboard SixWaves Level5 NineItems Equipment SavedResume")
+	if not await run_challenge():
+		return
 	var session := root.get_node("GameSession")
 	session.call("RequestQuit")
