@@ -398,6 +398,16 @@ layout_mode=2
 text=""
 autowrap_mode=3
 
+[node name="Challenge" type="Button" parent="Prepare/Footer/Content/Actions"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="街头连战 · 通关解锁"
+
+[node name="History" type="Button" parent="Prepare/Footer/Content/Actions"]
+layout_mode=2
+custom_minimum_size=Vector2(0,48)
+text="连战记录"
+
 
 [node name="Title" type="Label" parent="Pause/Panel/Scroll/Content"]
 layout_mode=2

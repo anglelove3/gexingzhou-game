@@ -38,7 +38,7 @@ public partial class CombatDemo : Control
             saveDirectory = ProjectSettings.GlobalizePath(root + "/combat-v1");
             repository = new(saveDirectory, Catalog); arena = GetNode<CombatArena>("Arena");
             audio = GetNode<AudioDirector>("Audio"); settings = GetNode<SettingsController>("Settings"); choices = GetNode<ChoiceController>("Choices");
-            BindUi();
+            BindUi(); BindChallengeUi();
             var loaded = repository.Load();
             blockedSave = loaded.Status != LoadStatus.Loaded && (loaded.Status != LoadStatus.NotFound || repository.LoadBackup().Status != LoadStatus.NotFound);
             Progress = loaded.Progress ?? CombatProgress.New(Catalog); selectedWave = Progress.LastWave;
@@ -85,13 +85,14 @@ public partial class CombatDemo : Control
         GetNode<Button>(Pause + "Prepare").Pressed += () => ConfirmLeave(ReturnToPreparation);
         GetNode<Button>(Pause + "Menu").Pressed += () => ConfirmLeave(ReturnToMenu);
         GetNode<Button>(ResultPath + "Continue").Pressed += ContinueResult;
-        GetNode<Button>(ResultPath + "Retry").Pressed += () => StartWave();
+        GetNode<Button>(ResultPath + "Retry").Pressed += RetryCombat;
         GetNode<Button>(ResultPath + "Menu").Pressed += ReturnToMenu;
         GetNode<Button>(ResultPath + "Export").Pressed += ExportStatistics;
     }
 
     public bool StartWave()
     {
+        if (challenge != null) return false;
         if (blockedSave || pendingReward != null || !Progress.CanEnter(selectedWave, Catalog)) return false;
         var saved = repository.Save(Progress with { LastWave = selectedWave });
         if (!saved.Success) { Message(saved.Message); return false; }
@@ -110,6 +111,7 @@ public partial class CombatDemo : Control
 
     public void ReturnToPreparation()
     {
+        if (!EndChallenge()) return;
         if (pendingReward != null) return;
         Match = null; arena.Match = null; ShowPreparation();
     }
@@ -120,7 +122,7 @@ public partial class CombatDemo : Control
         var controls = new List<Control> { GetNode<OptionButton>(Prep + "Wave") };
         controls.AddRange(Catalog.Items.Where(i => Progress.Owned.Contains(i.Id)).Select(i => GetNode<Control>(Prep + "Equipment/" + i.Id)));
         controls.Add(GetNode<CheckButton>(Prep + "TheoryToggle"));
-        controls.AddRange(new[] { "Start", "Recover", "Reset", "Menu" }.Select(id => GetNode<Control>(PrepActions + id)).Where(c => c.Visible && !((Button)c).Disabled));
+        controls.AddRange(new[] { "Start", "Recover", "Reset", "Menu", "Challenge", "History" }.Select(id => GetNode<Control>(PrepActions + id)).Where(c => c.Visible && !((Button)c).Disabled));
         SceneBindings.BindFocusLoop(controls); controls[0].GrabFocus();
     }
 
@@ -148,6 +150,7 @@ public partial class CombatDemo : Control
 
     private void ReturnToMenu()
     {
+        if (!EndChallenge()) return;
         if (pendingReward != null && !CommitReward()) return;
         if (settings.IsOpen) settings.Close();
         choices.Close(); GetTree().ChangeSceneToFile("res://scenes/Boot.tscn");
@@ -187,6 +190,7 @@ public partial class CombatDemo : Control
 
     private void ShowResult()
     {
+        if (challenge != null) { ShowChallengeResult(); return; }
         ChangeScreen("result"); bool won = Match!.Result == CombatResult.Won;
         GetNode<Label>(ResultPath + "Title").Text = won ? "本波完成" : "调整一下，再试一次";
         if (won)
@@ -205,12 +209,14 @@ public partial class CombatDemo : Control
             GetNode<Label>(ResultPath + "Message").Text = "";
         }
         var s = Match.Statistics;
-        GetNode<Label>(ResultPath + "Statistics").Text = $"本次可操作战斗时间 {s.ActiveSeconds:0.0} 秒\n轻击 {s.LightAttacks} · 重击 {s.HeavyAttacks} · 闪避 {s.Dodges} · 格挡 {s.Blocks}\n受击 {s.HitsTaken} 次 · 造成伤害 {s.DamageDealt} · 承受伤害 {s.DamageTaken}\n耐力不足 {s.EmptyStamina} 次";
+        GetNode<Label>(ResultPath + "Statistics").Text = StatisticsText(s);
+        GetNode<Button>(ResultPath + "Retry").Text = "重试本波";
         BindFocus(ResultPath, new[] { "Continue", "Retry", "Export", "Menu" });
     }
 
     private void ContinueResult()
     {
+        if (challenge != null) { ContinueChallengeResult(); return; }
         if (!CommitReward()) return;
         if (Match?.Result == CombatResult.Won) selectedWave = Progress.LastWave;
         ReturnToPreparation();
@@ -298,7 +304,7 @@ public partial class CombatDemo : Control
         foreach (var ev in events)
         {
             AudioCue? cue = ev.Kind switch { "attack" => AudioCue.CombatSwing, "hit" => AudioCue.CombatHit, "block" => AudioCue.CombatBlock,
-                "down" or "break" => AudioCue.CombatDown, _ => null };
+                "down" or "break" => AudioCue.CombatDown, "perfect" => AudioCue.CombatBlock, _ => null };
             if (cue is { } value) audio.PlayCue(value);
         }
     }
@@ -322,17 +328,18 @@ public partial class CombatDemo : Control
         }
         if (Match == null) return;
         var p = Match.Player;
-        GetNode<Label>("Hud/Top/Content/Player").Text = $"葛行舟 · Lv.{Catalog.Level(attemptProgress!.Experience)}    生命 {p.Health}/{p.Stats.Health}    耐力 {p.Stamina:0}/{p.Stats.Stamina}";
+        GetNode<Label>("Hud/Top/Content/Player").Text = $"葛行舟 · Lv.{Catalog.Level(attemptProgress!.Experience)}    生命 {p.Health}/{p.Stats.Health}\n耐力 {p.Stamina:0}/{p.Stats.Stamina}";
         GetNode<ProgressBar>("Hud/Top/Content/Health").Value = p.Health * 100d / p.Stats.Health;
         GetNode<ProgressBar>("Hud/Top/Content/Stamina").Value = p.Stamina * 100 / p.Stats.Stamina;
         GetNode<Label>("Hud/Top/Content/Action").Text = p.State == CombatState.Charging ? $"蓄力 {Math.Min(100, p.StateFrame * 100 / 27)}%" :
             p.State == CombatState.Attack ? p.Attack!.Name : p.State switch { CombatState.Guard => "正面防御", CombatState.Dodge => "闪避", CombatState.Hurt => "受击", CombatState.Down => "倒地", _ => "观察距离，留出耐力" };
         GetNode<Label>("Hud/Wave").Text = Match.Wave.Name + "\n" + Match.Wave.Hint;
+        if (challenge != null) GetNode<Label>("Hud/Wave").Text += "\n连战 · 生命继承 / 耐力逐波回满";
     }
 
     public Godot.Collections.Dictionary ReadCombatState()
     {
-        var result = new Godot.Collections.Dictionary { ["screen"] = Screen, ["experience"] = Progress.Experience, ["wave"] = selectedWave };
+        var result = new Godot.Collections.Dictionary { ["screen"] = Screen, ["experience"] = Progress.Experience, ["wave"] = Match?.Wave.Id ?? selectedWave, ["challenge"] = challenge != null };
         if (Match == null) return result;
         var p = Match.Player;
         result["x"] = p.X; result["y"] = p.Y; result["health"] = p.Health; result["stamina"] = p.Stamina;

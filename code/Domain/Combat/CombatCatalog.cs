@@ -102,7 +102,8 @@ public sealed class CombatCatalog
                 c.Growth.LevelHealth < 0 || c.Growth.LevelAttack < 0 || c.Growth.LevelDefense < 0 || c.Growth.LevelStamina < 0 ||
                 new[] { c.Growth.Recovery, c.Growth.MoveSpeed, c.Growth.DodgeSeconds }.Any(v => !double.IsFinite(v) || v <= 0) ||
                 c.Items == null || c.Moves == null || c.Enemies == null || c.Waves == null ||
-                c.Items.Count != 9 || c.Moves.Count != 5 || c.Enemies.Count != 4 || c.Waves.Count != 6)
+                c.Items.Count != 9 || c.Moves.Count != 5 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
+                c.Items.Any(i => i == null) || c.Moves.Any(m => m == null) || c.Enemies.Any(e => e == null) || c.Waves.Any(w => w == null))
                 throw new ArgumentException("战斗配置结构或版本异常。");
             Unique(c.Items.Select(i => i.Id)); Unique(c.Moves.Select(i => i.Id));
             Unique(c.Enemies.Select(i => i.Id)); Unique(c.Waves.Select(i => i.Id));
@@ -132,7 +133,7 @@ public sealed class CombatCatalog
                 if (w.Experience <= 0 || w.Enemies == null || w.Items == null || w.Enemies.Length is < 1 or > 3 ||
                     w.Enemies.Any(id => !c.Enemies.Any(e => e.Id == id)) || w.Items.Any(id => !c.Items.Any(i => i.Id == id)))
                     throw new ArgumentException("波次配置异常。");
-            if (c.Waves.Sum(w => w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");
+            if (c.Waves.Sum(w => (long)w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");
             foreach (var id in new[] { "wraps", "jacket", "trainers" }) c.Item(id);
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
             c.ConfigHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))).ToLowerInvariant();

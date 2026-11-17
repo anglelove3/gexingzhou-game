@@ -43,7 +43,7 @@ public partial class CombatArena : Node2D
     public void ShowEvents(IEnumerable<CombatEvent> events)
     {
         foreach (var ev in events)
-            if (ev.Kind is "hit" or "block" or "down" or "break" or "tired") floating.Add(new() { Event = ev });
+            if (ev.Kind is "hit" or "block" or "down" or "break" or "tired" or "restore" or "perfect" or "riposte" or "break-bonus") floating.Add(new() { Event = ev });
     }
 
     public override void _Process(double delta)
@@ -62,9 +62,14 @@ public partial class CombatArena : Node2D
         foreach (var hit in floating)
         {
             var ev = hit.Event; var alpha = (float)(1 - hit.Age / .7);
-            var text = ev.Kind == "tired" ? "留出耐力" : ev.Kind == "block" ? "格挡 " + ev.Damage : ev.Kind == "break" ? "破防 " + ev.Damage : ev.Damage.ToString();
+            var text = ev.Kind switch
+            {
+                "tired" => "留出耐力", "block" => "格挡 " + ev.Damage, "break" => "破防 " + ev.Damage,
+                "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", _ => ev.Damage.ToString()
+            };
             var color = ev.Kind == "block" ? new Color(.65f, .85f, .95f, alpha) : new Color(1, .84f, .45f, alpha);
-            DrawString(font, new Vector2((float)ev.X - 22, (float)(ev.Y - 108 - hit.Age * 42)), text, HorizontalAlignment.Left, -1, 20, color);
+            var height = ev.Kind is "restore" or "perfect" or "riposte" or "break-bonus" ? 138 : 108;
+            DrawString(font, new Vector2((float)ev.X - 22, (float)(ev.Y - height - hit.Age * 42)), text, HorizontalAlignment.Left, -1, 20, color);
         }
     }
 

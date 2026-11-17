@@ -25,8 +25,19 @@ public partial class SmokeHarness
                 Require(match.TickCount == before, "Paused combat clock advanced at physics rate " + rate);
                 demo.ResumeCombat(); var stoppedX = match.Player.X; await Frames(5);
                 Require(match.Player.X == stoppedX, "Released input resumed after pause at physics rate " + rate);
+                var player = match.Player; player.Facing = -1; player.SetGuard(true);
+                var source = GeXingzhou.Domain.CombatFighter.FromEnemy("timing", demo.Catalog.Enemies[0], player.X - 30, player.Y);
+                Require(player.ReceiveHit(source, demo.Catalog.Move("light1")).PerfectGuard, "Timing guard fixture failed");
+                for (int i = 0; i < rate / 2; i++) await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                Require(Math.Abs(player.RiposteRemaining - 60) <= 4, "Riposte clock drift at physics rate " + rate);
+                demo.PauseCombat(); var opportunity = player.RiposteRemaining;
+                for (int i = 0; i < rate / 4; i++) await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                Require(player.RiposteRemaining == opportunity, "Paused riposte opportunity expired");
+                demo.ResumeCombat();
+                for (int i = 0; i < rate + rate / 4; i++) await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                Require(player.RiposteRemaining == 0, "Riposte opportunity failed to expire");
                 demo.Free(); await Frames(3);
-                GD.Print("COMBAT_TIMING_PASS physics=" + rate + " fixed_model=60 movement=180 pause=frozen");
+                GD.Print("COMBAT_TIMING_PASS physics=" + rate + " fixed_model=60 movement=180 pause=frozen riposte=timed_and_frozen");
             }
         }
         finally { Engine.PhysicsTicksPerSecond = originalRate; }

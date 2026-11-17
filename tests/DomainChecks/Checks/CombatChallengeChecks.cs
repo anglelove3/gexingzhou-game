@@ -109,5 +109,23 @@ public static class CombatChallengeChecks
             var data = JsonSerializer.Serialize(a.Record);
             Check.Equal<string?>(null, JsonSerializer.Deserialize<CombatChallengeRecord>(data)!.Validate());
         }));
+        tests.Add(("CombatChallenge", "MalformedHistoryKeepsOtherRecordsAvailable", () =>
+        {
+            var c = CombatChecks.Catalog(); var a = CombatChallenge.Start(c, Complete(c)); var b = CombatChallenge.Start(c, Complete(c));
+            var dir = Path.Combine("test-output", "challenge-corrupt-" + Guid.NewGuid().ToString("N"));
+            var repo = new CombatChallengeRepository(dir);
+            Check.True(repo.Save(a.Record).Success); Check.True(repo.Save(b.Record).Success);
+            foreach (var corruption in new[] { "null-item", "overflow" })
+            {
+                var config = System.Text.Json.Nodes.JsonNode.Parse(a.Record.ConfigJson)!;
+                if (corruption == "null-item") config["items"]![0] = null;
+                else config["waves"]![0]!["experience"] = int.MaxValue;
+                var broken = a.Record with { ConfigJson = config.ToJsonString() };
+                File.WriteAllText(Path.Combine(dir, "attempt-" + a.Record.AttemptId + ".json"), JsonSerializer.Serialize(broken));
+                var history = repo.LoadHistory();
+                Check.Equal(1, history.Records.Count); Check.Equal(1, history.Issues.Count);
+                Check.Equal(b.Record.AttemptId, history.Records[0].AttemptId);
+            }
+        }));
     }
 }

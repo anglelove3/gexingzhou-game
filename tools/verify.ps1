@@ -21,6 +21,7 @@ try {
     $known+='ModalFocus'
     $known+='Combat'
     $known+='CombatTiming'
+    $known+='CombatChallenge'
     if($Suite -and $Suite -notin $known){throw "UNKNOWN_SUITE $Suite"}
     $context=Get-ToolContext $GodotExe
     Push-Location $script:ProjectRoot
@@ -54,10 +55,11 @@ try {
         if(!$Suite){$suites+='ModalFocus'}
         if(!$Suite){$suites+='Combat'}
         if(!$Suite){$suites+='CombatTiming'}
+        if(!$Suite){$suites+='CombatChallenge'}
         foreach($name in $suites) {
             $arguments=@('--headless','--fixed-fps','60','--path',$script:ProjectRoot,'res://tests/integration/Smoke.tscn','--',"--suite=$name")
             if($name -in @('ResumeSeed','ResumeRead')){$arguments+="--test-save-root=$resumeRoot"}
-            if($name -eq 'Combat'){$arguments+="--test-save-root=$resumeRoot/combat"}
+            if($name -in @('Combat','CombatChallenge')){$arguments+="--test-save-root=$resumeRoot/$name"}
             Invoke-Checked $context.GodotExe $arguments ('suite-'+$name)
         }
         $resources=@(Get-PublicResources)

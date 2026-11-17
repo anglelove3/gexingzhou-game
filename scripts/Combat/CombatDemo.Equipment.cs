@@ -6,7 +6,7 @@ public partial class CombatDemo
 {
     public bool TryEquip(string id)
     {
-        if (Screen != "prepare" || blockedSave || !Progress.Owned.Contains(id)) return false;
+        if (Screen != "prepare" || challenge != null || blockedSave || !Progress.Owned.Contains(id)) return false;
         var candidate = Progress.Equip(id, Catalog); var saved = repository.Save(candidate);
         if (saved.Success) { Progress = candidate; UpdatePreparation(); }
         Message(saved.Message); return saved.Success;
@@ -31,6 +31,7 @@ public partial class CombatDemo
             b.TooltipText = item.Description;
         }
         GetNode<Button>(PrepActions + "Start").Disabled = blockedSave;
+        GetNode<Button>(PrepActions + "Challenge").Disabled = blockedSave || !Progress.CompletedRun;
         GetNode<Button>(PrepActions + "Recover").Visible = repository.LoadBackup().Status == LoadStatus.Loaded && blockedSave;
         GetNode<Label>(Prep + "Preview").Text = "选择装备查看属性变化，按Enter或点击穿戴。";
         var moves = new[] { "light1", "light2", "light3" }.Select(id => Catalog.EquippedMove(id, stats)).ToArray();
@@ -56,7 +57,8 @@ public partial class CombatDemo
         {
             var folder = System.IO.Path.Combine(saveDirectory, "exports"); System.IO.Directory.CreateDirectory(folder);
             var path = System.IO.Path.Combine(folder, "combat-" + Guid.NewGuid().ToString("N") + ".json");
-            var data = new { mode = "combat", version = Catalog.Version, wave = Match.Wave.Id,
+            object data = challenge != null ? challenge.Record : new { mode = "combat", version = Catalog.Version,
+                balanceVersion = Catalog.BalanceVersion, configHash = Catalog.ConfigHash, wave = Match.Wave.Id,
                 level = Catalog.Level(attemptProgress.Experience), equipment = attemptProgress.Equipment,
                 result = Match.Result.ToString(), statistics = Match.Statistics };
             System.IO.File.WriteAllText(path, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
