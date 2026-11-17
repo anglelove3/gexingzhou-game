@@ -15,12 +15,12 @@ public sealed class CombatMatch
     private string? permitOwner, queued;
     private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
 
-    public CombatMatch(CombatCatalog catalog, CombatProgress progress, string waveId)
+    public CombatMatch(CombatCatalog catalog, CombatProgress progress, string waveId, int? initialHealth = null)
     {
         if (progress.Validate(catalog) is { } error) throw new ArgumentException(error);
         if (!progress.CanEnter(waveId, catalog)) throw new ArgumentException("波次尚未解锁。");
         Catalog = catalog; Wave = catalog.Wave(waveId);
-        Player = new("player", "葛行舟", catalog.Stats(progress), 360, 480);
+        Player = new("player", "葛行舟", catalog.Stats(progress), 360, 480, initialHealth: initialHealth);
         for (int i = 0; i < Wave.Enemies.Length; i++)
         {
             var type = catalog.Enemies.First(e => e.Id == Wave.Enemies[i]);

@@ -52,10 +52,11 @@ public sealed class CombatFighter
     private int riposteCooldown;
     private readonly HashSet<string> struck = new(StringComparer.Ordinal);
 
-    public CombatFighter(string id, string name, CombatStats stats, double x, double y, CombatEnemy? enemy = null)
+    public CombatFighter(string id, string name, CombatStats stats, double x, double y, CombatEnemy? enemy = null, int? initialHealth = null)
     {
         Id = id; Name = name; Stats = stats; X = x; Y = y; Enemy = enemy;
-        Health = stats.Health; Stamina = stats.Stamina;
+        Health = initialHealth ?? stats.Health; Stamina = stats.Stamina;
+        if (Health <= 0 || Health > stats.Health) throw new ArgumentOutOfRangeException(nameof(initialHealth));
     }
 
     public static CombatFighter FromEnemy(string id, CombatEnemy enemy, double x, double y) =>

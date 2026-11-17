@@ -81,6 +81,8 @@ public sealed class CombatCatalog
     public string BalanceVersion { get; init; } = "combat-base-0.1";
     [System.Text.Json.Serialization.JsonIgnore]
     public string ConfigHash { get; private set; } = "";
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string SourceJson { get; private set; } = "";
     public int[] Levels { get; init; } = Array.Empty<int>();
     public CombatGrowth? Growth { get; init; }
     public int ExperienceCap => Levels[^1];
@@ -134,6 +136,7 @@ public sealed class CombatCatalog
             foreach (var id in new[] { "wraps", "jacket", "trainers" }) c.Item(id);
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
             c.ConfigHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
+            c.SourceJson = json;
             return c;
         }
         catch (JsonException ex) { throw new ArgumentException("战斗配置无法解析。", ex); }

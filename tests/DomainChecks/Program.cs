@@ -23,6 +23,7 @@ RecruitDemoChecks.Register(tests);
 SettingsEventChecks.Register(tests);
 CombatChecks.Register(tests);
 CombatBuildChecks.Register(tests);
+CombatChallengeChecks.Register(tests);
 string? filter = null;
 for (int i = 0; i < args.Length; i++) if (args[i] == "--filter" && i+1 < args.Length) filter = args[++i];
 var selected = tests.Where(t => filter is null || t.Group.Equals(filter, StringComparison.OrdinalIgnoreCase)).ToArray();
