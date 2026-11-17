@@ -13,6 +13,7 @@ public sealed class CombatMatch
     public bool HitStopped => hitstop > 0;
     private int hitstop, nextPermit, queueFrames;
     private string? permitOwner, queued;
+    private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
 
     public CombatMatch(CombatCatalog catalog, CombatProgress progress, string waveId)
     {
@@ -34,6 +35,7 @@ public sealed class CombatMatch
     {
         Events.Clear();
         if (Result != CombatResult.Running) return;
+        Statistics.TotalFrames++;
         if (hitstop > 0) { hitstop--; BufferInput(input); return; }
         TickCount++; Statistics.ActiveFrames++;
         BufferInput(input);
@@ -112,6 +114,8 @@ public sealed class CombatMatch
         var move = Catalog.EquippedMove(id, Player.Stats);
         if (!Player.TryAttack(move)) { EmptyStamina(); return false; }
         if (move.IsLight) Statistics.LightAttacks++; else Statistics.HeavyAttacks++;
+        if (Player.AttackHasRiposte) Statistics.RiposteAttacks++;
+        if (id == "charged" && Player.Stats.Weapon.GuardBreakPower > 1) Statistics.BreakAttacks++;
         Events.Add(new("attack", Player.Id, "", 0, Player.X, Player.Y)); return true;
     }
 
@@ -204,15 +208,35 @@ public sealed class CombatMatch
         foreach (var target in targets)
         {
             if (!source.InRange(target, move) || !source.RegisterTarget(target)) continue;
+            int beforeHealth = target.Health;
             var hit = target.ReceiveHit(source, move);
             if (!hit.Applied) continue;
             Events.Add(new(hit.Blocked ? "block" : hit.GuardBroken ? "break" : hit.KnockedDown ? "down" : "hit", source.Id, target.Id, hit.Damage, target.X, target.Y));
             hitstop = Math.Max(hitstop, move.IsLight || move.Id == "enemy_jab" ? 2 : 4);
-            if (source == Player) Statistics.DamageDealt += hit.Damage;
+            if (source == Player)
+            {
+                Statistics.DamageDealt += hit.Damage;
+                Statistics.EffectiveDamage += beforeHealth - target.Health;
+                if (hit.Damage > 0 && !hit.Blocked)
+                {
+                    if (move.Id == "light3" && Player.Stats.Weapon.ComboStaminaRestore > 0 && restoredSequence != source.AttackSequence)
+                    {
+                        restoredSequence = source.AttackSequence;
+                        Statistics.StaminaReturns++;
+                        Statistics.StaminaRestored += Player.RestoreStamina(Player.Stats.Weapon.ComboStaminaRestore);
+                        Events.Add(new("restore", Player.Id, "", 0, Player.X, Player.Y));
+                    }
+                    if (Player.AttackHasRiposte && riposteHitSequence != source.AttackSequence)
+                    { riposteHitSequence = source.AttackSequence; Statistics.RiposteHits++; Events.Add(new("riposte", Player.Id, target.Id, hit.Damage, target.X, target.Y)); }
+                    if (hit.BreakBonus && breakHitSequence != source.AttackSequence)
+                    { breakHitSequence = source.AttackSequence; Statistics.BreakHits++; Events.Add(new("break-bonus", Player.Id, target.Id, hit.Damage, target.X, target.Y)); }
+                }
+            }
             if (target == Player)
             {
                 Statistics.DamageTaken += hit.Damage;
                 if (hit.Blocked) Statistics.Blocks++; else Statistics.HitsTaken++;
+                if (hit.PerfectGuard) { Statistics.PerfectGuards++; Events.Add(new("perfect", Player.Id, source.Id, 0, Player.X, Player.Y)); }
             }
         }
     }

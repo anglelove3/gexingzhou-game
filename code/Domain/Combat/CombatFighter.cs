@@ -3,7 +3,8 @@ namespace GeXingzhou.Domain;
 public enum CombatState { Idle, Attack, Charging, Guard, Dodge, Hurt, Down, Rising, Recovery, Dead }
 public readonly record struct CombatInput(double MoveX = 0, double MoveY = 0, bool LightPressed = false,
     bool HeavyPressed = false, bool HeavyHeld = false, bool HeavyReleased = false, bool GuardHeld = false, bool DodgePressed = false);
-public readonly record struct CombatHit(bool Applied, int Damage, bool Blocked, bool GuardBroken, bool KnockedDown);
+public readonly record struct CombatHit(bool Applied, int Damage, bool Blocked, bool GuardBroken, bool KnockedDown,
+    bool PerfectGuard = false, bool BreakBonus = false);
 
 public sealed class CombatFighter
 {
@@ -30,6 +31,8 @@ public sealed class CombatFighter
     public int AttackCount { get; set; }
     public int RoamSide { get; set; } = 1;
     public bool IsMoving { get; private set; }
+    public int RiposteRemaining { get; private set; }
+    public bool AttackHasRiposte { get; private set; }
     public bool Protected => protectionFrames > 0 || State is CombatState.Down or CombatState.Rising or CombatState.Dead ||
         State == CombatState.Dodge && StateFrame >= 4 && StateFrame < 11;
     public bool CanAct => State is CombatState.Idle or CombatState.Guard;
@@ -46,6 +49,7 @@ public sealed class CombatFighter
 
     private int remainingFrames, protectionFrames, staminaDelay, dodgeCooldown, continuousStun, leaderKnockdown;
     private double dodgeX, dodgeY;
+    private int riposteCooldown;
     private readonly HashSet<string> struck = new(StringComparer.Ordinal);
 
     public CombatFighter(string id, string name, CombatStats stats, double x, double y, CombatEnemy? enemy = null)
@@ -72,6 +76,12 @@ public sealed class CombatFighter
     public bool TryAttack(CombatMove move, int secondHitOffset = 0)
     {
         if (State is not (CombatState.Idle or CombatState.Guard or CombatState.Charging) || Stamina < move.Cost) return false;
+        AttackHasRiposte = Enemy == null && move.Id == "light1" && RiposteRemaining > 0;
+        if (AttackHasRiposte)
+        {
+            move = move with { Power = move.Power * Stats.Weapon.RipostePower };
+            RiposteRemaining = 0;
+        }
         Spend(move.Cost); Attack = move; SecondHitOffset = secondHitOffset;
         AttackSequence++; struck.Clear(); Enter(CombatState.Attack); return true;
     }
@@ -105,8 +115,9 @@ public sealed class CombatFighter
     public CombatHit ReceiveHit(CombatFighter source, CombatMove move)
     {
         if (Protected) return default;
-        int damage = CombatCatalog.Damage(source.Stats.Attack, move.Power, Stats.Defense);
         bool front = (source.X - X) * Facing >= 0;
+        bool breakBonus = source.Enemy == null && Enemy != null && move.Id == "charged" && State == CombatState.Guard && front && source.Stats.Weapon.GuardBreakPower > 1;
+        int damage = CombatCatalog.Damage(source.Stats.Attack, move.Power * (breakBonus ? source.Stats.Weapon.GuardBreakPower : 1), Stats.Defense);
         bool blocking = State == CombatState.Guard && front && !(Enemy != null && move.Id == "charged");
         if (blocking && Enemy != null)
         {
@@ -124,11 +135,14 @@ public sealed class CombatFighter
             {
                 damage = (int)Math.Floor(damage * .2); Health = Math.Max(0, Health - damage);
                 if (Health == 0) Enter(CombatState.Dead);
-                return new(true, damage, true, false, false);
+                bool perfect = State == CombatState.Guard && StateFrame < Stats.Weapon.PerfectGuardFrames && riposteCooldown == 0 && Health > 0;
+                if (perfect) { RiposteRemaining = Stats.Weapon.RiposteFrames; riposteCooldown = Stats.Weapon.RiposteCooldown; }
+                return new(true, damage, true, false, false, perfect);
             }
         }
         Health = Math.Max(0, Health - damage);
-        if (Health == 0) { Enter(CombatState.Dead); return new(true, damage, false, broken, false); }
+        RiposteRemaining = 0;
+        if (Health == 0) { Enter(CombatState.Dead); return new(true, damage, false, broken, false, BreakBonus: breakBonus); }
         bool knocked = move.Id == "charged";
         if (Enemy?.Id == "leader")
         {
@@ -153,10 +167,15 @@ public sealed class CombatFighter
             }
             Enter(CombatState.Hurt);
         }
-        return new(true, damage, false, broken, knocked);
+        return new(true, damage, false, broken, knocked, BreakBonus: breakBonus);
     }
 
     private void Spend(double amount) { Stamina -= amount; staminaDelay = 42; }
+    public double RestoreStamina(double amount)
+    {
+        if (!double.IsFinite(amount) || amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        var before = Stamina; Stamina = Math.Min(Stats.Stamina, Stamina + amount); return Stamina - before;
+    }
     public void Recover(int frames) { remainingFrames = frames; Enter(CombatState.Recovery); }
     private void Enter(CombatState state) { State = state; StateFrame = 0; IsMoving = false; }
 
@@ -164,6 +183,8 @@ public sealed class CombatFighter
     {
         FinishedAttack = false; FinishedRecovery = false; IsMoving = false;
         if (State == CombatState.Dead) return;
+        if (RiposteRemaining > 0) RiposteRemaining--;
+        if (riposteCooldown > 0) riposteCooldown--;
         if (protectionFrames > 0) protectionFrames--;
         if (dodgeCooldown > 0) dodgeCooldown--;
         if (staminaDelay > 0) staminaDelay--;

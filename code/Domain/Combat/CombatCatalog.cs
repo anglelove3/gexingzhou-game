@@ -21,6 +21,13 @@ public sealed record CombatItem
     public double Reach { get; init; } = 1;
     public double HeavyPower { get; init; } = 1;
     public double DodgeAdjustment { get; init; }
+    public int ComboStaminaRestore { get; init; }
+    public double GuardBreakPower { get; init; } = 1;
+    public int ChargedExtraCost { get; init; }
+    public int PerfectGuardFrames { get; init; }
+    public int RiposteFrames { get; init; }
+    public int RiposteCooldown { get; init; }
+    public double RipostePower { get; init; } = 1;
 }
 
 public sealed record CombatMove
@@ -71,6 +78,9 @@ public sealed record CombatGrowth(int Health, int Attack, int Defense, int Stami
 public sealed class CombatCatalog
 {
     public string Version { get; init; } = "";
+    public string BalanceVersion { get; init; } = "combat-base-0.1";
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ConfigHash { get; private set; } = "";
     public int[] Levels { get; init; } = Array.Empty<int>();
     public CombatGrowth? Growth { get; init; }
     public int ExperienceCap => Levels[^1];
@@ -84,7 +94,7 @@ public sealed class CombatCatalog
         try
         {
             var c = JsonSerializer.Deserialize<CombatCatalog>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if (c == null || c.Version != "combat-0.1" || c.Levels == null || c.Levels.Length != 5 || c.Levels[0] != 0 ||
+            if (c == null || c.Version != "combat-0.1" || string.IsNullOrWhiteSpace(c.BalanceVersion) || c.Levels == null || c.Levels.Length != 5 || c.Levels[0] != 0 ||
                 c.Levels.Zip(c.Levels.Skip(1)).Any(pair => pair.First >= pair.Second) ||
                 c.Growth == null || c.Growth.Health <= 0 || c.Growth.Attack <= 0 || c.Growth.Defense < 0 || c.Growth.Stamina <= 0 ||
                 c.Growth.LevelHealth < 0 || c.Growth.LevelAttack < 0 || c.Growth.LevelDefense < 0 || c.Growth.LevelStamina < 0 ||
@@ -101,6 +111,12 @@ public sealed class CombatCatalog
                     values.Any(v => !double.IsFinite(v) || v <= 0 || v > 4) ||
                     !double.IsFinite(i.Recovery) || !double.IsFinite(i.DodgeAdjustment) || .34 + i.DodgeAdjustment < .18)
                     throw new ArgumentException("装备参数异常。");
+                if (i.ComboStaminaRestore is < 0 or > 100 || i.ChargedExtraCost is < 0 or > 100 ||
+                    i.PerfectGuardFrames is < 0 or > 60 || i.RiposteFrames is < 0 or > 600 || i.RiposteCooldown is < 0 or > 600 ||
+                    !double.IsFinite(i.GuardBreakPower) || i.GuardBreakPower is < 1 or > 4 ||
+                    !double.IsFinite(i.RipostePower) || i.RipostePower is < 1 or > 4 ||
+                    i.PerfectGuardFrames > 0 && (i.RiposteFrames == 0 || i.RiposteCooldown == 0))
+                    throw new ArgumentException("武器机制参数异常。");
             }
             foreach (var m in c.Moves)
                 if (m.Startup < 1 || m.Active < 1 || m.Recovery < 1 || m.Cost < 1 ||
@@ -117,6 +133,7 @@ public sealed class CombatCatalog
             if (c.Waves.Sum(w => w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");
             foreach (var id in new[] { "wraps", "jacket", "trainers" }) c.Item(id);
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
+            c.ConfigHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
             return c;
         }
         catch (JsonException ex) { throw new ArgumentException("战斗配置无法解析。", ex); }
@@ -162,7 +179,7 @@ public sealed class CombatCatalog
             Startup = Math.Max(1, (int)Math.Round(m.Startup * time, MidpointRounding.AwayFromZero)),
             Active = Math.Max(1, (int)Math.Round(m.Active * time, MidpointRounding.AwayFromZero)),
             Recovery = Math.Max(1, (int)Math.Round(m.Recovery * time, MidpointRounding.AwayFromZero)),
-            Cost = (int)Math.Ceiling(m.Cost * w.AttackCost * (m.IsLight ? w.LightCost : 1)),
+            Cost = (int)Math.Ceiling(m.Cost * w.AttackCost * (m.IsLight ? w.LightCost : 1)) + (id == "charged" ? w.ChargedExtraCost : 0),
             Power = m.Power * (m.IsLight ? 1 : w.HeavyPower), Reach = m.Reach * w.Reach
         };
     }
