@@ -11,9 +11,9 @@
 
 ## 🎮 下载试玩
 
-本轮发布时间为 **2026-11-18 15:18:12（北京时间，UTC+8）**。保留三种武器流派、生命继承连战与独立成绩，重点打磨轻重击层次、命中后闪避衔接和守势反应机会。主菜单提供故事与战斗两个入口。
+拳脚对练版于 **2026-11-18 17:06:34（北京时间，UTC+8）**发布。第一波加入快拳、转身拳和正踢，第二拳命中后可改接低扫腿。主菜单提供故事与战斗两个入口。
 
-- **[下载最新版 Windows x64 试玩 ZIP（约 156 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-impact-20261118/gexingzhou-demo-vs01-impact-20261118-win64.zip)** · [发行说明 / SHA256 / 已知问题](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-impact-20261118)
+- **[下载最新版 Windows x64 试玩 ZIP（约 158 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-footwork-20261118/gexingzhou-demo-vs01-footwork-20261118-win64.zip)** · [发行说明与 SHA256](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-footwork-20261118)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
 - GitHub 仅保留最新版试玩 Release；旧试玩先备份发行元数据、ZIP及解压目录，再撤下公开入口，保留源码和Git标签。
 - “回到故乡”包括小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。“战斗试玩 · 街头练习”提供5级、9件装备与三段六波挑战。
@@ -128,6 +128,6 @@ powershell -NoProfile -File tests/ShutdownChecks.ps1 -GodotExe '你的 Godot .NE
 
 当前提供首段叙事探索与独立战斗成长样板。战斗对手复用十二姿态图集，以颜色、尺寸、名称和行为区分，步行使用有限姿态交替。公开仓库保留制作来源和许可记录，私人原稿、现实照片、真实玩家存档及本机配置按现行约定保管。
 
-根工程与独立源码完成199项规则、53组引擎回归及293资源检查，30/60/120物理更新频率回归、20/32字号GPU、工具与七种正常退出通过。实际发行PCK完成普通六波、连战六波、历史及故事首段；207文件ZIP逐一冷解压匹配，原生EXE菜单、普通出招、连战进入和关闭画面已核对。故事首次动画等待超时后，同包带诊断与原驱动复验通过，首次原因未定位；默认编辑器配置导入等待和历史字体/导出问题仍留证，不宣称根治。真人手感、试听与其它电脑继续待测。[本轮验收记录](docs/development/29_战斗打击感验收与发行.md)
+拳脚对练版通过203项规则、54组引擎回归及297项公开资源检查。20和32字号 GPU 核对了两条连招，实际发行 PCK 完成普通六波、连战和故事首段，冷解压原生 EXE 验证了战斗与连战入口。真人手感和跨电脑兼容待测，历史导入与导出问题的记录见前版验收。[拳脚对练验收](docs/development/30_拳脚对练验收与发行.md) · [前版验收](docs/development/29_战斗打击感验收与发行.md)
 
 历史首页已归档至[开发记录](docs/development/18_历史首页归档.md)，不再把多轮历史接续堆在试玩入口之前。
