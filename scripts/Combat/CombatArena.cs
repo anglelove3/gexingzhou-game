@@ -4,7 +4,12 @@ using System.Text.Json;
 
 public partial class CombatArena : Node2D
 {
-    public CombatMatch? Match { get; set; }
+    private CombatMatch? match;
+    public CombatMatch? Match
+    {
+        get => match;
+        set { if (!ReferenceEquals(match, value)) { floating.Clear(); impacts.Clear(); } match = value; QueueRedraw(); }
+    }
     private Texture2D court = null!, player = null!, opponents = null!, items = null!;
     private AtlasData playerFrames = null!, opponentFrames = null!, itemFrames = null!;
     private Font font = null!;
@@ -43,12 +48,22 @@ public partial class CombatArena : Node2D
     public void ShowEvents(IEnumerable<CombatEvent> events)
     {
         foreach (var ev in events)
-            if (ev.Kind is "hit" or "block" or "down" or "break" or "tired" or "restore" or "perfect" or "riposte" or "break-bonus") floating.Add(new() { Event = ev });
+        {
+            if (ev.Kind is "hit" or "block" or "down" or "break" or "tired" or "restore" or "perfect" or "riposte" or "break-bonus" or "cancel") floating.Add(new() { Event = ev });
+            if (ev.Kind is "hit" or "block" or "down" or "break")
+            {
+                if (impacts.Count >= 24) impacts.RemoveAt(0);
+                impacts.Add(new() { Event = ev });
+            }
+        }
     }
 
     public override void _Process(double delta)
     {
+        if (!Animating) return;
         foreach (var hit in floating) hit.Age += delta;
+        foreach (var hit in impacts) hit.Age += delta;
+        impacts.RemoveAll(h => h.Age > .22);
         floating.RemoveAll(h => h.Age > .7); QueueRedraw();
     }
 
@@ -59,17 +74,18 @@ public partial class CombatArena : Node2D
         if (Match == null) return;
         var all = Match.Enemies.Append(Match.Player).OrderBy(f => f.Y).ThenBy(f => f.Id, StringComparer.Ordinal);
         foreach (var fighter in all) DrawFighter(fighter);
+        if (!ReducedMotion) foreach (var hit in impacts) DrawImpact(hit);
         foreach (var hit in floating)
         {
             var ev = hit.Event; var alpha = (float)(1 - hit.Age / .7);
             var text = ev.Kind switch
             {
                 "tired" => "留出耐力", "block" => "格挡 " + ev.Damage, "break" => "破防 " + ev.Damage,
-                "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", _ => ev.Damage.ToString()
+                "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", "cancel" => "闪避衔接", _ => ev.Damage.ToString()
             };
             var color = ev.Kind == "block" ? new Color(.65f, .85f, .95f, alpha) : new Color(1, .84f, .45f, alpha);
             var height = ev.Kind is "restore" or "perfect" or "riposte" or "break-bonus" ? 138 : 108;
-            DrawString(font, new Vector2((float)ev.X - 22, (float)(ev.Y - height - hit.Age * 42)), text, HorizontalAlignment.Left, -1, 20, color);
+            DrawString(font, new Vector2((float)ev.X - 22, (float)(ev.Y - height - (ReducedMotion ? 0 : hit.Age * 42))), text, HorizontalAlignment.Left, -1, 20, color);
         }
     }
 
@@ -80,7 +96,7 @@ public partial class CombatArena : Node2D
         var pose = Pose(f); var frame = atlas.Frames[pose];
         var height = f.Enemy?.Id == "leader" ? 148f : 136f;
         var scale = height / (float)atlas.Frames[0].VisibleHeight;
-        var point = new Vector2((float)f.X, (float)f.Y);
+        var point = new Vector2((float)f.X, (float)f.Y) + BodyOffset(f);
         DrawSetTransform(point, 0, new Vector2(1, .23f));
         DrawCircle(Vector2.Zero, f.Enemy?.Id == "leader" ? 24 : 21, new Color(.025f, .03f, .02f, .3f));
         DrawSetTransform(point, 0, new Vector2(f.Facing, 1));
@@ -90,6 +106,8 @@ public partial class CombatArena : Node2D
             "leader" => new Color(.8f, .78f, .72f), _ => Colors.White
         };
         if (f.State == CombatState.Dead) tint.A = .65f;
+        if (!ReducedMotion && impacts.LastOrDefault(h => h.Event.TargetId == f.Id) is { Age: < .065 } impact && impact.Event.Kind != "block")
+            tint = tint.Lerp(new Color(1, .87f, .67f, tint.A), .65f);
         var rect = new Rect2(-(float)frame.PivotX * scale, -(float)frame.PivotY * scale, (float)frame.Width * scale, (float)frame.Height * scale);
         DrawTextureRectRegion(texture, rect, frame.Region, tint);
         if (f.Enemy == null && f.Stats.Weapon.Id == "stick" && f.State is CombatState.Attack or CombatState.Charging or CombatState.Guard)
@@ -98,6 +116,7 @@ public partial class CombatArena : Node2D
             DrawTextureRectRegion(items, new Rect2(-12, -25, 58, 58), itemFrames.Frames[2].Region);
         }
         DrawSetTransform(Vector2.Zero);
+        if (!ReducedMotion) DrawAttackTrail(f, point);
         if (f.Health <= 0) return;
         if (f.Enemy != null)
         {
@@ -112,6 +131,11 @@ public partial class CombatArena : Node2D
             if (text.Length > 0) DrawString(font, point + new Vector2(-16, -height - 55), text, HorizontalAlignment.Left, -1, 22, new Color(1, .73f, .3f));
             var portion = f.AttackFrame / (float)f.Attack.Startup;
             DrawArc(point, 29, -Mathf.Pi, -Mathf.Pi + portion * Mathf.Tau, 24, new Color(1, .65f, .3f, .85f), 2, true);
+        }
+        if (f.Enemy?.Id == "guard" && f.State == CombatState.Guard)
+        {
+            DrawArc(point + new Vector2(f.Facing * 27, -65), 25, -1.2f, 1.2f, 18, new Color(.6f, .83f, .96f, .8f), 3, true);
+            DrawString(font, point + new Vector2(-45, -height - 38), "守势 · 可蓄力破势", HorizontalAlignment.Left, -1, 16, new Color(.73f, .89f, 1));
         }
     }
 

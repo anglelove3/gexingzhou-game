@@ -16,6 +16,7 @@ public partial class CombatDemo : Control
     private bool blockedSave, focused = true;
     private string selectedWave = "a1", saveDirectory = "";
     private double accumulator;
+    private double finishRemaining;
     private readonly HashSet<Key> held = new(), suppressed = new();
     private CombatInput pendingInput;
     private const string Prep = "Prepare/Panel/Scroll/Content/";
@@ -130,8 +131,8 @@ public partial class CombatDemo : Control
     {
         Screen = screen; GetNode<Control>("Prepare").Visible = screen == "prepare";
         GetNode<Control>("Pause").Visible = screen == "pause"; GetNode<Control>("Result").Visible = screen is "result" or "history";
-        GetNode<Control>("Hud").Visible = screen is "fight" or "pause";
-        audio.SetPaused(screen != "fight"); ClearCombatInput(); accumulator = 0;
+        GetNode<Control>("Hud").Visible = screen is "fight" or "pause" or "finish";
+        audio.SetPaused(screen is not ("fight" or "finish")); ClearCombatInput(); accumulator = 0;
     }
 
     private void ConfirmLeave(Action leave) => choices.Open("离开当前波？已保存的成长保留，下次从本波开场重试。", new (string, Action)[]
@@ -292,6 +293,16 @@ public partial class CombatDemo : Control
 
     public override void _PhysicsProcess(double delta)
     {
+        if (Screen == "finish")
+        {
+            if (!focused || settings.IsOpen || choices.IsOpen) return;
+            finishRemaining -= Math.Min(delta, .25);
+            if (finishRemaining <= 0)
+            {
+                ChangeScreen("result"); BindFocus(ResultPath, new[] { "Continue", "Retry", "Export", "Menu" });
+            }
+            return;
+        }
         if (Screen != "fight" || !focused || settings.IsOpen || choices.IsOpen || Match == null) return;
         accumulator += Math.Min(delta, .25);
         while (accumulator >= 1d / 60 && Screen == "fight")
@@ -303,28 +314,52 @@ public partial class CombatDemo : Control
                 HeavyHeld = Down(Key.K), GuardHeld = Down(Key.L)
             };
             pendingInput = default; accumulator -= 1d / 60;
-            Match.Step(input); arena.ShowEvents(Match.Events); PlayEvents(Match.Events);
-            if (Match.Result != CombatResult.Running) ShowResult();
+            Match.Step(input); arena.ShowEvents(Match.Events);
+            if (Match.Result != CombatResult.Running)
+            {
+                // Persist the outcome before delaying only its presentation.
+                ShowResult();
+                if (pendingReward == null && !challengeSavePending)
+                {
+                    finishRemaining = GetNode<GameSession>("/root/GameSession").Options.ReducedMotion ? .18 : .32;
+                    ChangeScreen("finish");
+                }
+            }
+            PlayEvents(Match.Events);
         }
     }
 
     private void PlayEvents(IEnumerable<CombatEvent> events)
     {
-        foreach (var ev in events)
+        var list = events.ToArray();
+        foreach (var ev in list.Where(e => e.Kind == "attack").Take(1))
+            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId == "charged" ? .8f : 1, 1);
+        var impact = list.Where(e => e.Kind is "hit" or "block" or "down" or "break")
+            .OrderByDescending(e => e.MoveId == "charged" ? 4 : e.MoveId is "heavy" or "enemy_heavy" ? 3 : e.MoveId == "light3" ? 2 : 1)
+            .ThenByDescending(e => e.Kind != "block").FirstOrDefault();
+        if (impact != null)
         {
-            AudioCue? cue = ev.Kind switch { "attack" => AudioCue.CombatSwing, "hit" => AudioCue.CombatHit, "block" => AudioCue.CombatBlock,
-                "down" or "break" => AudioCue.CombatDown, "perfect" => AudioCue.CombatBlock, _ => null };
-            if (cue is { } value) audio.PlayCue(value);
+            if (impact.Kind == "block") audio.PlayImpactCue(AudioCue.CombatBlock, 1.1f, .85f);
+            else
+            {
+                bool heavy = impact.MoveId is "heavy" or "charged" or "enemy_heavy";
+                var pitch = impact.MoveId switch { "light1" => 1.12f, "light2" => 1.02f, "light3" => .92f, "charged" => .75f, _ => .85f };
+                audio.PlayImpactCue(AudioCue.CombatHit, pitch, heavy ? .68f : .9f);
+                if (heavy || impact.Kind is "down" or "break") audio.PlayImpactCue(AudioCue.CombatDown, impact.MoveId == "charged" ? .9f : 1.15f, .32f);
+            }
         }
+        else if (list.Any(e => e.Kind == "perfect")) audio.PlayCue(AudioCue.CombatBlock);
     }
 
     public override void _Process(double delta)
     {
         if (Catalog == null || HasMeta("binding_error")) return;
         var session = GetNode<GameSession>("/root/GameSession");
+        arena.Animating = focused && (Screen is "fight" or "finish") && !settings.IsOpen && !choices.IsOpen;
+        arena.ReducedMotion = session.Options.ReducedMotion;
         if (Theme.DefaultFontSize != session.Options.SubtitleSize) Theme = session.CreateUiTheme();
         arena.Scale = Vector2.One * Math.Min(Size.X / 1280, Size.Y / 720);
-        arena.Position = (Size - new Vector2(1280, 720) * arena.Scale) / 2;
+        arena.Position = (Size - new Vector2(1280, 720) * arena.Scale) / 2 + arena.CameraOffset * arena.Scale;
         if (Screen == "prepare")
         {
             var footer = GetNode<Control>("Prepare/Footer");
@@ -343,6 +378,7 @@ public partial class CombatDemo : Control
         GetNode<Label>("Hud/Top/Content/Action").Text = p.State == CombatState.Charging ? $"蓄力 {Math.Min(100, p.StateFrame * 100 / 27)}%" :
             p.State == CombatState.Attack ? p.Attack!.Name : p.State switch { CombatState.Guard => "正面防御", CombatState.Dodge => "闪避", CombatState.Hurt => "受击", CombatState.Down => "倒地", _ => "观察距离，留出耐力" };
         GetNode<Label>("Hud/Wave").Text = Match.Wave.Name + "\n" + Match.Wave.Hint;
+        if (p.CanDodgeCancel && p.DodgeReady) GetNode<Label>("Hud/Top/Content/Action").Text += " · Space闪避衔接（24耐力）";
         if (challenge != null) GetNode<Label>("Hud/Wave").Text += "\n连战 · 生命继承 / 耐力逐波回满";
     }
 

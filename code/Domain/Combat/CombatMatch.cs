@@ -86,7 +86,7 @@ public sealed class CombatMatch
             }
             return;
         }
-        if (Player.CanAct)
+        if (Player.CanAct || Player.CanDodgeCancel && queued == "dodge" && queueFrames > 0)
         {
             if (Player.State == CombatState.Idle && Math.Abs(input.MoveX) > .01) Player.Facing = Math.Sign(input.MoveX);
             Player.SetGuard(input.GuardHeld);
@@ -95,9 +95,13 @@ public sealed class CombatMatch
                 switch (queued)
                 {
                     case "dodge":
+                        bool cancelled = Player.CanDodgeCancel;
                         if (Player.TryDodge(input.MoveX, input.MoveY))
-                        { Statistics.Dodges++; Events.Add(new("dodge", Player.Id, "", 0, Player.X, Player.Y)); }
-                        else EmptyStamina();
+                        {
+                            Statistics.Dodges++; if (cancelled) Statistics.DodgeCancels++;
+                            Events.Add(new(cancelled ? "cancel" : "dodge", Player.Id, "", 0, Player.X, Player.Y));
+                        }
+                        else if (Player.Stamina < 24) EmptyStamina();
                         break;
                     case "charge": Player.Charge(); break;
                     default: StartPlayerAttack(queued); break;
@@ -116,7 +120,7 @@ public sealed class CombatMatch
         if (move.IsLight) Statistics.LightAttacks++; else Statistics.HeavyAttacks++;
         if (Player.AttackHasRiposte) Statistics.RiposteAttacks++;
         if (id == "charged" && Player.Stats.Weapon.GuardBreakPower > 1) Statistics.BreakAttacks++;
-        Events.Add(new("attack", Player.Id, "", 0, Player.X, Player.Y)); return true;
+        Events.Add(new("attack", Player.Id, "", 0, Player.X, Player.Y, id, Player.Facing)); return true;
     }
 
     private void EmptyStamina()
@@ -144,7 +148,7 @@ public sealed class CombatMatch
             }
             if (e.State == CombatState.Guard)
             {
-                if (e.StateFrame >= 48) e.SetGuard(false);
+                if (e.StateFrame >= e.Enemy!.GuardFrames) e.SetGuard(false);
                 else continue;
             }
             if (e.State == CombatState.Attack)
@@ -193,12 +197,13 @@ public sealed class CombatMatch
             Id = heavy ? "enemy_heavy" : "enemy_jab", Name = heavy ? "重击预警" : second > 0 ? "二连预警" : "出拳预警",
             Power = power, Startup = (int)Math.Round((leader && heavy ? .85 : type.Warning) * 60),
             Active = heavy ? 6 : 4, Recovery = heavy ? 30 : 20, Cost = 0,
-            Reach = 58, Depth = 22, Stun = heavy ? .32 : .2, Push = heavy ? 22 : 10
+            Reach = 58, Depth = 22, Stun = heavy ? .32 : .2, Push = heavy ? 22 : 10,
+            HitstopFrames = Catalog.ImpactFeedback ? heavy ? 4 : 2 : 0
         };
         if (!e.TryAttack(move, second)) return;
         e.AttackCount++; e.WaitingFrames = 0;
         e.Cooldown = (int)Math.Round((leader && e.Health <= type.Health * .4 ? 1.5 : type.Interval) * 60);
-        permitOwner = e.Id; Events.Add(new("warning", e.Id, "player", 0, e.X, e.Y));
+        permitOwner = e.Id; Events.Add(new("warning", e.Id, "player", 0, e.X, e.Y, move.Id, e.Facing));
     }
 
     private void ApplyAttack(CombatFighter source, IEnumerable<CombatFighter> targets)
@@ -208,17 +213,20 @@ public sealed class CombatMatch
         foreach (var target in targets)
         {
             if (!source.InRange(target, move) || !source.RegisterTarget(target)) continue;
-            int beforeHealth = target.Health;
+            int beforeHealth = target.Health; double beforeX = target.X;
             var hit = target.ReceiveHit(source, move);
             if (!hit.Applied) continue;
-            Events.Add(new(hit.Blocked ? "block" : hit.GuardBroken ? "break" : hit.KnockedDown ? "down" : "hit", source.Id, target.Id, hit.Damage, target.X, target.Y));
-            hitstop = Math.Max(hitstop, move.IsLight || move.Id == "enemy_jab" ? 2 : 4);
+            Events.Add(new(hit.Blocked ? "block" : hit.GuardBroken ? "break" : hit.KnockedDown ? "down" : "hit", source.Id, target.Id, hit.Damage, beforeX, target.Y,
+                move.Id, source.Facing, target.X - beforeX));
+            int stop = move.HitstopFrames > 0 ? move.HitstopFrames : move.IsLight || move.Id == "enemy_jab" ? 2 : 4;
+            hitstop = Math.Max(hitstop, hit.Blocked && move.HitstopFrames > 0 ? Math.Min(stop, 2) : stop);
             if (source == Player)
             {
                 Statistics.DamageDealt += hit.Damage;
                 Statistics.EffectiveDamage += beforeHealth - target.Health;
                 if (hit.Damage > 0 && !hit.Blocked)
                 {
+                    source.ConfirmHit();
                     if (move.Id == "light3" && Player.Stats.Weapon.ComboStaminaRestore > 0 && restoredSequence != source.AttackSequence)
                     {
                         restoredSequence = source.AttackSequence;

@@ -12,7 +12,7 @@ public static class CombatBuildChecks
         tests.Add(("CombatBuilds", "ConfiguredAndLegacyDefaults", () =>
         {
             var c = CombatChecks.Catalog();
-            Check.Equal("combat-builds-0.1", c.BalanceVersion);
+            Check.Equal("combat-impact-0.1", c.BalanceVersion);
             Check.Equal(6, c.Item("gloves").ComboStaminaRestore);
             Check.Equal(39, c.EquippedMove("charged", Fighter(c, "stick").Stats).Cost);
             var legacy = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText("content/combat/combat.json"))!;

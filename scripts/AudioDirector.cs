@@ -22,6 +22,7 @@ public partial class AudioDirector : Node
     private AudioStreamPlayer music=null!,ambience=null!;
     private AudioStreamPlayer[] slots=Array.Empty<AudioStreamPlayer>();
     private AudioCue?[] activeCues=Array.Empty<AudioCue?>();
+    private float[] cueGains=Array.Empty<float>();
     private GameSettings options=new();private bool paused,ready;
     private const float FadeSeconds=.8f;
     private float musicTarget,ambienceTarget,musicRate,ambienceRate;
@@ -36,6 +37,7 @@ public partial class AudioDirector : Node
             music=SceneBindings.Require<AudioStreamPlayer>(this,"Music");ambience=SceneBindings.Require<AudioStreamPlayer>(this,"Ambience");
             slots=Enumerable.Range(1,8).Select(i=>SceneBindings.Require<AudioStreamPlayer>(this,"Effects/Slot"+i)).ToArray();
             activeCues=new AudioCue?[slots.Length];
+            cueGains=Enumerable.Repeat(1f,slots.Length).ToArray();
             music.VolumeLinear=0;ambience.VolumeLinear=0;
             ready=true;ApplySettings(GetNode<GameSession>("/root/GameSession").Options);
         }
@@ -62,7 +64,7 @@ public partial class AudioDirector : Node
         SetBedGain(music,musicGain,ref musicTarget,ref musicRate,musicGain==0);
         var environmentGain=(float)(options.MasterVolume*options.EnvironmentVolume*attenuation);
         SetBedGain(ambience,changingAmbience?0:environmentGain,ref ambienceTarget,ref ambienceRate,environmentGain==0);
-        foreach(var slot in slots){slot.VolumeLinear=(float)(options.MasterVolume*options.EffectsVolume);slot.StreamPaused=slot.VolumeLinear==0;}
+        for(int i=0;i<slots.Length;i++){var slot=slots[i];slot.VolumeLinear=(float)(options.MasterVolume*options.EffectsVolume)*cueGains[i];slot.StreamPaused=slot.VolumeLinear==0;}
     }
     private static void SetBedGain(AudioStreamPlayer player,float target,ref float storedTarget,ref float rate,bool forceMute=false)
     {
@@ -94,13 +96,16 @@ public partial class AudioDirector : Node
         else changingAmbience=false;
         ApplySettings(options);
     }
-    public bool PlayCue(AudioCue cue)
+    public bool PlayCue(AudioCue cue) => PlayImpactCue(cue,1,1);
+    public bool PlayImpactCue(AudioCue cue,float pitch,float gain)
     {
         if(!ready||paused&&cue==AudioCue.Footstep||options.MasterVolume*options.EffectsVolume==0)return false;
         var stream=cue switch{AudioCue.Footstep=>FootstepStream,AudioCue.PhoneMessage=>PhoneMessageStream,AudioCue.PhoneRing=>PhoneRingStream,AudioCue.Bowl=>BowlStream,AudioCue.Chopsticks=>ChopsticksStream,AudioCue.Coin=>CoinStream,AudioCue.Candy=>CandyStream,AudioCue.CombatSwing=>CombatSwingStream,AudioCue.CombatHit=>CombatHitStream,AudioCue.CombatBlock=>CombatBlockStream,AudioCue.CombatDown=>CombatDownStream,_=>null};
         if(stream==null){Missing(cue.ToString());return false;}
         var index=Array.FindIndex(slots,p=>!p.Playing);if(index<0)return false;
-        var slot=slots[index];activeCues[index]=cue;slot.Stream=stream;slot.Play();return true;
+        var slot=slots[index];activeCues[index]=cue;cueGains[index]=Math.Clamp(gain,0,1);
+        slot.PitchScale=Math.Clamp(pitch,.5f,2);slot.VolumeLinear=(float)(options.MasterVolume*options.EffectsVolume)*cueGains[index];
+        slot.Stream=stream;slot.Play();return true;
     }
     public void StopCue(AudioCue cue)
     {

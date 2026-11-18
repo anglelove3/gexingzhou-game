@@ -36,6 +36,10 @@ public sealed class CombatFighter
     public bool Protected => protectionFrames > 0 || State is CombatState.Down or CombatState.Rising or CombatState.Dead ||
         State == CombatState.Dodge && StateFrame >= 4 && StateFrame < 11;
     public bool CanAct => State is CombatState.Idle or CombatState.Guard;
+    public bool DodgeReady => dodgeCooldown == 0 && Stamina >= 24;
+    public bool CanDodgeCancel => Enemy == null && State == CombatState.Attack && confirmedHit &&
+        Attack is { IsLight: true, DodgeCancelRecoveryFrames: > 0 } &&
+        StateFrame >= Attack.Startup + LastActiveOffset + Attack.DodgeCancelRecoveryFrames;
     public int ActivePulse
     {
         get
@@ -50,6 +54,7 @@ public sealed class CombatFighter
     private int remainingFrames, protectionFrames, staminaDelay, dodgeCooldown, continuousStun, leaderKnockdown;
     private double dodgeX, dodgeY;
     private int riposteCooldown;
+    private bool confirmedHit;
     private readonly HashSet<string> struck = new(StringComparer.Ordinal);
 
     public CombatFighter(string id, string name, CombatStats stats, double x, double y, CombatEnemy? enemy = null, int? initialHealth = null)
@@ -84,7 +89,7 @@ public sealed class CombatFighter
             RiposteRemaining = 0;
         }
         Spend(move.Cost); Attack = move; SecondHitOffset = secondHitOffset;
-        AttackSequence++; struck.Clear(); Enter(CombatState.Attack); return true;
+        AttackSequence++; struck.Clear(); confirmedHit = false; Enter(CombatState.Attack); return true;
     }
 
     public void Charge() { if (CanAct) Enter(CombatState.Charging); }
@@ -97,7 +102,7 @@ public sealed class CombatFighter
 
     public bool TryDodge(double x, double y)
     {
-        if (!CanAct || dodgeCooldown > 0 || Stamina < 24) return false;
+        if (!(CanAct || CanDodgeCancel) || !DodgeReady) return false;
         if (Math.Abs(x) + Math.Abs(y) < .01) x = Facing;
         var length = Math.Sqrt(x * x + y * y);
         dodgeX = x / length; dodgeY = y / length;
@@ -112,6 +117,7 @@ public sealed class CombatFighter
     }
 
     public bool RegisterTarget(CombatFighter target) => struck.Add(target.Id + ":" + ActivePulse);
+    public void ConfirmHit() { if (State == CombatState.Attack) confirmedHit = true; }
 
     public CombatHit ReceiveHit(CombatFighter source, CombatMove move)
     {

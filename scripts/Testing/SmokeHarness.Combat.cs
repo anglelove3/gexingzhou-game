@@ -88,6 +88,7 @@ public partial class SmokeHarness
                 if (captureDirectory != null && tick == 100) await Capture("combat-" + wave.Id + "-action");
             }
             foreach (var key in pressed.ToArray()) SetKey(key, false);
+            for (int settle = 0; settle < 30 && demo.Screen == "finish"; settle++) await Frames(1);
             Require(demo.Match!.Result == CombatResult.Won && demo.Screen == "result", "Keyboard combat failed " + wave.Id + " hp=" + demo.Match.Player.Health);
             var finished = demo.Match;
             await Capture("combat-" + wave.Id + "-result");

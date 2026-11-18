@@ -111,7 +111,10 @@ public static class CombatBalance
         if (!output.StartsWith(boundary, StringComparison.OrdinalIgnoreCase) || Directory.Exists(output))
             throw new ArgumentException("Output requires a fresh test-output child directory.");
         Directory.CreateDirectory(output);
-        var current = CombatChecks.Catalog(); var baseline = Baseline(current);
+        var current = CombatChecks.Catalog();
+        int referenceIndex = Array.IndexOf(args, "--reference-config");
+        if (referenceIndex >= 0 && referenceIndex + 1 >= args.Length) throw new ArgumentException("Supply a reference JSON path.");
+        var baseline = referenceIndex >= 0 ? CombatCatalog.Parse(File.ReadAllText(args[referenceIndex + 1])) : Baseline(current);
         var results = new List<BalanceAttempt>();
         foreach (var arm in new[] { (Name: "baseline", Catalog: baseline), (Name: "mechanics", Catalog: current) })
         {
@@ -129,7 +132,8 @@ public static class CombatBalance
             strategySha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes("tests/DomainChecks/CombatBalance.cs"))).ToLowerInvariant(),
             baselineConfig = baseline.SourceJson, mechanicsConfig = current.SourceJson, samples = results
         }, new JsonSerializerOptions { WriteIndented = true }));
-        var report = new StringBuilder("# 装备流派首轮对照测量\n\n2026-11-17，北京时间。自动化控制条件为5级、全装备，3策略、3固定站位，27搭配。每个参数组486尝试，基线与机制合计972尝试，最多5832波。单波上限7200运行步，命中停顿计入。\n\n");
+        var report = new StringBuilder("# 战斗配置对照测量\n\n自动化控制条件为5级、全装备，3策略、3固定站位，27搭配。每个参数组486尝试，基线与当前合计972尝试，最多5832波。单波上限7200运行步，命中停顿计入。\n\n");
+        report.AppendLine(referenceIndex >= 0 ? "本次baseline来自--reference-config指定的完整旧配置，mechanics为当前配置。\n" : "本次baseline移除武器特殊机制，mechanics保留当前机制。\n");
         report.AppendLine($"机制配置SHA256 `{current.ConfigHash}`，基线 `{baseline.ConfigHash}`。策略源码见tests/DomainChecks/CombatBalance.cs及scripts/Testing/CombatAutomation.cs，版本policies-20261117-2。明细及完整派生配置保存在本地samples.json。\n");
         report.AppendLine("| 参数组 | 模式 | 策略 | 武器 | 胜/败/超时 | 胜利平均总秒 | 平均完成波 | 回气次数 | 及时格挡 | 反击命中 | 破势命中 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
         foreach (var group in results.GroupBy(r => (r.Arm, r.Mode, r.Strategy, Weapon: r.Equipment.Split('/')[0])))

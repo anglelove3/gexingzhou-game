@@ -43,12 +43,15 @@ public sealed record CombatMove
     public double Depth { get; init; }
     public double Stun { get; init; }
     public double Push { get; init; }
+    public int HitstopFrames { get; init; }
+    public int DodgeCancelRecoveryFrames { get; init; }
     public bool IsLight => Id.StartsWith("light", StringComparison.Ordinal);
     public int Total => Startup + Active + Recovery;
 }
 
 public sealed record CombatEnemy
 {
+    public int GuardFrames { get; init; } = 48;
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public int Health { get; init; }
@@ -79,6 +82,7 @@ public sealed class CombatCatalog
 {
     public string Version { get; init; } = "";
     public string BalanceVersion { get; init; } = "combat-base-0.1";
+    public bool ImpactFeedback { get; init; }
     [System.Text.Json.Serialization.JsonIgnore]
     public string ConfigHash { get; private set; } = "";
     [System.Text.Json.Serialization.JsonIgnore]
@@ -123,10 +127,11 @@ public sealed class CombatCatalog
             }
             foreach (var m in c.Moves)
                 if (m.Startup < 1 || m.Active < 1 || m.Recovery < 1 || m.Cost < 1 ||
+                    m.HitstopFrames is < 0 or > 12 || m.DodgeCancelRecoveryFrames is < 0 or > 60 ||
                     new[] { m.Power, m.Reach, m.Depth, m.Stun, m.Push }.Any(v => !double.IsFinite(v) || v <= 0))
                     throw new ArgumentException("招式参数异常。");
             foreach (var e in c.Enemies)
-                if (e.Health <= 0 || e.Attack <= 0 || e.Defense < 0 ||
+                if (e.Health <= 0 || e.Attack <= 0 || e.Defense < 0 || e.GuardFrames is < 1 or > 300 ||
                     new[] { e.Speed, e.Warning, e.Interval }.Any(v => !double.IsFinite(v) || v <= 0))
                     throw new ArgumentException("对手参数异常。");
             foreach (var w in c.Waves)

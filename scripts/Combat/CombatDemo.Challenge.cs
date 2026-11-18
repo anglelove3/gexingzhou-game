@@ -156,7 +156,7 @@ public partial class CombatDemo
 
     private static string StatisticsText(CombatStatistics s) =>
         $"可操作时间 {s.ActiveSeconds:0.0}秒 · 战斗总时间 {s.TotalSeconds:0.0}秒\n" +
-        $"轻击 {s.LightAttacks} · 重击 {s.HeavyAttacks} · 闪避 {s.Dodges} · 格挡 {s.Blocks}\n" +
+        $"轻击 {s.LightAttacks} · 重击 {s.HeavyAttacks} · 闪避 {s.Dodges}（衔接{s.DodgeCancels}）· 格挡 {s.Blocks}\n" +
         $"造成伤害 {s.DamageDealt} · 有效伤害 {s.EffectiveDamage}\n受击 {s.HitsTaken}次 · 承受伤害 {s.DamageTaken}\n" +
         $"有效伤害/秒 {(s.TotalSeconds > 0 ? (s.EffectiveDamage / s.TotalSeconds).ToString("0.0") : "暂无")} · 耐力不足 {s.EmptyStamina}次\n" +
         $"回气 {s.StaminaReturns}次/{s.StaminaRestored:0}耐力 · 及时格挡 {s.PerfectGuards}次\n" +

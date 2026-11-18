@@ -55,6 +55,7 @@ public partial class SmokeHarness
                 await Frames(1);
             }
             foreach (var key in keys.ToArray()) SetKey(key, false);
+            for (int settle = 0; settle < 30 && demo.Screen == "finish"; settle++) await Frames(1);
             Require(demo.Match.Result == CombatResult.Won, "Challenge physical keyboard failed wave " + wave);
             previousHealth = demo.Match.Player.Health;
             Require(demo.ChallengeRecord!.CompletedWaves == wave + 1, "Challenge duplicate or missing completion");

@@ -342,7 +342,7 @@ visible=false
 
 [node name="Controls" type="Label" parent="Prepare/Panel/Scroll/Content"]
 layout_mode=2
-text="WASD / 方向键移动 · J轻击 · 按住K蓄力后松开 · L防御 · Space闪避\nI查看装备 · Esc暂停。每波结束保存成长，波次内离开后从本波开场重试。"
+text="WASD / 方向键移动 · J轻击 · 按住K蓄力后松开 · L防御 · Space闪避\n轻击命中后可闪避衔接，仍消耗耐力；空挥或被格挡时不能衔接。\nI查看装备 · Esc暂停。每波结束保存成长，波次内离开后从本波开场重试。"
 autowrap_mode=3
 theme_override_font_sizes/font_size=18
 

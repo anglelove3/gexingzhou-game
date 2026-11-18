@@ -1,6 +1,7 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-builds-0.1",
+  "balanceVersion": "combat-impact-0.1",
+  "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
     "recovery": 24, "moveSpeed": 180, "dodgeSeconds": 0.34,
@@ -99,6 +100,8 @@
   "moves": [
     {
       "id": "light1",
+      "hitstopFrames": 2,
+      "dodgeCancelRecoveryFrames": 4,
       "name": "轻击一",
       "power": 0.8,
       "startup": 7,
@@ -112,6 +115,8 @@
     },
     {
       "id": "light2",
+      "hitstopFrames": 3,
+      "dodgeCancelRecoveryFrames": 4,
       "name": "轻击二",
       "power": 0.9,
       "startup": 8,
@@ -125,6 +130,8 @@
     },
     {
       "id": "light3",
+      "hitstopFrames": 4,
+      "dodgeCancelRecoveryFrames": 4,
       "name": "轻击三",
       "power": 1.1,
       "startup": 10,
@@ -138,6 +145,7 @@
     },
     {
       "id": "heavy",
+      "hitstopFrames": 5,
       "name": "重击",
       "power": 1.8,
       "startup": 16,
@@ -151,6 +159,7 @@
     },
     {
       "id": "charged",
+      "hitstopFrames": 7,
       "name": "蓄力重击",
       "power": 2.4,
       "startup": 16,
@@ -176,6 +185,7 @@
     },
     {
       "id": "guard",
+      "guardFrames": 72,
       "name": "守势手",
       "health": 104,
       "attack": 16,
