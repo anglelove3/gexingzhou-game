@@ -333,7 +333,7 @@ public partial class CombatDemo : Control
     {
         var list = events.ToArray();
         foreach (var ev in list.Where(e => e.Kind == "attack").Take(1))
-            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId == "charged" ? .8f : 1, 1);
+            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId is "charged" or "sweep" ? .8f : 1, 1);
         var impact = list.Where(e => e.Kind is "hit" or "block" or "down" or "break")
             .OrderByDescending(e => e.MoveId == "charged" ? 4 : e.MoveId is "heavy" or "enemy_heavy" ? 3 : e.MoveId == "light3" ? 2 : 1)
             .ThenByDescending(e => e.Kind != "block").FirstOrDefault();
@@ -343,7 +343,7 @@ public partial class CombatDemo : Control
             else
             {
                 bool heavy = impact.MoveId is "heavy" or "charged" or "enemy_heavy";
-                var pitch = impact.MoveId switch { "light1" => 1.12f, "light2" => 1.02f, "light3" => .92f, "charged" => .75f, _ => .85f };
+                var pitch = impact.MoveId switch { "light1" => 1.12f, "light2" => 1.02f, "light3" => .92f, "sweep" => .83f, "charged" => .75f, _ => .85f };
                 audio.PlayImpactCue(AudioCue.CombatHit, pitch, heavy ? .68f : .9f);
                 if (heavy || impact.Kind is "down" or "break") audio.PlayImpactCue(AudioCue.CombatDown, impact.MoveId == "charged" ? .9f : 1.15f, .32f);
             }
@@ -378,7 +378,11 @@ public partial class CombatDemo : Control
         GetNode<Label>("Hud/Top/Content/Action").Text = p.State == CombatState.Charging ? $"蓄力 {Math.Min(100, p.StateFrame * 100 / 27)}%" :
             p.State == CombatState.Attack ? p.Attack!.Name : p.State switch { CombatState.Guard => "正面防御", CombatState.Dodge => "闪避", CombatState.Hurt => "受击", CombatState.Down => "倒地", _ => "观察距离，留出耐力" };
         GetNode<Label>("Hud/Wave").Text = Match.Wave.Name + "\n" + Match.Wave.Hint;
-        if (p.CanDodgeCancel && p.DodgeReady) GetNode<Label>("Hud/Top/Content/Action").Text += " · Space闪避衔接（24耐力）";
+        var action = GetNode<Label>("Hud/Top/Content/Action");
+        if (Match.Wave.Footwork && p.State == CombatState.Attack)
+            action.Text = p.Attack!.Id switch { "light1" => "快拳", "light2" => "转身拳", "light3" => "正踢", _ => action.Text };
+        if (Match.SweepCanBuffer) action.Text += " · J正踢 / K低扫腿（24耐力）";
+        else if (p.CanDodgeCancel && p.DodgeReady) action.Text += " · Space闪避衔接（24耐力）";
         if (challenge != null) GetNode<Label>("Hud/Wave").Text += "\n连战 · 生命继承 / 耐力逐波回满";
     }
 

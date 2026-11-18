@@ -243,7 +243,7 @@ public static class CombatChecks
         }));
         tests.Add(("Combat", "SuspendDropsQueuedCombo", () =>
         {
-            var c = Catalog(); var m = new CombatMatch(c, CombatProgress.New(c), "a1");
+            var c = Catalog(); var m = new CombatMatch(c, CombatProgress.New(c).Reward("a1", c), "a2");
             m.Step(new CombatInput(LightPressed: true));
             for (int i = 0; i < 16; i++) m.Step(default);
             m.Step(new CombatInput(LightPressed: true)); m.SuspendInput();

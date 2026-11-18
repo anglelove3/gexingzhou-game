@@ -19,7 +19,7 @@ public partial class CombatArena
 
     private static float Weight(string move) => move switch
     {
-        "light2" => 1.15f, "light3" => 1.5f, "heavy" or "enemy_heavy" => 1.8f, "charged" => 2.3f, _ => 1
+        "light2" => 1.15f, "light3" => 1.5f, "sweep" => 1.65f, "heavy" or "enemy_heavy" => 1.8f, "charged" => 2.3f, _ => 1
     };
 
     public Vector2 CameraOffset
@@ -51,12 +51,22 @@ public partial class CombatArena
     {
         float t = (float)(hit.Age / .22); if (t >= 1) return;
         var ev = hit.Event; float weight = Weight(ev.MoveId);
-        var center = new Vector2((float)ev.X, (float)ev.Y - 74);
+        bool sweep = ev.MoveId == "sweep";
+        bool frontKick = ev.MoveId == "light3" && Match!.Wave.Footwork;
+        var center = new Vector2((float)ev.X, (float)ev.Y - (sweep ? 15 : frontKick ? 63 : 74));
         bool blocked = ev.Kind == "block";
         var color = blocked ? new Color(.66f, .86f, 1, (1 - t) * .85f) : new Color(1, .86f, .56f, (1 - t) * .9f);
         if (blocked)
         {
             DrawArc(center, 13 + t * 14, -1.2f, 1.2f, 14, color, 2, true); return;
+        }
+        if (sweep)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                var dust = center + new Vector2((i - 2) * (7 + 10 * t), -i * (1 + t));
+                DrawCircle(dust, (4 + i) * (1 + t), new Color(.9f, .74f, .51f, (1 - t) * .5f));
+            }
         }
         float radius = (8 + t * 18) * weight;
         DrawArc(center, radius * .55f, -.8f, .8f + Mathf.Pi, 16, color with { A = color.A * .45f }, 1.5f, true);
@@ -73,7 +83,12 @@ public partial class CombatArena
     {
         if (fighter.ActivePulse < 0 || fighter.Attack == null) return;
         float weight = Weight(fighter.Attack.Id);
-        var origin = feet + new Vector2(fighter.Facing * 22, -76);
+        var origin = feet + new Vector2(fighter.Facing * 22, fighter.Attack.Id switch
+        {
+            "sweep" => -16,
+            "light3" when Match!.Wave.Footwork && fighter.Enemy == null => -64,
+            _ => -76
+        });
         float start = fighter.Facing > 0 ? -.9f : Mathf.Pi - .9f;
         DrawArc(origin, 16 + weight * 7, start, start + 1.7f, 12,
             new Color(.96f, .84f, .61f, .35f), Math.Min(weight, 2), true);

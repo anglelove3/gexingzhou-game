@@ -21,9 +21,9 @@ public partial class SmokeHarness : Node
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="CombatTiming"){await CombatTimingChecks();GD.Print("GODOT_CHECKS_PASS CombatTiming");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CombatImpact"){await CombatImpactChecks();GD.Print("GODOT_CHECKS_PASS CombatImpact");await DrainAudio();GetTree().Quit();return;}
-            if(suite is "Combat" or "CombatCapture" or "CombatChallenge" or "CombatChallengeCapture" or "CombatImpactCapture")
+            if(suite is "Combat" or "CombatCapture" or "CombatChallenge" or "CombatChallengeCapture" or "CombatImpactCapture" or "CombatFootwork" or "CombatFootworkCapture")
             {
-                if(suite is "CombatCapture" or "CombatChallengeCapture" or "CombatImpactCapture")
+                if(suite.EndsWith("Capture", StringComparison.Ordinal))
                 {
                     if(DisplayServer.GetName()=="headless")throw new Exception("Combat capture requires rendering");
                     var sizeText=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--capture-size="))?.Split('=')[1]??"1280x720";
@@ -33,7 +33,8 @@ public partial class SmokeHarness : Node
                     if(!captureRoot.StartsWith("res://test-output/")||captureRoot.Contains(".."))throw new Exception("Unsafe capture directory");
                     captureDirectory=ProjectSettings.GlobalizePath(captureRoot+"/"+sizeText+suffix);
                 }
-                if(suite.StartsWith("CombatImpact")){await CombatImpactChecks();GD.Print("GODOT_CHECKS_PASS CombatImpact");}
+                if(suite.StartsWith("CombatFootwork")){await CombatFootworkChecks();GD.Print("GODOT_CHECKS_PASS CombatFootwork");}
+                else if(suite.StartsWith("CombatImpact")){await CombatImpactChecks();GD.Print("GODOT_CHECKS_PASS CombatImpact");}
                 else if(suite.StartsWith("CombatChallenge")){await CombatChallengeChecks();GD.Print("GODOT_CHECKS_PASS CombatChallenge");}
                 else {await CombatChecks();GD.Print("GODOT_CHECKS_PASS Combat");}
                 await DrainAudio();GetTree().Quit();return;

@@ -1,6 +1,6 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-impact-0.1",
+  "balanceVersion": "combat-footwork-0.1",
   "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
@@ -170,6 +170,20 @@
       "depth": 26,
       "stun": 0.36,
       "push": 42
+    },
+    {
+      "id": "sweep",
+      "name": "低扫腿",
+      "hitstopFrames": 4,
+      "power": 0.75,
+      "startup": 7,
+      "active": 5,
+      "recovery": 19,
+      "cost": 24,
+      "reach": 68,
+      "depth": 22,
+      "stun": 0.2,
+      "push": 10
     }
   ],
   "enemies": [
@@ -218,8 +232,9 @@
   "waves": [
     {
       "id": "a1",
-      "name": "一 · 接近与出拳",
-      "hint": "沿纵深接近，让脚底处于同一条攻击线。J连续轻击，第三段击退更远。",
+      "name": "一 · 拳脚对练",
+      "hint": "贴近快拳手并对齐脚底。J接拳接正踢；第二拳命中后可按K改接低扫腿。",
+      "footwork": true,
       "enemies": [
         "quick"
       ],

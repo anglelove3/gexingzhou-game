@@ -4,6 +4,16 @@
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
     {
+      "id": "combat-player-footwork-v1",
+      "file": "assets/art/combat-v1/player-footwork-v1.png",
+      "size": [1536, 1024],
+      "sha256": "88A4AF135C9975652155ABD00239276B252510EAF04B6C0B3FD500A3323CC776",
+      "usage": "first bout punch, hook, kick and sweep key poses",
+      "source": "built-in image_gen using the existing player atlas as identity reference",
+      "generated_on": "2026-11-18",
+      "provenance": "licenses/AI_ART_FOOTWORK_20261118.md"
+    },
+    {
       "id": "combat-equipment",
       "file": "assets/art/combat-v1/equipment.png",
       "size": [

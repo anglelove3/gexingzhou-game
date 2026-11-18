@@ -64,6 +64,7 @@ public sealed record CombatEnemy
 
 public sealed record CombatWave
 {
+    public bool Footwork { get; init; }
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public string Hint { get; init; } = "";
@@ -106,7 +107,7 @@ public sealed class CombatCatalog
                 c.Growth.LevelHealth < 0 || c.Growth.LevelAttack < 0 || c.Growth.LevelDefense < 0 || c.Growth.LevelStamina < 0 ||
                 new[] { c.Growth.Recovery, c.Growth.MoveSpeed, c.Growth.DodgeSeconds }.Any(v => !double.IsFinite(v) || v <= 0) ||
                 c.Items == null || c.Moves == null || c.Enemies == null || c.Waves == null ||
-                c.Items.Count != 9 || c.Moves.Count != 5 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
+                c.Items.Count != 9 || c.Moves.Count is < 5 or > 6 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
                 c.Items.Any(i => i == null) || c.Moves.Any(m => m == null) || c.Enemies.Any(e => e == null) || c.Waves.Any(w => w == null))
                 throw new ArgumentException("战斗配置结构或版本异常。");
             Unique(c.Items.Select(i => i.Id)); Unique(c.Moves.Select(i => i.Id));
@@ -141,6 +142,9 @@ public sealed class CombatCatalog
             if (c.Waves.Sum(w => (long)w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");
             foreach (var id in new[] { "wraps", "jacket", "trainers" }) c.Item(id);
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
+            if (c.Waves.Any(w => w.Footwork) != c.Moves.Any(m => m.Id == "sweep") ||
+                c.Moves.Count == 6 && !c.Moves.Any(m => m.Id == "sweep"))
+                throw new ArgumentException("拳脚对练缺少配置或包含未知招式。");
             c.ConfigHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
             c.SourceJson = json;
             return c;
@@ -182,6 +186,7 @@ public sealed class CombatCatalog
     public CombatMove EquippedMove(string id, CombatStats stats)
     {
         var m = Move(id); var w = stats.Weapon;
+        if (m.Id == "sweep") return m;
         var time = w.AttackTime * (m.IsLight ? w.LightTime : 1);
         return m with
         {

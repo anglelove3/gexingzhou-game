@@ -35,12 +35,21 @@ public static class CombatAtlasScan {
 }
 '@
 $root=Join-Path $projectRoot 'assets/art/combat-v1'
-foreach($name in @('player-poses','opponent-poses-v2','equipment')) {
+foreach($name in @('player-poses','opponent-poses-v2','equipment','player-footwork-v1')) {
     $columns=4;$rows=3
     if($name -eq 'equipment'){$columns=3}
+    if($name -eq 'player-footwork-v1'){$rows=2}
     $source=Join-Path $root ($name+'.png')
     $frames=[CombatAtlasScan]::Scan($source,$columns,$rows)
     if(@($frames|Where-Object {$_.Margin -lt 1}).Count -gt 0){throw "COMBAT_ATLAS_CELL_CLIPPED $name"}
+    if($name -eq 'player-footwork-v1'){
+        # Frame centers authored against the planted leg and bout origin, in cell pixels.
+        $anchors=@(172,173,197,157,140,132,145,164)
+        $frames=for($i=0;$i -lt $frames.Count;$i++){
+            $f=$frames[$i]
+            [pscustomobject]@{X=$f.X;Y=$f.Y;Width=$f.Width;Height=$f.Height;PivotX=$anchors[$i];PivotY=$f.PivotY;VisibleHeight=$f.VisibleHeight;Margin=$f.Margin}
+        }
+    }
     $data=[ordered]@{SourceSha256=(Get-FileHash -LiteralPath $source).Hash;Columns=$columns;Rows=$rows;Frames=$frames}
     [IO.File]::WriteAllText((Join-Path $root ($name+'.json')),($data|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
     Write-Output "COMBAT_ATLAS $name frames=$($frames.Count) margins=$($frames.Margin -join ',')"

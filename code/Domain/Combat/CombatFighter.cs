@@ -37,6 +37,7 @@ public sealed class CombatFighter
         State == CombatState.Dodge && StateFrame >= 4 && StateFrame < 11;
     public bool CanAct => State is CombatState.Idle or CombatState.Guard;
     public bool DodgeReady => dodgeCooldown == 0 && Stamina >= 24;
+    internal bool ConfirmedAttack => State == CombatState.Attack && confirmedHit;
     public bool CanDodgeCancel => Enemy == null && State == CombatState.Attack && confirmedHit &&
         Attack is { IsLight: true, DodgeCancelRecoveryFrames: > 0 } &&
         StateFrame >= Attack.Startup + LastActiveOffset + Attack.DodgeCancelRecoveryFrames;
@@ -82,6 +83,19 @@ public sealed class CombatFighter
     public bool TryAttack(CombatMove move, int secondHitOffset = 0)
     {
         if (State is not (CombatState.Idle or CombatState.Guard or CombatState.Charging) || Stamina < move.Cost) return false;
+        BeginAttack(move, secondHitOffset);
+        return true;
+    }
+
+    internal bool TryLinkAttack(CombatMove move)
+    {
+        if (State != CombatState.Attack || Enemy != null || Stamina < move.Cost) return false;
+        BeginAttack(move, 0);
+        return true;
+    }
+
+    private void BeginAttack(CombatMove move, int secondHitOffset)
+    {
         AttackHasRiposte = Enemy == null && move.Id == "light1" && RiposteRemaining > 0;
         if (AttackHasRiposte)
         {
@@ -89,7 +103,7 @@ public sealed class CombatFighter
             RiposteRemaining = 0;
         }
         Spend(move.Cost); Attack = move; SecondHitOffset = secondHitOffset;
-        AttackSequence++; struck.Clear(); confirmedHit = false; Enter(CombatState.Attack); return true;
+        AttackSequence++; struck.Clear(); confirmedHit = false; Enter(CombatState.Attack);
     }
 
     public void Charge() { if (CanAct) Enter(CombatState.Charging); }
@@ -150,7 +164,7 @@ public sealed class CombatFighter
         Health = Math.Max(0, Health - damage);
         RiposteRemaining = 0;
         if (Health == 0) { Enter(CombatState.Dead); return new(true, damage, false, broken, false, BreakBonus: breakBonus); }
-        bool knocked = move.Id == "charged";
+        bool knocked = move.Id == "charged" || move.Id == "sweep" && Enemy != null;
         if (Enemy?.Id == "leader")
         {
             if (move.Id is "heavy" or "charged") leaderKnockdown++;
@@ -158,7 +172,7 @@ public sealed class CombatFighter
             if (knocked) leaderKnockdown = 0;
         }
         X += source.Facing * move.Push; ClampPosition();
-        if (knocked) { remainingFrames = 42; Enter(CombatState.Down); continuousStun = 0; }
+        if (knocked) { remainingFrames = move.Id == "sweep" ? 28 : 42; Enter(CombatState.Down); continuousStun = 0; }
         else
         {
             var stun = broken ? 39 : (int)Math.Ceiling(move.Stun * 60);

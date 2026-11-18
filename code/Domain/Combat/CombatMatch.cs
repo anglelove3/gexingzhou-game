@@ -11,6 +11,9 @@ public sealed class CombatMatch
     public CombatResult Result { get; private set; }
     public int TickCount { get; private set; }
     public bool HitStopped => hitstop > 0;
+    private const int LinkRecoveryFrames = 4;
+    public bool SweepCanBuffer => Wave.Footwork && Player.Attack is { Id: "light2" } move && Player.ConfirmedAttack &&
+        Player.AttackFrame < move.Total - 1 && Player.Stamina >= Catalog.Move("sweep").Cost;
     private int hitstop, nextPermit, queueFrames;
     private string? permitOwner, queued;
     private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
@@ -57,16 +60,26 @@ public sealed class CombatMatch
 
     private void BufferInput(CombatInput input)
     {
+        var active = Player.State == CombatState.Attack ? Player.Attack : null;
         if (input.LightPressed)
         {
             queued = "light1"; queueFrames = 6;
-            if (Player.State == CombatState.Attack && Player.Attack is { IsLight: true } attack && attack.Total - Player.AttackFrame <= 8)
+            if (active is { IsLight: true } attack && (attack.Total - Player.AttackFrame <= 8 ||
+                Wave.Footwork && attack.Id is "light1" or "light2" && Player.AttackFrame >= attack.Startup - 1))
             {
                 queued = attack.Id switch { "light1" => "light2", "light2" => "light3", _ => "light1" };
                 queueFrames = attack.Total - Player.AttackFrame + 2;
             }
         }
-        if (input.HeavyPressed) { queued = "charge"; queueFrames = 6; }
+        if (input.HeavyPressed)
+        {
+            if (Wave.Footwork && active is { Id: "light2" })
+            {
+                if (Player.ConfirmedAttack && Player.AttackFrame < active.Total - 1)
+                { queued = "sweep"; queueFrames = active.Total - Player.AttackFrame + 2; }
+            }
+            else { queued = "charge"; queueFrames = 6; }
+        }
         if (input.DodgePressed) { queued = "dodge"; queueFrames = 6; }
     }
 
@@ -84,6 +97,16 @@ public sealed class CombatMatch
                 var id = Player.StateFrame >= 27 && Player.Stamina >= charged.Cost ? "charged" : "heavy";
                 if (!StartPlayerAttack(id)) Player.CancelCharge();
             }
+            return;
+        }
+        if (Wave.Footwork && queueFrames > 0 && Player.State == CombatState.Attack && Player.Attack is { } active &&
+            Player.AttackFrame >= active.Startup + active.Active + LinkRecoveryFrames &&
+            (active.Id == "light1" && queued == "light2" || active.Id == "light2" &&
+                (queued == "light3" || queued == "sweep" && Player.ConfirmedAttack)))
+        {
+            StartPlayerAttack(queued!, linked: true);
+            queued = null;
+            queueFrames = 0;
             return;
         }
         if (Player.CanAct || Player.CanDodgeCancel && queued == "dodge" && queueFrames > 0)
@@ -104,7 +127,7 @@ public sealed class CombatMatch
                         else if (Player.Stamina < 24) EmptyStamina();
                         break;
                     case "charge": Player.Charge(); break;
-                    default: StartPlayerAttack(queued); break;
+                    default: if (queued != "sweep") StartPlayerAttack(queued); break;
                 }
                 queued = null; queueFrames = 0;
             }
@@ -113,10 +136,10 @@ public sealed class CombatMatch
         if (queueFrames > 0 && --queueFrames == 0) queued = null;
     }
 
-    private bool StartPlayerAttack(string id)
+    private bool StartPlayerAttack(string id, bool linked = false)
     {
         var move = Catalog.EquippedMove(id, Player.Stats);
-        if (!Player.TryAttack(move)) { EmptyStamina(); return false; }
+        if (!(linked ? Player.TryLinkAttack(move) : Player.TryAttack(move))) { EmptyStamina(); return false; }
         if (move.IsLight) Statistics.LightAttacks++; else Statistics.HeavyAttacks++;
         if (Player.AttackHasRiposte) Statistics.RiposteAttacks++;
         if (id == "charged" && Player.Stats.Weapon.GuardBreakPower > 1) Statistics.BreakAttacks++;

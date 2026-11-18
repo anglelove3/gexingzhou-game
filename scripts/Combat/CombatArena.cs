@@ -10,8 +10,8 @@ public partial class CombatArena : Node2D
         get => match;
         set { if (!ReferenceEquals(match, value)) { floating.Clear(); impacts.Clear(); } match = value; QueueRedraw(); }
     }
-    private Texture2D court = null!, player = null!, opponents = null!, items = null!;
-    private AtlasData playerFrames = null!, opponentFrames = null!, itemFrames = null!;
+    private Texture2D court = null!, player = null!, opponents = null!, items = null!, footwork = null!;
+    private AtlasData playerFrames = null!, opponentFrames = null!, itemFrames = null!, footworkFrames = null!;
     private Font font = null!;
     private readonly List<FloatingHit> floating = new();
 
@@ -33,6 +33,8 @@ public partial class CombatArena : Node2D
         opponents = GD.Load<Texture2D>(root + "opponent-poses-v2.png"); items = GD.Load<Texture2D>(root + "equipment.png");
         playerFrames = ReadAtlas(root + "player-poses.json"); opponentFrames = ReadAtlas(root + "opponent-poses-v2.json");
         itemFrames = ReadAtlas(root + "equipment.json");
+        footwork = GD.Load<Texture2D>(root + "player-footwork-v1.png");
+        footworkFrames = ReadAtlas(root + "player-footwork-v1.json");
         font = GD.Load<Font>("res://assets/fonts/SourceHanSerifSC-SemiBold.otf");
     }
 
@@ -93,7 +95,16 @@ public partial class CombatArena : Node2D
     {
         var atlas = f.Enemy == null ? playerFrames : opponentFrames;
         var texture = f.Enemy == null ? player : opponents;
-        var pose = Pose(f); var frame = atlas.Frames[pose];
+        var footworkPose = f.Enemy == null && Match!.Wave.Footwork ? FootworkPose(f) : null;
+        if (footworkPose.HasValue)
+        {
+            atlas = footworkFrames;
+            texture = footwork;
+        }
+        var pose = footworkPose ?? Pose(f);
+        if (f.State == CombatState.Down && f.StateFrame < 5 && impacts.Any(h => h.Event.TargetId == f.Id && h.Event.MoveId == "sweep"))
+            pose = 7;
+        var frame = atlas.Frames[pose];
         var height = f.Enemy?.Id == "leader" ? 148f : 136f;
         var scale = height / (float)atlas.Frames[0].VisibleHeight;
         var point = new Vector2((float)f.X, (float)f.Y) + BodyOffset(f);
@@ -110,7 +121,7 @@ public partial class CombatArena : Node2D
             tint = tint.Lerp(new Color(1, .87f, .67f, tint.A), .65f);
         var rect = new Rect2(-(float)frame.PivotX * scale, -(float)frame.PivotY * scale, (float)frame.Width * scale, (float)frame.Height * scale);
         DrawTextureRectRegion(texture, rect, frame.Region, tint);
-        if (f.Enemy == null && f.Stats.Weapon.Id == "stick" && f.State is CombatState.Attack or CombatState.Charging or CombatState.Guard)
+        if (!footworkPose.HasValue && f.Enemy == null && f.Stats.Weapon.Id == "stick" && f.State is CombatState.Attack or CombatState.Charging or CombatState.Guard)
         {
             DrawSetTransform(point + new Vector2(f.Facing * 23, -70), f.Facing * .55f, new Vector2(f.Facing, 1));
             DrawTextureRectRegion(items, new Rect2(-12, -25, 58, 58), itemFrames.Frames[2].Region);
@@ -151,4 +162,19 @@ public partial class CombatArena : Node2D
             f.ActivePulse >= 0 ? f.Attack.IsLight || f.Attack.Id == "enemy_jab" ? 3 : 5 : 6,
         _ => f.IsMoving && Match!.TickCount % 24 < 12 ? 11 : 0
     };
+
+    private static int? FootworkPose(CombatFighter f)
+    {
+        if (f.State != CombatState.Attack || f.Attack is not { } move) return null;
+        var frame = f.AttackFrame;
+        var afterContact = frame - move.Startup - move.Active;
+        return move.Id switch
+        {
+            "light1" => frame < move.Startup / 2 ? null : frame < move.Startup ? 1 : afterContact < 0 ? 0 : afterContact < 8 ? 1 : null,
+            "light2" => frame < move.Startup ? 1 : afterContact < 0 ? 2 : afterContact < 9 ? 3 : null,
+            "light3" => frame < move.Startup / 2 ? 3 : frame < move.Startup ? 4 : afterContact < 0 ? 5 : afterContact < 9 ? 4 : null,
+            "sweep" => frame < move.Startup / 2 ? 3 : frame < move.Startup ? 7 : afterContact < 0 ? 6 : afterContact < 11 ? 7 : null,
+            _ => null
+        };
+    }
 }

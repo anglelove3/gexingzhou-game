@@ -32,7 +32,7 @@ try {
     $files+=$combatDocs
     $combatBuildDocs=@('docs/superpowers/specs/2026-11-16-combat-builds-challenges-design.md','docs/superpowers/plans/2026-11-17-combat-builds-challenges.md','docs/design/07_装备流派连战对照与调优记录.md')
     $files+=$combatBuildDocs
-    $combatImpactDocs=@('docs/superpowers/specs/2026-11-18-combat-impact-design.md','docs/superpowers/plans/2026-11-18-combat-impact.md','docs/design/08_战斗打击感与取消窗口调优.md')
+    $combatImpactDocs=@('docs/superpowers/specs/2026-11-18-combat-impact-design.md','docs/superpowers/plans/2026-11-18-combat-impact.md','docs/design/08_战斗打击感与取消窗口调优.md','docs/design/09_拳脚对练动作与招式设计.md')
     $files+=$combatImpactDocs
     $showcaseImages=@('docs/media/menu.png','docs/media/street.png','docs/media/memory.png','docs/media/combat.png')
     $files+=$showcaseImages
