@@ -172,8 +172,8 @@ public partial class CombatArena : Node2D
         {
             "light1" => frame < move.Startup / 2 ? null : frame < move.Startup ? 1 : afterContact < 0 ? 0 : afterContact < 8 ? 1 : null,
             "light2" => frame < move.Startup ? 1 : afterContact < 0 ? 2 : afterContact < 9 ? 3 : null,
-            "light3" => frame < move.Startup / 2 ? 3 : frame < move.Startup ? 4 : afterContact < 0 ? 5 : afterContact < 9 ? 4 : null,
-            "sweep" => frame < move.Startup / 2 ? 3 : frame < move.Startup ? 7 : afterContact < 0 ? 6 : afterContact < 11 ? 7 : null,
+            "light3" => frame < move.Startup ? 4 : afterContact < 0 ? 5 : afterContact < 9 ? 4 : null,
+            "sweep" => frame < move.Startup ? 7 : afterContact < 0 ? 6 : afterContact < 11 ? 7 : null,
             _ => null
         };
     }
