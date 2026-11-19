@@ -65,6 +65,7 @@ public sealed record CombatEnemy
 public sealed record CombatWave
 {
     public bool Footwork { get; init; }
+    public int SweepEarlyBufferFrames { get; init; }
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public string Hint { get; init; } = "";
@@ -137,6 +138,7 @@ public sealed class CombatCatalog
                     throw new ArgumentException("对手参数异常。");
             foreach (var w in c.Waves)
                 if (w.Experience <= 0 || w.Enemies == null || w.Items == null || w.Enemies.Length is < 1 or > 3 ||
+                    w.SweepEarlyBufferFrames is < 0 or > 4 || !w.Footwork && w.SweepEarlyBufferFrames > 0 ||
                     w.Enemies.Any(id => !c.Enemies.Any(e => e.Id == id)) || w.Items.Any(id => !c.Items.Any(i => i.Id == id)))
                     throw new ArgumentException("波次配置异常。");
             if (c.Waves.Sum(w => (long)w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");

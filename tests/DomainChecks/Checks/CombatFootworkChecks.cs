@@ -59,6 +59,122 @@ public static class CombatFootworkChecks
             Until(m, () => m.Enemies[0].State == CombatState.Rising);
             Check.Equal(0, m.Statistics.BreakHits);
         }));
+        tests.Add(("CombatFootwork", "KBuffersInTheLastFourStartupFrames", () =>
+        {
+            for (var lead = 4; lead >= 1; lead--)
+            {
+                var m = Bout();
+                var move = m.Catalog.Move("light2");
+                Check.True(m.Player.TryAttack(move));
+                Until(m, () => m.Player.AttackFrame == move.Startup - lead);
+                var stamina = m.Player.Stamina;
+                m.Step(new CombatInput(HeavyPressed: true));
+                Check.Equal(stamina, m.Player.Stamina);
+                Check.Equal(0, m.Statistics.HeavyAttacks);
+                Until(m, () => m.Player.Attack?.Id == "sweep");
+                Check.Equal(stamina - 24, m.Player.Stamina);
+                Until(m, () => m.Enemies[0].State == CombatState.Down);
+                Check.Equal(1, m.Statistics.HeavyAttacks);
+            }
+        }));
+        tests.Add(("CombatFootwork", "EarlyKRequiresTimelyHitAndSurvivingInput", () =>
+        {
+            foreach (var condition in new[] { "before-window", "block", "miss", "pause", "tired", "interrupted", "dodge" })
+            {
+                var m = Bout();
+                var move = m.Catalog.Move("light2");
+                if (condition == "block") m.Enemies[0].SetGuard(true);
+                if (condition == "miss") m.Enemies[0].X += 300;
+                if (condition == "tired") move = move with { Cost = 77 };
+                Check.True(m.Player.TryAttack(move));
+                var lead = condition == "before-window" ? 5 : 4;
+                Until(m, () => m.Player.AttackFrame == move.Startup - lead);
+                if (condition == "interrupted")
+                    Check.True(m.Enemies[0].TryAttack(m.Catalog.Move("heavy") with { Startup = 1 }));
+                m.Step(new CombatInput(HeavyPressed: true, DodgePressed: condition == "dodge"));
+                if (condition == "interrupted") Check.Equal(CombatState.Hurt, m.Player.State);
+                if (condition == "pause") m.SuspendInput();
+                Until(m, () => m.Player.CanAct);
+                Check.Equal(0, m.Statistics.HeavyAttacks);
+                m.Enemies[0].SetGuard(false);
+                m.Enemies[0].X = m.Player.X + 30;
+                Check.True(m.Player.TryAttack(m.Catalog.Move("light2")));
+                Until(m, () => m.HitStopped);
+                Until(m, () => m.Player.CanAct);
+                Check.Equal(0, m.Statistics.HeavyAttacks);
+            }
+        }));
+        tests.Add(("CombatFootwork", "EarlyKLeavesAffordableKickQueuedWhenSweepIsTooExpensive", () =>
+        {
+            var m = Bout();
+            var move = m.Catalog.Move("light2") with { Cost = 77 };
+            Check.True(m.Player.TryAttack(move));
+            Until(m, () => m.Player.AttackFrame == move.Startup - 1);
+            m.Step(new CombatInput(LightPressed: true, HeavyPressed: true));
+            Until(m, () => m.Player.Attack?.Id == "light3");
+            Check.Equal(5d, m.Player.Stamina);
+            Check.Equal(0, m.Statistics.HeavyAttacks);
+        }));
+        tests.Add(("CombatFootwork", "EarlyKExpiresFourFramesAfterPressOnLateContact", () =>
+        {
+            foreach (var renew in new[] { false, true })
+            {
+                var m = Bout();
+                var move = m.Catalog.Move("light2");
+                m.Enemies[0].X += 300;
+                Check.True(m.Player.TryAttack(move));
+                Until(m, () => m.Player.AttackFrame == move.Startup - 4);
+                m.Step(new CombatInput(HeavyPressed: true));
+                Until(m, () => m.Player.AttackFrame == move.Startup);
+                Check.True(!m.HitStopped);
+
+                m.Enemies[0].X = m.Player.X + 30;
+                m.Step(new CombatInput(HeavyPressed: renew));
+                Check.True(m.HitStopped);
+                if (renew) Until(m, () => m.Player.Attack?.Id == "sweep");
+                else Until(m, () => m.Player.CanAct);
+                Check.Equal(renew ? 1 : 0, m.Statistics.HeavyAttacks);
+            }
+        }));
+        tests.Add(("CombatFootwork", "EarlyKRetainsJOnBlockAndAllowsARevisedChoice", () =>
+        {
+            foreach (var block in new[] { false, true })
+            {
+                var m = Bout();
+                var move = m.Catalog.Move("light2");
+                if (block) m.Enemies[0].SetGuard(true);
+                Check.True(m.Player.TryAttack(move));
+                if (!block)
+                {
+                    Until(m, () => m.Player.AttackFrame == move.Startup - 4);
+                    m.Step(new CombatInput(HeavyPressed: true));
+                }
+                Until(m, () => m.Player.AttackFrame == move.Startup - 1);
+                m.Step(new CombatInput(LightPressed: true, HeavyPressed: block));
+                Until(m, () => m.Player.Attack?.Id == "light3");
+                Check.Equal(0, m.Statistics.HeavyAttacks);
+            }
+        }));
+        tests.Add(("CombatFootwork", "PreviousFootworkSnapshotRetainsItsOriginalWindow", () =>
+        {
+            var current = CombatChecks.Catalog();
+            var oldData = JsonNode.Parse(current.SourceJson)!;
+            oldData["balanceVersion"] = "combat-footwork-0.1";
+            oldData["waves"]![0]!.AsObject().Remove("sweepEarlyBufferFrames");
+            var old = CombatCatalog.Parse(oldData.ToJsonString());
+            var progress = old.Waves.Aggregate(CombatProgress.New(old), (p, wave) => p.Reward(wave.Id, old));
+            var oldRecord = CombatChallenge.Start(old, progress).Record;
+            Check.Equal<string?>(null, oldRecord.Validate());
+            Check.True(oldRecord.ConfigHash != current.ConfigHash);
+            var m = Bout(old);
+            var move = old.Move("light2");
+            Check.True(m.Player.TryAttack(move));
+            Until(m, () => m.Player.AttackFrame == move.Startup - 1);
+            m.Step(new CombatInput(HeavyPressed: true));
+            Until(m, () => m.HitStopped);
+            Until(m, () => m.Player.CanAct);
+            Check.Equal(0, m.Statistics.HeavyAttacks);
+        }));
         tests.Add(("CombatFootwork", "SweepCannotFollowBlockMissPauseOrLowStamina", () =>
         {
             foreach (var condition in new[] { "block", "miss", "pause", "tired" })
@@ -79,7 +195,9 @@ public static class CombatFootworkChecks
         tests.Add(("CombatFootwork", "OldSnapshotKeepsLegacyLinkAndStandaloneKStillCharges", () =>
         {
             var data = JsonNode.Parse(File.ReadAllText("content/combat/combat.json"))!;
-            data["waves"]![0]!.AsObject().Remove("footwork");
+            var oldWave = data["waves"]![0]!.AsObject();
+            oldWave.Remove("footwork");
+            oldWave.Remove("sweepEarlyBufferFrames");
             var moves = data["moves"]!.AsArray();
             var sweep = moves.FirstOrDefault(m => (string?)m!["id"] == "sweep");
             if (sweep != null) moves.Remove(sweep);

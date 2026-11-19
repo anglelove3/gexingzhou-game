@@ -25,7 +25,7 @@ public partial class SmokeHarness
             Require(predicate(), "Footwork did not reach " + label);
         }
 
-        foreach (var sweep in new[] { false, true })
+        foreach (var (sweep, earlyFrames) in new[] { (false, 0), (true, 0), (true, 4) })
         {
             demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start").EmitSignal(Button.SignalName.Pressed);
             Require(demo.Screen == "fight" && demo.Match?.Wave.Footwork == true, "First wave must open footwork through normal Start");
@@ -36,8 +36,17 @@ public partial class SmokeHarness
             KeyPress(Key.J);
             await Until(() => match.Player.Attack?.Id == "light1" && match.HitStopped, "jab impact");
             KeyPress(Key.J);
-            await Until(() => match.Player.Attack?.Id == "light2" && match.SweepCanBuffer, "turning punch and K prompt");
-            if (!sweep) await Capture("footwork-hook");
+            if (earlyFrames > 0)
+            {
+                await Until(() => match.Player.Attack is { Id: "light2" } attack &&
+                    match.Player.AttackFrame == attack.Startup - earlyFrames, "four frames before turning punch contact");
+                Require(!match.SweepCanBuffer, "Early K must arrive before hit confirmation");
+            }
+            else
+            {
+                await Until(() => match.Player.Attack?.Id == "light2" && match.SweepCanBuffer, "turning punch and K prompt");
+                if (!sweep) await Capture("footwork-hook");
+            }
             KeyPress(sweep ? Key.K : Key.J);
             var id = sweep ? "sweep" : "light3";
             var readyPose = sweep ? 7 : 4;
@@ -65,6 +74,6 @@ public partial class SmokeHarness
         demo.Free();
         await Frames(3);
         session.SetOptions(options, false);
-        GD.Print("COMBAT_FOOTWORK_PASS NormalStart QuickOpponent KeyboardEarlyJ HitConfirmedK Stamina SeparateHitStates StartupContactRecoveryPoses");
+        GD.Print("COMBAT_FOOTWORK_PASS NormalStart QuickOpponent KeyboardEarlyJ FourFrameEarlyK HitConfirmedK Stamina SeparateHitStates StartupContactRecoveryPoses");
     }
 }

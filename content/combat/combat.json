@@ -1,6 +1,6 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-footwork-0.1",
+  "balanceVersion": "combat-footwork-0.2",
   "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
@@ -235,6 +235,7 @@
       "name": "一 · 拳脚对练",
       "hint": "贴近快拳手并对齐脚底。J接拳接正踢；第二拳命中后可按K改接低扫腿。",
       "footwork": true,
+      "sweepEarlyBufferFrames": 4,
       "enemies": [
         "quick"
       ],

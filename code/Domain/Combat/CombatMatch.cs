@@ -15,6 +15,7 @@ public sealed class CombatMatch
     public bool SweepCanBuffer => Wave.Footwork && Player.Attack is { Id: "light2" } move && Player.ConfirmedAttack &&
         Player.AttackFrame < move.Total - 1 && Player.Stamina >= Catalog.Move("sweep").Cost;
     private int hitstop, nextPermit, queueFrames;
+    private int earlySweepUntilFrame;
     private string? permitOwner, queued;
     private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
 
@@ -55,12 +56,15 @@ public sealed class CombatMatch
 
     public void SuspendInput()
     {
-        queued = null; queueFrames = 0; Player.CancelCharge();
+        queued = null; queueFrames = 0; earlySweepUntilFrame = 0; Player.CancelCharge();
     }
 
     private void BufferInput(CombatInput input)
     {
         var active = Player.State == CombatState.Attack ? Player.Attack : null;
+        var frame = Player.AttackFrame;
+        if (earlySweepUntilFrame > 0 && (active is not { Id: "light2" } || frame >= earlySweepUntilFrame))
+            earlySweepUntilFrame = 0;
         if (input.LightPressed)
         {
             queued = "light1"; queueFrames = 6;
@@ -69,18 +73,34 @@ public sealed class CombatMatch
             {
                 queued = attack.Id switch { "light1" => "light2", "light2" => "light3", _ => "light1" };
                 queueFrames = attack.Total - Player.AttackFrame + 2;
+                if (queued == "light3") earlySweepUntilFrame = 0;
             }
         }
         if (input.HeavyPressed)
         {
             if (Wave.Footwork && active is { Id: "light2" })
             {
-                if (Player.ConfirmedAttack && Player.AttackFrame < active.Total - 1)
-                { queued = "sweep"; queueFrames = active.Total - Player.AttackFrame + 2; }
+                if (Player.ConfirmedAttack)
+                {
+                    if (frame < active.Total - 1) QueueSweep(active);
+                }
+                else
+                {
+                    var window = Wave.SweepEarlyBufferFrames;
+                    var lastActiveFrame = active.Startup + active.Active - 1;
+                    if (window > 0 && frame >= active.Startup - window && frame < lastActiveFrame)
+                        earlySweepUntilFrame = Math.Min(frame + window, lastActiveFrame);
+                }
             }
             else { queued = "charge"; queueFrames = 6; }
         }
-        if (input.DodgePressed) { queued = "dodge"; queueFrames = 6; }
+        if (input.DodgePressed) { queued = "dodge"; queueFrames = 6; earlySweepUntilFrame = 0; }
+    }
+
+    private void QueueSweep(CombatMove attack)
+    {
+        queued = "sweep";
+        queueFrames = attack.Total - Player.AttackFrame + 2;
     }
 
     private void PlayerAction(CombatInput input)
@@ -250,6 +270,8 @@ public sealed class CombatMatch
                 if (hit.Damage > 0 && !hit.Blocked)
                 {
                     source.ConfirmHit();
+                    if (move.Id == "light2" && source.AttackFrame <= earlySweepUntilFrame && SweepCanBuffer)
+                        QueueSweep(move);
                     if (move.Id == "light3" && Player.Stats.Weapon.ComboStaminaRestore > 0 && restoredSequence != source.AttackSequence)
                     {
                         restoredSequence = source.AttackSequence;
@@ -262,6 +284,7 @@ public sealed class CombatMatch
                     if (hit.BreakBonus && breakHitSequence != source.AttackSequence)
                     { breakHitSequence = source.AttackSequence; Statistics.BreakHits++; Events.Add(new("break-bonus", Player.Id, target.Id, hit.Damage, target.X, target.Y)); }
                 }
+                if (move.Id == "light2") earlySweepUntilFrame = 0;
             }
             if (target == Player)
             {
