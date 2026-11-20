@@ -160,5 +160,6 @@ public partial class CombatDemo
         $"造成伤害 {s.DamageDealt} · 有效伤害 {s.EffectiveDamage}\n受击 {s.HitsTaken}次 · 承受伤害 {s.DamageTaken}\n" +
         $"有效伤害/秒 {(s.TotalSeconds > 0 ? (s.EffectiveDamage / s.TotalSeconds).ToString("0.0") : "暂无")} · 耐力不足 {s.EmptyStamina}次\n" +
         $"回气 {s.StaminaReturns}次/{s.StaminaRestored:0}耐力 · 及时格挡 {s.PerfectGuards}次\n" +
-        $"反击发动/命中 {s.RiposteAttacks}/{s.RiposteHits} · 破势蓄力发动/命中 {s.BreakAttacks}/{s.BreakHits}";
+        $"反击发动/命中 {s.RiposteAttacks}/{s.RiposteHits} · 破势蓄力发动/命中 {s.BreakAttacks}/{s.BreakHits}" +
+        (s.CriticalHits > 0 || s.AreaCasts > 0 ? $"\n暴击 {s.CriticalHits} · 横扫发动/有效命中 {s.AreaCasts}/{s.AreaHits}" : "");
 }

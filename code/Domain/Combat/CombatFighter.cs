@@ -2,9 +2,10 @@ namespace GeXingzhou.Domain;
 
 public enum CombatState { Idle, Attack, Charging, Guard, Dodge, Hurt, Down, Rising, Recovery, Dead }
 public readonly record struct CombatInput(double MoveX = 0, double MoveY = 0, bool LightPressed = false,
-    bool HeavyPressed = false, bool HeavyHeld = false, bool HeavyReleased = false, bool GuardHeld = false, bool DodgePressed = false);
+    bool HeavyPressed = false, bool HeavyHeld = false, bool HeavyReleased = false, bool GuardHeld = false, bool DodgePressed = false,
+    bool AreaPressed = false);
 public readonly record struct CombatHit(bool Applied, int Damage, bool Blocked, bool GuardBroken, bool KnockedDown,
-    bool PerfectGuard = false, bool BreakBonus = false);
+    bool PerfectGuard = false, bool BreakBonus = false, bool Critical = false);
 
 public sealed class CombatFighter
 {
@@ -126,20 +127,30 @@ public sealed class CombatFighter
 
     public bool InRange(CombatFighter target, CombatMove move)
     {
-        var forward = (target.X - X) * Facing;
-        return forward >= 0 && forward <= move.Reach && Math.Abs(target.Y - Y) <= move.Depth;
+        var dx = target.X - X;
+        var dy = target.Y - Y;
+        if (move.IsAreaSkill)
+        {
+            var x = dx / move.Reach;
+            var y = dy / move.Depth;
+            return x * x + y * y <= 1;
+        }
+        var forward = dx * Facing;
+        return forward >= 0 && forward <= move.Reach && Math.Abs(dy) <= move.Depth;
     }
 
     public bool RegisterTarget(CombatFighter target) => struck.Add(target.Id + ":" + ActivePulse);
     public void ConfirmHit() { if (State == CombatState.Attack) confirmedHit = true; }
 
-    public CombatHit ReceiveHit(CombatFighter source, CombatMove move)
+    public CombatHit ReceiveHit(CombatFighter source, CombatMove move, Func<double>? rollCriticalPower = null)
     {
         if (Protected) return default;
         bool front = (source.X - X) * Facing >= 0;
         bool breakBonus = source.Enemy == null && Enemy != null && move.Id == "charged" && State == CombatState.Guard && front && source.Stats.Weapon.GuardBreakPower > 1;
-        int damage = CombatCatalog.Damage(source.Stats.Attack, move.Power * (breakBonus ? source.Stats.Weapon.GuardBreakPower : 1), Stats.Defense);
         bool blocking = State == CombatState.Guard && front && !(Enemy != null && move.Id == "charged");
+        var criticalPower = blocking ? 1 : rollCriticalPower?.Invoke() ?? 1;
+        int damage = CombatCatalog.Damage(source.Stats.Attack,
+            move.Power * (breakBonus ? source.Stats.Weapon.GuardBreakPower : 1) * criticalPower, Stats.Defense);
         if (blocking && Enemy != null)
         {
             damage = (int)Math.Floor(damage * .2); Health = Math.Max(0, Health - damage);
@@ -163,7 +174,7 @@ public sealed class CombatFighter
         }
         Health = Math.Max(0, Health - damage);
         RiposteRemaining = 0;
-        if (Health == 0) { Enter(CombatState.Dead); return new(true, damage, false, broken, false, BreakBonus: breakBonus); }
+        if (Health == 0) { Enter(CombatState.Dead); return new(true, damage, false, broken, false, BreakBonus: breakBonus, Critical: criticalPower > 1); }
         bool knocked = move.Id == "charged" || move.Id == "sweep" && Enemy != null;
         if (Enemy?.Id == "leader")
         {
@@ -188,7 +199,7 @@ public sealed class CombatFighter
             }
             Enter(CombatState.Hurt);
         }
-        return new(true, damage, false, broken, knocked, BreakBonus: breakBonus);
+        return new(true, damage, false, broken, knocked, BreakBonus: breakBonus, Critical: criticalPower > 1);
     }
 
     private void Spend(double amount) { Stamina -= amount; staminaDelay = 42; }

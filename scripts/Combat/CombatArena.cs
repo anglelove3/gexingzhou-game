@@ -74,6 +74,7 @@ public partial class CombatArena : Node2D
         if (court == null) return;
         DrawTextureRect(court, new Rect2(0, 0, 1280, 720), false);
         if (Match == null) return;
+        DrawAreaSkillRange(Match.Player);
         var all = Match.Enemies.Append(Match.Player).OrderBy(f => f.Y).ThenBy(f => f.Id, StringComparer.Ordinal);
         foreach (var fighter in all) DrawFighter(fighter);
         if (!ReducedMotion) foreach (var hit in impacts) DrawImpact(hit);
@@ -83,11 +84,15 @@ public partial class CombatArena : Node2D
             var text = ev.Kind switch
             {
                 "tired" => "留出耐力", "block" => "格挡 " + ev.Damage, "break" => "破防 " + ev.Damage,
-                "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", "cancel" => "闪避衔接", _ => ev.Damage.ToString()
+                "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", "cancel" => "闪避衔接",
+                _ => ev.Critical ? $"暴击 {ev.Damage}" : ev.Damage.ToString()
             };
-            var color = ev.Kind == "block" ? new Color(.65f, .85f, .95f, alpha) : new Color(1, .84f, .45f, alpha);
+            var color = ev.Kind == "block" ? new Color(.65f, .85f, .95f, alpha) :
+                ev.Critical ? new Color(1, .72f, .18f, alpha) : new Color(1, .84f, .45f, alpha);
             var height = ev.Kind is "restore" or "perfect" or "riposte" or "break-bonus" ? 138 : 108;
-            DrawString(font, new Vector2((float)ev.X - 22, (float)(ev.Y - height - (ReducedMotion ? 0 : hit.Age * 42))), text, HorizontalAlignment.Left, -1, 20, color);
+            var position = new Vector2((float)ev.X - 22, (float)(ev.Y - height - (ReducedMotion ? 0 : hit.Age * 42)));
+            if (ev.Critical) DrawStringOutline(font, position, text, HorizontalAlignment.Left, -1, 20, 3, new Color(.08f, .06f, .025f, alpha));
+            DrawString(font, position, text, HorizontalAlignment.Left, -1, 20, color);
         }
     }
 
@@ -95,7 +100,7 @@ public partial class CombatArena : Node2D
     {
         var atlas = f.Enemy == null ? playerFrames : opponentFrames;
         var texture = f.Enemy == null ? player : opponents;
-        var footworkPose = f.Enemy == null && Match!.Wave.Footwork ? FootworkPose(f) : null;
+        var footworkPose = f.Enemy == null && (Match!.Wave.Footwork || f.Attack?.IsAreaSkill == true) ? FootworkPose(f) : null;
         if (footworkPose.HasValue)
         {
             atlas = footworkFrames;
@@ -127,7 +132,7 @@ public partial class CombatArena : Node2D
             DrawTextureRectRegion(items, new Rect2(-12, -25, 58, 58), itemFrames.Frames[2].Region);
         }
         DrawSetTransform(Vector2.Zero);
-        if (!ReducedMotion) DrawAttackTrail(f, point);
+        if (!ReducedMotion && f.Attack?.IsAreaSkill != true) DrawAttackTrail(f, point);
         if (f.Health <= 0) return;
         if (f.Enemy != null)
         {
@@ -136,7 +141,7 @@ public partial class CombatArena : Node2D
             DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width * f.Health / (float)f.Stats.Health, 5), new Color(.8f, .45f, .23f));
             DrawString(font, point + new Vector2(-width / 2f, -height - 26), f.Name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
         }
-        if (f.State == CombatState.Attack && f.AttackFrame < f.Attack!.Startup)
+        if (f.State == CombatState.Attack && !f.Attack!.IsAreaSkill && f.AttackFrame < f.Attack.Startup)
         {
             var text = f.Enemy == null ? "" : f.Attack.Id == "enemy_heavy" ? "重击！" : "！";
             if (text.Length > 0) DrawString(font, point + new Vector2(-16, -height - 55), text, HorizontalAlignment.Left, -1, 22, new Color(1, .73f, .3f));
@@ -174,6 +179,8 @@ public partial class CombatArena : Node2D
             "light2" => frame < move.Startup ? 1 : afterContact < 0 ? 2 : afterContact < 9 ? 3 : null,
             "light3" => frame < move.Startup ? 4 : afterContact < 0 ? 5 : afterContact < 9 ? 4 : null,
             "sweep" => frame < move.Startup ? 7 : afterContact < 0 ? 6 : afterContact < 11 ? 7 : null,
+            CombatMove.AreaSkillId => frame < move.Startup / 2 ? 1 : frame < move.Startup ? 3 :
+                afterContact < 0 ? 2 : afterContact < 9 ? 3 : null,
             _ => null
         };
     }

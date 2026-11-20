@@ -1,6 +1,6 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-footwork-0.2",
+  "balanceVersion": "combat-area-crit-0.1",
   "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
@@ -184,6 +184,21 @@
       "depth": 22,
       "stun": 0.2,
       "push": 10
+    },
+    {
+      "id": "round_sweep",
+      "name": "回身横扫",
+      "power": 0.9,
+      "startup": 12,
+      "active": 4,
+      "recovery": 24,
+      "cost": 30,
+      "cooldownFrames": 90,
+      "hitstopFrames": 3,
+      "reach": 72,
+      "depth": 34,
+      "stun": 0.16,
+      "push": 0
     }
   ],
   "enemies": [
@@ -270,7 +285,10 @@
     {
       "id": "b2",
       "name": "二 · 走位与节奏",
-      "hint": "对手会侧移。短棍距离更远，收势与耗耐力也更多。",
+      "hint": "引近两人，再用 Q 回身横扫。J 有效命中偶尔暴击。",
+      "areaSkill": true,
+      "criticalChance": 0.1,
+      "criticalMultiplier": 1.5,
       "enemies": [
         "roamer",
         "quick"

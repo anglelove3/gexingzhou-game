@@ -23,7 +23,7 @@ public partial class CombatDemo : Control
     private const string PrepActions = "Prepare/Footer/Content/Actions/";
     private const string Pause = "Pause/Panel/Scroll/Content/";
     private const string ResultPath = "Result/Panel/Scroll/Content/";
-    private static readonly Key[] CombatKeys = { Key.W, Key.A, Key.S, Key.D, Key.Up, Key.Down, Key.Left, Key.Right, Key.J, Key.K, Key.L, Key.Space };
+    private static readonly Key[] CombatKeys = { Key.W, Key.A, Key.S, Key.D, Key.Up, Key.Down, Key.Left, Key.Right, Key.J, Key.K, Key.L, Key.Q, Key.Space };
 
     public override void _Ready()
     {
@@ -286,7 +286,8 @@ public partial class CombatDemo : Control
         {
             LightPressed = pendingInput.LightPressed || code == Key.J,
             HeavyPressed = pendingInput.HeavyPressed || code == Key.K,
-            DodgePressed = pendingInput.DodgePressed || code == Key.Space
+            DodgePressed = pendingInput.DodgePressed || code == Key.Space,
+            AreaPressed = pendingInput.AreaPressed || code == Key.Q
         };
         GetViewport().SetInputAsHandled();
     }
@@ -333,7 +334,7 @@ public partial class CombatDemo : Control
     {
         var list = events.ToArray();
         foreach (var ev in list.Where(e => e.Kind == "attack").Take(1))
-            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId is "charged" or "sweep" ? .8f : 1, 1);
+            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId is "charged" or "sweep" or CombatMove.AreaSkillId ? .8f : 1, 1);
         var impact = list.Where(e => e.Kind is "hit" or "block" or "down" or "break")
             .OrderByDescending(e => e.MoveId == "charged" ? 4 : e.MoveId is "heavy" or "enemy_heavy" ? 3 : e.MoveId == "light3" ? 2 : 1)
             .ThenByDescending(e => e.Kind != "block").FirstOrDefault();
@@ -387,6 +388,9 @@ public partial class CombatDemo : Control
             action.Text = p.Attack!.Id switch { "light1" => "快拳", "light2" => "转身拳", "light3" => "正踢", _ => action.Text };
         if (Match.SweepCanBuffer) action.Text += " · J正踢 / K低扫腿（24耐力）";
         else if (p.CanDodgeCancel && p.DodgeReady) action.Text += " · Space闪避衔接（24耐力）";
+        if (wave.AreaSkill)
+            action.Text += Match.AreaCooldownRemaining > 0 ? $" · Q冷却 {Match.AreaCooldownRemaining / 60d:0.0}秒" :
+                p.Stamina >= Catalog.Move(CombatMove.AreaSkillId).Cost ? " · Q就绪" : " · Q耐力不足";
     }
 
     public Godot.Collections.Dictionary ReadCombatState()

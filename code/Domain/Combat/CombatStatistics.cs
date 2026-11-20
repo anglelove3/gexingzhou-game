@@ -21,15 +21,19 @@ public sealed class CombatStatistics
     [System.Text.Json.Serialization.JsonInclude] public int RiposteHits { get; internal set; }
     [System.Text.Json.Serialization.JsonInclude] public int BreakAttacks { get; internal set; }
     [System.Text.Json.Serialization.JsonInclude] public int BreakHits { get; internal set; }
+    [System.Text.Json.Serialization.JsonInclude] public int CriticalHits { get; internal set; }
+    [System.Text.Json.Serialization.JsonInclude] public int AreaCasts { get; internal set; }
+    [System.Text.Json.Serialization.JsonInclude] public int AreaHits { get; internal set; }
     public CombatStatistics Copy() => (CombatStatistics)MemberwiseClone();
     public bool IsValid() => new[] { ActiveFrames, TotalFrames, LightAttacks, HeavyAttacks, Dodges, Blocks, HitsTaken,
         DamageDealt, DamageTaken, EmptyStamina, EffectiveDamage, StaminaReturns, PerfectGuards, RiposteAttacks,
-        RiposteHits, BreakAttacks, BreakHits, DodgeCancels }.All(v => v >= 0) && DodgeCancels <= Dodges && TotalFrames >= ActiveFrames &&
+        RiposteHits, BreakAttacks, BreakHits, DodgeCancels, CriticalHits, AreaCasts, AreaHits }.All(v => v >= 0) &&
+        DodgeCancels <= Dodges && TotalFrames >= ActiveFrames &&
         double.IsFinite(StaminaRestored) && StaminaRestored >= 0 && EffectiveDamage <= DamageDealt;
     public double ActiveSeconds => ActiveFrames / 60d;
     public double TotalSeconds => TotalFrames / 60d;
 }
 
 public sealed record CombatEvent(string Kind, string SourceId, string TargetId, int Damage, double X, double Y,
-    string MoveId = "", int Facing = 1, double Displacement = 0);
+    string MoveId = "", int Facing = 1, double Displacement = 0, bool Critical = false);
 public enum CombatResult { Running, Won, Lost }

@@ -93,12 +93,12 @@ public sealed class CombatChallenge
         return new(copy, record);
     }
 
-    public CombatMatch CreateMatch()
+    public CombatMatch CreateMatch(int? randomSeed = null)
     {
         if (record.Outcome != ChallengeOutcome.Running || current != null || awaitingContinue)
             throw new InvalidOperationException("请先完成当前波结算。");
         int health = record.Waves.Count == 0 ? record.Stats!.Health : record.Waves[^1].HealthEnd;
-        current = new(catalog, record.Progress, catalog.Waves[record.CompletedWaves].Id, health);
+        current = new(catalog, record.Progress, catalog.Waves[record.CompletedWaves].Id, health, randomSeed);
         return current;
     }
 

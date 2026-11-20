@@ -21,7 +21,7 @@ public partial class SmokeHarness : Node
             var suite=OS.GetCmdlineUserArgs().FirstOrDefault(a=>a.StartsWith("--suite="))?.Split('=')[1] ?? "Movement";
             if(suite=="CombatTiming"){await CombatTimingChecks();GD.Print("GODOT_CHECKS_PASS CombatTiming");await DrainAudio();GetTree().Quit();return;}
             if(suite=="CombatImpact"){await CombatImpactChecks();GD.Print("GODOT_CHECKS_PASS CombatImpact");await DrainAudio();GetTree().Quit();return;}
-            if(suite is "Combat" or "CombatCapture" or "CombatChallenge" or "CombatChallengeCapture" or "CombatImpactCapture" or "CombatFootwork" or "CombatFootworkCapture")
+            if(suite is "Combat" or "CombatCapture" or "CombatChallenge" or "CombatChallengeCapture" or "CombatImpactCapture" or "CombatFootwork" or "CombatFootworkCapture" or "CombatArea" or "CombatAreaCapture")
             {
                 if(suite.EndsWith("Capture", StringComparison.Ordinal))
                 {
@@ -34,6 +34,7 @@ public partial class SmokeHarness : Node
                     captureDirectory=ProjectSettings.GlobalizePath(captureRoot+"/"+sizeText+suffix);
                 }
                 if(suite.StartsWith("CombatFootwork")){await CombatFootworkChecks();GD.Print("GODOT_CHECKS_PASS CombatFootwork");}
+                else if(suite.StartsWith("CombatArea")){await CombatAreaChecks();GD.Print("GODOT_CHECKS_PASS CombatArea");}
                 else if(suite.StartsWith("CombatImpact")){await CombatImpactChecks();GD.Print("GODOT_CHECKS_PASS CombatImpact");}
                 else if(suite.StartsWith("CombatChallenge")){await CombatChallengeChecks();GD.Print("GODOT_CHECKS_PASS CombatChallenge");}
                 else {await CombatChecks();GD.Print("GODOT_CHECKS_PASS Combat");}

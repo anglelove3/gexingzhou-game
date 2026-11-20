@@ -26,6 +26,7 @@ CombatChecks.Register(tests);
 CombatBuildChecks.Register(tests);
 CombatImpactChecks.Register(tests);
 CombatFootworkChecks.Register(tests);
+CombatAreaChecks.Register(tests);
 CombatChallengeChecks.Register(tests);
 CombatBalanceChecks.Register(tests);
 string? filter = null;

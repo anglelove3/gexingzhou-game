@@ -46,7 +46,8 @@ public static class CombatBalance
         var waves = new List<BalanceWave>(); string result = "Won"; int complete = 0, health = catalog.Stats(progress).Health;
         foreach (var wave in catalog.Waves)
         {
-            var match = challenge?.CreateMatch() ?? new CombatMatch(catalog, progress, wave.Id);
+            var seed = 1000 + strategy * 100 + layout * 10 + complete;
+            var match = challenge?.CreateMatch(seed) ?? new CombatMatch(catalog, progress, wave.Id, randomSeed: seed);
             int start = match.Player.Health;
             foreach (var enemy in match.Enemies)
             {

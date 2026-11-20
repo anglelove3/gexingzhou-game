@@ -17,6 +17,22 @@ public partial class CombatArena
         public double Age;
     }
 
+    private void DrawAreaSkillRange(CombatFighter fighter)
+    {
+        if (fighter.State != CombatState.Attack || fighter.Attack is not { IsAreaSkill: true } move ||
+            fighter.AttackFrame >= move.Startup + move.Active) return;
+        var center = new Vector2((float)fighter.X, (float)fighter.Y);
+        const int segments = 48;
+        var points = new Vector2[segments + 1];
+        for (var i = 0; i <= segments; i++)
+        {
+            var angle = i * Mathf.Tau / segments;
+            points[i] = center + new Vector2(Mathf.Cos(angle) * (float)move.Reach, Mathf.Sin(angle) * (float)move.Depth);
+        }
+        DrawPolyline(points, new Color(.09f, .06f, .025f, .78f), 5, true);
+        DrawPolyline(points, fighter.ActivePulse < 0 ? new Color(1, .82f, .49f, .77f) : new Color(1, .92f, .64f), 2, true);
+    }
+
     private static float Weight(string move) => move switch
     {
         "light2" => 1.15f, "light3" => 1.5f, "sweep" => 1.65f, "heavy" or "enemy_heavy" => 1.8f, "charged" => 2.3f, _ => 1

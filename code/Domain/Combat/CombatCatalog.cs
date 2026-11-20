@@ -32,6 +32,7 @@ public sealed record CombatItem
 
 public sealed record CombatMove
 {
+    public const string AreaSkillId = "round_sweep";
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public double Power { get; init; }
@@ -45,7 +46,9 @@ public sealed record CombatMove
     public double Push { get; init; }
     public int HitstopFrames { get; init; }
     public int DodgeCancelRecoveryFrames { get; init; }
+    public int CooldownFrames { get; init; }
     public bool IsLight => Id.StartsWith("light", StringComparison.Ordinal);
+    public bool IsAreaSkill => Id == AreaSkillId;
     public int Total => Startup + Active + Recovery;
 }
 
@@ -66,6 +69,9 @@ public sealed record CombatWave
 {
     public bool Footwork { get; init; }
     public int SweepEarlyBufferFrames { get; init; }
+    public double CriticalChance { get; init; }
+    public double CriticalMultiplier { get; init; } = 1;
+    public bool AreaSkill { get; init; }
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public string Hint { get; init; } = "";
@@ -108,7 +114,7 @@ public sealed class CombatCatalog
                 c.Growth.LevelHealth < 0 || c.Growth.LevelAttack < 0 || c.Growth.LevelDefense < 0 || c.Growth.LevelStamina < 0 ||
                 new[] { c.Growth.Recovery, c.Growth.MoveSpeed, c.Growth.DodgeSeconds }.Any(v => !double.IsFinite(v) || v <= 0) ||
                 c.Items == null || c.Moves == null || c.Enemies == null || c.Waves == null ||
-                c.Items.Count != 9 || c.Moves.Count is < 5 or > 6 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
+                c.Items.Count != 9 || c.Moves.Count is < 5 or > 7 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
                 c.Items.Any(i => i == null) || c.Moves.Any(m => m == null) || c.Enemies.Any(e => e == null) || c.Waves.Any(w => w == null))
                 throw new ArgumentException("战斗配置结构或版本异常。");
             Unique(c.Items.Select(i => i.Id)); Unique(c.Moves.Select(i => i.Id));
@@ -130,7 +136,9 @@ public sealed class CombatCatalog
             foreach (var m in c.Moves)
                 if (m.Startup < 1 || m.Active < 1 || m.Recovery < 1 || m.Cost < 1 ||
                     m.HitstopFrames is < 0 or > 12 || m.DodgeCancelRecoveryFrames is < 0 or > 60 ||
-                    new[] { m.Power, m.Reach, m.Depth, m.Stun, m.Push }.Any(v => !double.IsFinite(v) || v <= 0))
+                    new[] { m.Power, m.Reach, m.Depth, m.Stun }.Any(v => !double.IsFinite(v) || v <= 0) ||
+                    !double.IsFinite(m.Push) || m.Push < 0 || !m.IsAreaSkill && m.Push == 0 ||
+                    (m.IsAreaSkill ? m.CooldownFrames is < 1 or > 600 : m.CooldownFrames != 0))
                     throw new ArgumentException("招式参数异常。");
             foreach (var e in c.Enemies)
                 if (e.Health <= 0 || e.Attack <= 0 || e.Defense < 0 || e.GuardFrames is < 1 or > 300 ||
@@ -139,14 +147,19 @@ public sealed class CombatCatalog
             foreach (var w in c.Waves)
                 if (w.Experience <= 0 || w.Enemies == null || w.Items == null || w.Enemies.Length is < 1 or > 3 ||
                     w.SweepEarlyBufferFrames is < 0 or > 4 || !w.Footwork && w.SweepEarlyBufferFrames > 0 ||
+                    !double.IsFinite(w.CriticalChance) || w.CriticalChance is < 0 or > 1 ||
+                    !double.IsFinite(w.CriticalMultiplier) || w.CriticalMultiplier is < 1 or > 4 ||
+                    w.CriticalChance > 0 && w.CriticalMultiplier <= 1 ||
                     w.Enemies.Any(id => !c.Enemies.Any(e => e.Id == id)) || w.Items.Any(id => !c.Items.Any(i => i.Id == id)))
                     throw new ArgumentException("波次配置异常。");
             if (c.Waves.Sum(w => (long)w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");
             foreach (var id in new[] { "wraps", "jacket", "trainers" }) c.Item(id);
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
-            if (c.Waves.Any(w => w.Footwork) != c.Moves.Any(m => m.Id == "sweep") ||
-                c.Moves.Count == 6 && !c.Moves.Any(m => m.Id == "sweep"))
-                throw new ArgumentException("拳脚对练缺少配置或包含未知招式。");
+            var hasSweep = c.Waves.Any(w => w.Footwork);
+            var hasArea = c.Waves.Any(w => w.AreaSkill);
+            if (hasSweep != c.Moves.Any(m => m.Id == "sweep") || hasArea != c.Moves.Any(m => m.IsAreaSkill) ||
+                c.Moves.Count != 5 + (hasSweep ? 1 : 0) + (hasArea ? 1 : 0))
+                throw new ArgumentException("波次缺少招式配置或包含未知招式。");
             c.ConfigHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
             c.SourceJson = json;
             return c;
@@ -188,7 +201,7 @@ public sealed class CombatCatalog
     public CombatMove EquippedMove(string id, CombatStats stats)
     {
         var m = Move(id); var w = stats.Weapon;
-        if (m.Id == "sweep") return m;
+        if (m.Id == "sweep" || m.IsAreaSkill) return m;
         var time = w.AttackTime * (m.IsLight ? w.LightTime : 1);
         return m with
         {

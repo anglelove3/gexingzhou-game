@@ -10,20 +10,28 @@ public sealed class CombatMatch
     public CombatStatistics Statistics { get; } = new();
     public CombatResult Result { get; private set; }
     public int TickCount { get; private set; }
+    public int AreaCooldownRemaining => Math.Max(0, areaReadyTick - TickCount);
     public bool HitStopped => hitstop > 0;
     private const int LinkRecoveryFrames = 4;
     public bool SweepCanBuffer => Wave.Footwork && Player.Attack is { Id: "light2" } move && Player.ConfirmedAttack &&
         Player.AttackFrame < move.Total - 1 && Player.Stamina >= Catalog.Move("sweep").Cost;
     private int hitstop, nextPermit, queueFrames;
     private int earlySweepUntilFrame;
+    private int areaReadyTick;
+    private readonly Func<double>? rollCriticalPower;
     private string? permitOwner, queued;
     private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
 
-    public CombatMatch(CombatCatalog catalog, CombatProgress progress, string waveId, int? initialHealth = null)
+    public CombatMatch(CombatCatalog catalog, CombatProgress progress, string waveId, int? initialHealth = null, int? randomSeed = null)
     {
         if (progress.Validate(catalog) is { } error) throw new ArgumentException(error);
         if (!progress.CanEnter(waveId, catalog)) throw new ArgumentException("波次尚未解锁。");
         Catalog = catalog; Wave = catalog.Wave(waveId);
+        if (Wave.CriticalChance > 0)
+        {
+            var random = randomSeed.HasValue ? new Random(randomSeed.Value) : new Random();
+            rollCriticalPower = () => random.NextDouble() < Wave.CriticalChance ? Wave.CriticalMultiplier : 1;
+        }
         Player = new("player", "葛行舟", catalog.Stats(progress), 360, 480, initialHealth: initialHealth);
         for (int i = 0; i < Wave.Enemies.Length; i++)
         {
@@ -94,6 +102,9 @@ public sealed class CombatMatch
             }
             else { queued = "charge"; queueFrames = 6; }
         }
+        if (input.AreaPressed && !input.LightPressed && !input.HeavyPressed && Wave.AreaSkill &&
+            AreaCooldownRemaining == 0 && Player.State != CombatState.Charging)
+        { queued = CombatMove.AreaSkillId; queueFrames = 6; }
         if (input.DodgePressed) { queued = "dodge"; queueFrames = 6; earlySweepUntilFrame = 0; }
     }
 
@@ -160,7 +171,13 @@ public sealed class CombatMatch
     {
         var move = Catalog.EquippedMove(id, Player.Stats);
         if (!(linked ? Player.TryLinkAttack(move) : Player.TryAttack(move))) { EmptyStamina(); return false; }
-        if (move.IsLight) Statistics.LightAttacks++; else Statistics.HeavyAttacks++;
+        if (move.IsAreaSkill)
+        {
+            areaReadyTick = TickCount + move.CooldownFrames;
+            Statistics.AreaCasts++;
+        }
+        else if (move.IsLight) Statistics.LightAttacks++;
+        else Statistics.HeavyAttacks++;
         if (Player.AttackHasRiposte) Statistics.RiposteAttacks++;
         if (id == "charged" && Player.Stats.Weapon.GuardBreakPower > 1) Statistics.BreakAttacks++;
         Events.Add(new("attack", Player.Id, "", 0, Player.X, Player.Y, id, Player.Facing)); return true;
@@ -257,10 +274,10 @@ public sealed class CombatMatch
         {
             if (!source.InRange(target, move) || !source.RegisterTarget(target)) continue;
             int beforeHealth = target.Health; double beforeX = target.X;
-            var hit = target.ReceiveHit(source, move);
+            var hit = target.ReceiveHit(source, move, source == Player && move.IsLight ? rollCriticalPower : null);
             if (!hit.Applied) continue;
             Events.Add(new(hit.Blocked ? "block" : hit.GuardBroken ? "break" : hit.KnockedDown ? "down" : "hit", source.Id, target.Id, hit.Damage, beforeX, target.Y,
-                move.Id, source.Facing, target.X - beforeX));
+                move.Id, source.Facing, target.X - beforeX, hit.Critical));
             int stop = move.HitstopFrames > 0 ? move.HitstopFrames : move.IsLight || move.Id == "enemy_jab" ? 2 : 4;
             hitstop = Math.Max(hitstop, hit.Blocked && move.HitstopFrames > 0 ? Math.Min(stop, 2) : stop);
             if (source == Player)
@@ -269,6 +286,8 @@ public sealed class CombatMatch
                 Statistics.EffectiveDamage += beforeHealth - target.Health;
                 if (hit.Damage > 0 && !hit.Blocked)
                 {
+                    if (hit.Critical) Statistics.CriticalHits++;
+                    if (move.IsAreaSkill) Statistics.AreaHits++;
                     source.ConfirmHit();
                     if (move.Id == "light2" && source.AttackFrame <= earlySweepUntilFrame && SweepCanBuffer)
                         QueueSweep(move);
