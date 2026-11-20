@@ -1,5 +1,6 @@
 using Godot;
 using GeXingzhou.Domain;
+using System.Reflection;
 
 public partial class SmokeHarness
 {
@@ -23,6 +24,17 @@ public partial class SmokeHarness
         await Frames(3);
         var start = demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start");
         var action = demo.GetNode<Label>("Hud/Top/Content/Action");
+        var selectPose = typeof(CombatArena).GetMethod("FootworkPose", BindingFlags.Static | BindingFlags.NonPublic)
+            ?.CreateDelegate<Func<CombatFighter, int?>>()
+            ?? throw new InvalidOperationException("Footwork pose selector missing");
+
+        async Task Until(Func<bool> reached, string phase)
+        {
+            for (var i = 0; i < 80 && !reached(); i++)
+                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+            Require(reached(), "Q did not reach " + phase);
+        }
+
         for (var targets = 0; targets <= 2; targets++)
         {
             start.GrabFocus();
@@ -40,16 +52,25 @@ public partial class SmokeHarness
             }
 
             KeyPress(Key.Q);
-            await Frames(3);
+            await Until(() => match.Player.Attack?.IsAreaSkill == true, "startup");
             Require(match.Player.Attack?.IsAreaSkill == true && match.Player.Stamina == 75, "Q did not start a paid area skill");
+            Require(match.Player.AttackFrame <= 1 && selectPose(match.Player) == 7,
+                "Q must lower its stance as soon as the sweep starts");
+            var move = match.Player.Attack!;
+            await Until(() => match.Player.AttackFrame == move.Startup / 2, "raised knee");
+            Require(selectPose(match.Player) == 3 && match.Statistics.AreaHits == 0,
+                "Q must show the raised knee before the first hit");
             Require(action.Text.Contains("Q冷却", StringComparison.Ordinal), "The skill cooldown was not displayed");
             if (targets == 2) await Capture("area-range");
-            for (var frame = 0; !match.Player.CanAct && frame < 70; frame++)
-            {
-                await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
-                if (targets == 2 && match.Statistics.AreaHits == 2) await Capture("area-double-hit");
-            }
-            Require(match.Player.CanAct && match.Statistics.AreaHits == targets, "Unexpected number of Q hits");
+            await Until(() => match.Player.AttackFrame == move.Startup, "first active frame");
+            Require(selectPose(match.Player) == 6 && match.Statistics.AreaHits == targets,
+                "Q must extend the sweeping leg on the same frame as the hit check");
+            if (targets == 2) await Capture("area-double-hit");
+            await Until(() => match.Player.AttackFrame == move.Startup + move.Active, "recovery");
+            Require(selectPose(match.Player) == 7, "Q must pull the leg back into its low stance after contact");
+            if (targets == 2) await Capture("area-recovery");
+            await Until(() => match.Player.CanAct, "end of recovery");
+            Require(match.Statistics.AreaHits == targets, "Unexpected number of Q hits");
             KeyPress(Key.Q);
             await Frames(3);
             Require(match.Statistics.AreaCasts == 1, "Q bypassed cooldown via keyboard");
@@ -83,6 +104,6 @@ public partial class SmokeHarness
         demo.Free();
         await Frames(3);
         session.SetOptions(options, false);
-        GD.Print("COMBAT_AREA_PASS FourthWave KeyboardQ ZeroOneTwo Cooldown");
+        GD.Print("COMBAT_AREA_PASS FourthWave KeyboardQ ZeroOneTwo Cooldown StartupContactRecoveryPoses");
     }
 }

@@ -29,8 +29,9 @@ public partial class CombatArena
             var angle = i * Mathf.Tau / segments;
             points[i] = center + new Vector2(Mathf.Cos(angle) * (float)move.Reach, Mathf.Sin(angle) * (float)move.Depth);
         }
-        DrawPolyline(points, new Color(.09f, .06f, .025f, .78f), 5, true);
-        DrawPolyline(points, fighter.ActivePulse < 0 ? new Color(1, .82f, .49f, .77f) : new Color(1, .92f, .64f), 2, true);
+        var active = fighter.ActivePulse >= 0;
+        DrawPolyline(points, new Color(.09f, .06f, .025f, .78f), active ? 7 : 5, true);
+        DrawPolyline(points, active ? new Color(1, .92f, .64f) : new Color(1, .82f, .49f, .77f), active ? 4 : 2, true);
     }
 
     private static float Weight(string move) => move switch
