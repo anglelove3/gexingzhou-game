@@ -32,6 +32,19 @@ public partial class SmokeHarness
             var match = demo.Match!;
             var opponent = match.Enemies.Single();
             Require(opponent.Name == "快拳手", "First wave opponent changed");
+            if (!sweep)
+            {
+                await Frames(3);
+                var hint = demo.GetNode<Label>("Hud/Wave");
+                Require(hint.IsVisibleInTree() && hint.Text.Contains(match.Wave.Hint, StringComparison.Ordinal) &&
+                    hint.Text.Contains("扫倒后先横移，快拳手再起手时继续走位。", StringComparison.Ordinal),
+                    "First wave HUD must show positioning guidance with its original controls");
+                Require(hint.GetLineCount() == hint.GetVisibleLineCount() &&
+                    demo.GetGlobalRect().Encloses(hint.GetGlobalRect()) &&
+                    !hint.GetGlobalRect().Intersects(demo.GetNode<Control>("Hud/Top").GetGlobalRect()),
+                    "First wave positioning guidance must fit beside the combat HUD");
+                await Capture("footwork-positioning-hint");
+            }
             opponent.X = match.Player.X + 27; opponent.Y = match.Player.Y; opponent.Cooldown = 900;
             KeyPress(Key.J);
             await Until(() => match.Player.Attack?.Id == "light1" && match.HitStopped, "jab impact");
@@ -74,6 +87,6 @@ public partial class SmokeHarness
         demo.Free();
         await Frames(3);
         session.SetOptions(options, false);
-        GD.Print("COMBAT_FOOTWORK_PASS NormalStart QuickOpponent KeyboardEarlyJ FourFrameEarlyK HitConfirmedK Stamina SeparateHitStates StartupContactRecoveryPoses");
+        GD.Print("COMBAT_FOOTWORK_PASS NormalStart PositioningHint QuickOpponent KeyboardEarlyJ FourFrameEarlyK HitConfirmedK Stamina SeparateHitStates StartupContactRecoveryPoses");
     }
 }

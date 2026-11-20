@@ -377,13 +377,16 @@ public partial class CombatDemo : Control
         GetNode<ProgressBar>("Hud/Top/Content/Stamina").Value = p.Stamina * 100 / p.Stats.Stamina;
         GetNode<Label>("Hud/Top/Content/Action").Text = p.State == CombatState.Charging ? $"蓄力 {Math.Min(100, p.StateFrame * 100 / 27)}%" :
             p.State == CombatState.Attack ? p.Attack!.Name : p.State switch { CombatState.Guard => "正面防御", CombatState.Dodge => "闪避", CombatState.Hurt => "受击", CombatState.Down => "倒地", _ => "观察距离，留出耐力" };
-        GetNode<Label>("Hud/Wave").Text = Match.Wave.Name + "\n" + Match.Wave.Hint;
+        var wave = Match.Wave;
+        var positioningHint = wave.Id == "a1" && wave.Footwork
+            ? "\n扫倒后先横移，快拳手再起手时继续走位。" : "";
+        var challengeHint = challenge != null ? "\n连战 · 生命继承 / 耐力逐波回满" : "";
+        GetNode<Label>("Hud/Wave").Text = wave.Name + "\n" + wave.Hint + positioningHint + challengeHint;
         var action = GetNode<Label>("Hud/Top/Content/Action");
-        if (Match.Wave.Footwork && p.State == CombatState.Attack)
+        if (wave.Footwork && p.State == CombatState.Attack)
             action.Text = p.Attack!.Id switch { "light1" => "快拳", "light2" => "转身拳", "light3" => "正踢", _ => action.Text };
         if (Match.SweepCanBuffer) action.Text += " · J正踢 / K低扫腿（24耐力）";
         else if (p.CanDodgeCancel && p.DodgeReady) action.Text += " · Space闪避衔接（24耐力）";
-        if (challenge != null) GetNode<Label>("Hud/Wave").Text += "\n连战 · 生命继承 / 耐力逐波回满";
     }
 
     public Godot.Collections.Dictionary ReadCombatState()
