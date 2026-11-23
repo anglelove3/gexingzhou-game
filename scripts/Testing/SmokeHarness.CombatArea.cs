@@ -74,6 +74,25 @@ public partial class SmokeHarness
             KeyPress(Key.Q);
             await Frames(3);
             Require(match.Statistics.AreaCasts == 1, "Q bypassed cooldown via keyboard");
+            if (targets == 2)
+            {
+                // End the fixture after the real Q hit so the result screen follows its normal path.
+                match.Player.ReceiveHit(match.Enemies[0], demo.Catalog.Move("light1") with { Power = 100 });
+                await Until(() => demo.Screen == "result", "result");
+                var panel = "Result/Panel/Scroll/Content/";
+                var statistics = demo.GetNode<Label>(panel + "Statistics");
+                Require(statistics.Text.Contains("横扫双中次数 1", StringComparison.Ordinal) &&
+                    statistics.Text.Contains("范围伤害 27", StringComparison.Ordinal),
+                    "Fourth-wave results must show the actual Q double hits and damage");
+                Require(statistics.GetLineCount() == statistics.GetVisibleLineCount(), "Q statistics were clipped");
+                await Capture("area-result");
+                demo.GetNode<Button>(panel + "Export").EmitSignal(Button.SignalName.Pressed);
+                var export = System.IO.Directory.GetFiles(ProjectSettings.GlobalizePath(root + "/combat-v1/exports"), "combat-*.json").Single();
+                using var json = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(export));
+                var totals = json.RootElement.GetProperty("statistics");
+                Require(totals.GetProperty("AreaDoubleHits").GetInt32() == 1 &&
+                    totals.GetProperty("AreaDamage").GetInt32() == 27, "Q export differs from the result screen");
+            }
             demo.ReturnToPreparation();
             await Frames(3);
         }

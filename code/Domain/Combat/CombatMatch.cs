@@ -17,7 +17,7 @@ public sealed class CombatMatch
         Player.AttackFrame < move.Total - 1 && Player.Stamina >= Catalog.Move("sweep").Cost;
     private int hitstop, nextPermit, queueFrames;
     private int earlySweepUntilFrame;
-    private int areaReadyTick;
+    private int areaReadyTick, areaHitsThisCast;
     private readonly Func<double>? rollCriticalPower;
     private string? permitOwner, queued;
     private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
@@ -27,6 +27,11 @@ public sealed class CombatMatch
         if (progress.Validate(catalog) is { } error) throw new ArgumentException(error);
         if (!progress.CanEnter(waveId, catalog)) throw new ArgumentException("波次尚未解锁。");
         Catalog = catalog; Wave = catalog.Wave(waveId);
+        if (Wave.AreaSkill)
+        {
+            Statistics.AreaDoubleHits = 0;
+            Statistics.AreaDamage = 0;
+        }
         if (Wave.CriticalChance > 0)
         {
             var random = randomSeed.HasValue ? new Random(randomSeed.Value) : new Random();
@@ -174,6 +179,7 @@ public sealed class CombatMatch
         if (move.IsAreaSkill)
         {
             areaReadyTick = TickCount + move.CooldownFrames;
+            areaHitsThisCast = 0;
             Statistics.AreaCasts++;
         }
         else if (move.IsLight) Statistics.LightAttacks++;
@@ -282,12 +288,18 @@ public sealed class CombatMatch
             hitstop = Math.Max(hitstop, hit.Blocked && move.HitstopFrames > 0 ? Math.Min(stop, 2) : stop);
             if (source == Player)
             {
+                int effectiveDamage = beforeHealth - target.Health;
                 Statistics.DamageDealt += hit.Damage;
-                Statistics.EffectiveDamage += beforeHealth - target.Health;
+                Statistics.EffectiveDamage += effectiveDamage;
+                if (move.IsAreaSkill) Statistics.AreaDamage += effectiveDamage;
                 if (hit.Damage > 0 && !hit.Blocked)
                 {
                     if (hit.Critical) Statistics.CriticalHits++;
-                    if (move.IsAreaSkill) Statistics.AreaHits++;
+                    if (move.IsAreaSkill)
+                    {
+                        Statistics.AreaHits++;
+                        if (++areaHitsThisCast == 2) Statistics.AreaDoubleHits++;
+                    }
                     source.ConfirmHit();
                     if (move.Id == "light2" && source.AttackFrame <= earlySweepUntilFrame && SweepCanBuffer)
                         QueueSweep(move);

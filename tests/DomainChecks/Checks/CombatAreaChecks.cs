@@ -20,6 +20,8 @@ public static class CombatAreaChecks
 
     private static int CriticalSeed() => Enumerable.Range(0, 1000).First(seed => new Random(seed).NextDouble() < .1);
 
+    private static JsonObject Numbers(CombatMatch match) => JsonSerializer.SerializeToNode(match.Statistics)!.AsObject();
+
     private static CombatEvent LightHit(CombatMatch match)
     {
         match.Step(new(LightPressed: true));
@@ -81,7 +83,28 @@ public static class CombatAreaChecks
                 Check.True(hits.All(e => !e.Critical && e.Displacement == 0));
                 Check.Equal(1, m.Statistics.AreaCasts);
                 Check.Equal(targets, m.Statistics.AreaHits);
+                Check.Equal(targets == 2 ? 1 : 0, (int?)Numbers(m)["AreaDoubleHits"]);
+                Check.Equal(targets == 2 ? 27 : targets == 1 ? 13 : 0, (int?)Numbers(m)["AreaDamage"]);
             }
+        }));
+        tests.Add(("CombatArea", "DoubleHitsTrackIndividualCasts", () =>
+        {
+            var match = Bout(CombatChecks.Catalog());
+            foreach (var targets in new[] { 1, 1, 2 })
+            {
+                for (var i = 0; i < 140 && (match.AreaCooldownRemaining > 0 || !match.Player.CanAct); i++) match.Step(default);
+                Check.True(match.AreaCooldownRemaining == 0 && match.Player.CanAct);
+                match.Enemies[0].X = match.Player.X - 36;
+                match.Enemies[1].X = match.Player.X + (targets == 2 ? 38 : 300);
+                foreach (var enemy in match.Enemies) enemy.Y = match.Player.Y;
+                match.Step(new(AreaPressed: true));
+                for (var i = 0; i < 30; i++) match.Step(default);
+                Check.Equal(targets == 2 ? 1 : 0, (int?)Numbers(match)["AreaDoubleHits"]);
+            }
+            Check.Equal(3, match.Statistics.AreaCasts);
+            Check.Equal(4, match.Statistics.AreaHits);
+            Check.Equal(53, (int?)Numbers(match)["AreaDamage"]);
+            Check.True(match.Statistics.IsValid());
         }));
         tests.Add(("CombatArea", "BlockedHitKeepsTheNextCriticalRollAndQCanBeBlocked", () =>
         {
@@ -102,6 +125,29 @@ public static class CombatAreaChecks
             Check.Equal("block", areaBlock.Kind);
             Check.Equal(2, areaBlock.Damage);
             Check.Equal(0, m.Statistics.AreaHits);
+            Check.Equal(0, (int?)Numbers(m)["AreaDoubleHits"]);
+            Check.Equal(2, (int?)Numbers(m)["AreaDamage"]);
+        }));
+        tests.Add(("CombatArea", "AreaDamageUsesActualHealthAndExcludesLightAttacks", () =>
+        {
+            var catalog = CombatChecks.Catalog();
+            var quick = catalog.Enemies.FindIndex(enemy => enemy.Id == "quick");
+            catalog.Enemies[quick] = catalog.Enemies[quick] with { Health = 5 };
+            var match = Bout(catalog);
+            Check.Equal(12, LightHit(match).Damage);
+            for (var i = 0; i < 80 && !match.Player.CanAct; i++) match.Step(default);
+            Check.True(match.Player.CanAct);
+            match.Enemies[0].X = match.Player.X - 36;
+            match.Enemies[1].X = match.Player.X + 38;
+            foreach (var enemy in match.Enemies) enemy.Y = match.Player.Y;
+            match.Step(new(AreaPressed: true));
+            for (var i = 0; i < 30; i++) match.Step(default);
+            Check.Equal(1, (int?)Numbers(match)["AreaDoubleHits"]);
+            Check.Equal(18, (int?)Numbers(match)["AreaDamage"]);
+            Check.Equal(30, match.Statistics.EffectiveDamage);
+            var roundTrip = JsonSerializer.Deserialize<CombatStatistics>(Numbers(match).ToJsonString())!;
+            Check.True(roundTrip.IsValid());
+            Check.Equal(18, (int?)JsonSerializer.SerializeToNode(roundTrip)!["AreaDamage"]);
         }));
         tests.Add(("CombatArea", "AreaCooldownAndUnavailableInputDoNotSpendAgain", () =>
         {
@@ -147,6 +193,10 @@ public static class CombatAreaChecks
             var oldStatistics = JsonSerializer.Deserialize<CombatStatistics>("{}")!;
             Check.True(oldStatistics.IsValid());
             Check.Equal(0, oldStatistics.CriticalHits + oldStatistics.AreaCasts + oldStatistics.AreaHits);
+            var oldAreaStatistics = JsonSerializer.Deserialize<CombatStatistics>("{\"AreaCasts\":3,\"AreaHits\":4}")!;
+            Check.True(oldAreaStatistics.IsValid());
+            Check.True(JsonSerializer.SerializeToNode(oldAreaStatistics)!["AreaDoubleHits"] == null);
+            Check.True(JsonSerializer.SerializeToNode(oldAreaStatistics)!["AreaDamage"] == null);
         }));
     }
 }
