@@ -33,6 +33,7 @@ public partial class SmokeHarness
         await Capture("area-timing-prepare");
         var start = demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start");
         var action = demo.GetNode<Label>("Hud/Top/Content/Action");
+        var arena = demo.GetNode<CombatArena>("Arena");
         var selectPose = typeof(CombatArena).GetMethod("FootworkPose", BindingFlags.Static | BindingFlags.NonPublic)
             ?.CreateDelegate<Func<CombatFighter, int?>>()
             ?? throw new InvalidOperationException("Footwork pose selector missing");
@@ -120,6 +121,9 @@ public partial class SmokeHarness
             await Frames(3);
         }
 
+        var readCues = typeof(CombatArena).GetMethod("GetBorrowPositionCues", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.CreateDelegate<Func<(Rect2 Startup, Rect2 Sidestep)>>(arena)
+            ?? throw new InvalidOperationException("Fourth-wave draw layout must expose separate startup and sidestep cues");
         foreach (var moveInDepth in new[] { false, true })
         {
             start.GrabFocus();
@@ -134,6 +138,7 @@ public partial class SmokeHarness
             roamer.X = 544; roamer.Y = 478;
             quick.X = 528; quick.Y = 492;
             roamer.Cooldown = quick.Cooldown = 900;
+            Require(readCues() == (default, default), "Idle opponents must not display either cue");
             if (moveInDepth)
             {
                 Input.ParseInputEvent(new InputEventKey { Keycode = Key.S, PhysicalKeycode = Key.S, Pressed = true });
@@ -145,7 +150,31 @@ public partial class SmokeHarness
                 var detourY = roamer.Y;
                 await Frames(3);
                 Require(roamer.X == detourX && Math.Abs(roamer.Y - detourY) > 0, "Roamer did not move laterally after yielding");
-                await Capture("borrow-position-sidestep");
+                Require(readCues().Startup == default && readCues().Sidestep.Size.Y > 0,
+                    "The sidestep alone should only display the roamer cue");
+                quick.X = lane.Player.X + 35;
+                quick.Y = lane.Player.Y;
+                quick.Cooldown = 0;
+                await Until(() => quick.Attack != null, "front opponent's startup");
+                var attack = quick.Attack!;
+                var (startup, sidestep) = readCues();
+                Require(startup.Size.Y > 0 && startup.End.Y < quick.Y - 162 && sidestep.Position.Y > roamer.Y &&
+                    !startup.Intersects(sidestep) &&
+                    Math.Abs(startup.GetCenter().X - quick.X) < .01 && Math.Abs(sidestep.GetCenter().X - roamer.X) < .01,
+                    "The startup cue belongs above the quick opponent and the sidestep cue below the roamer");
+                var (roamerY, quickX, quickY) = (roamer.Y, quick.X, quick.Y);
+                roamer.Y = 400;
+                quick.X = roamer.X;
+                quick.Y = 608;
+                var stacked = readCues();
+                Require(stacked.Sidestep.Position.Y > stacked.Startup.End.Y,
+                    "Labels on the same screen line must keep a gap");
+                (roamer.Y, quick.X, quick.Y) = (roamerY, quickX, quickY);
+                await Capture("borrow-position-both-cues");
+                await Until(() => quick.AttackFrame >= attack.Startup, "enemy contact");
+                Require(readCues().Startup == default, "The startup cue must clear on the first active frame");
+                await Until(() => !lane.IsSidestepping(roamer), "end of sidestep");
+                Require(readCues().Sidestep == default, "The roamer cue must clear when the sidestep ends");
             }
             else
             {

@@ -94,6 +94,34 @@ public partial class CombatArena : Node2D
             if (ev.Critical) DrawStringOutline(font, position, text, HorizontalAlignment.Left, -1, 20, 3, new Color(.08f, .06f, .025f, alpha));
             DrawString(font, position, text, HorizontalAlignment.Left, -1, 20, color);
         }
+        var (startup, sidestep) = GetBorrowPositionCues();
+        if (startup.HasArea()) DrawOpponentCue(startup, "！起手", new Color(1, .76f, .38f));
+        if (sidestep.HasArea()) DrawOpponentCue(sidestep, "绕侧", new Color(.62f, .92f, .98f));
+    }
+
+    private (Rect2 Startup, Rect2 Sidestep) GetBorrowPositionCues()
+    {
+        if (Match is not { Wave.LaneBlocking: true } lane) return default;
+        var quick = lane.Enemies.Find(f => f.Enemy?.Id == "quick");
+        var roamer = lane.Enemies.Find(f => f.Enemy?.Id == "roamer");
+        var startup = quick is { Health: > 0, State: CombatState.Attack, Attack: { } attack } && quick.AttackFrame < attack.Startup
+            ? new Rect2((float)quick.X - 36, (float)quick.Y - 200, 72, 26)
+            : default;
+        var sidestep = roamer is { Health: > 0 } && lane.IsSidestepping(roamer)
+            ? new Rect2((float)roamer.X - 31, (float)roamer.Y + 8, 62, 26)
+            : default;
+        if (startup.HasArea() && sidestep.HasArea() && startup.Intersects(sidestep))
+            sidestep.Position = new Vector2(sidestep.Position.X, startup.End.Y + 4);
+        return (startup, sidestep);
+    }
+
+    private void DrawOpponentCue(Rect2 bounds, string text, Color color)
+    {
+        DrawRect(bounds, new Color(.06f, .07f, .08f, .96f));
+        DrawRect(bounds, color, false, 1);
+        const int size = 17;
+        var baseline = bounds.Position.Y + (bounds.Size.Y + font.GetAscent(size) - font.GetDescent(size)) / 2;
+        DrawString(font, new Vector2(bounds.Position.X, baseline), text, HorizontalAlignment.Center, bounds.Size.X, size, color);
     }
 
     private void DrawFighter(CombatFighter f)
@@ -139,13 +167,13 @@ public partial class CombatArena : Node2D
             var width = f.Enemy.Id == "leader" ? 102 : 78;
             DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width, 5), new Color(.07f, .08f, .06f, .9f));
             DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width * f.Health / (float)f.Stats.Health, 5), new Color(.8f, .45f, .23f));
-            var name = Match!.IsSidestepping(f) ? f.Name + " · 绕侧" : f.Name;
-            DrawString(font, point + new Vector2(-width / 2f, -height - 26), name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
+            DrawString(font, point + new Vector2(-width / 2f, -height - 26), f.Name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
         }
         if (f.State == CombatState.Attack && !f.Attack!.IsAreaSkill && f.AttackFrame < f.Attack.Startup)
         {
             var text = f.Enemy == null ? "" : f.Attack.Id == "enemy_heavy" ? "重击！" : "！";
-            if (text.Length > 0) DrawString(font, point + new Vector2(-16, -height - 55), text, HorizontalAlignment.Left, -1, 22, new Color(1, .73f, .3f));
+            if (text.Length > 0 && !(Match!.Wave.LaneBlocking && f.Enemy?.Id == "quick"))
+                DrawString(font, point + new Vector2(-16, -height - 55), text, HorizontalAlignment.Left, -1, 22, new Color(1, .73f, .3f));
             var portion = f.AttackFrame / (float)f.Attack.Startup;
             DrawArc(point, 29, -Mathf.Pi, -Mathf.Pi + portion * Mathf.Tau, 24, new Color(1, .65f, .3f, .85f), 2, true);
         }
