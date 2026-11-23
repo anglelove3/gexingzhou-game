@@ -382,7 +382,7 @@ public partial class CombatDemo : Control
         var positioningHint = wave.Id == "a1" && wave.Footwork
             ? "\n扫倒后先横移，快拳手再起手时继续走位。" : "";
         var challengeHint = challenge != null ? "\n连战 · 生命继承 / 耐力逐波回满" : "";
-        GetNode<Label>("Hud/Wave").Text = wave.Name + "\n" + wave.Hint + positioningHint + challengeHint;
+        GetNode<Label>("Hud/Wave").Text = wave.Name + "\n" + WaveInstruction(wave) + positioningHint + challengeHint;
         var action = GetNode<Label>("Hud/Top/Content/Action");
         if (wave.Footwork && p.State == CombatState.Attack)
             action.Text = p.Attack!.Id switch { "light1" => "快拳", "light2" => "转身拳", "light3" => "正踢", _ => action.Text };
@@ -392,6 +392,10 @@ public partial class CombatDemo : Control
             action.Text += Match.AreaCooldownRemaining > 0 ? $" · Q冷却 {Match.AreaCooldownRemaining / 60d:0.0}秒" :
                 p.Stamina >= Catalog.Move(CombatMove.AreaSkillId).Cost ? " · Q就绪" : " · Q耐力不足";
     }
+
+    private static string WaveInstruction(CombatWave wave) => wave is { Id: "b2", AreaSkill: true }
+        ? "两人快靠拢时提前按 Q 回身横扫，留意对手起手。J 有效命中偶尔暴击。"
+        : wave.Hint;
 
     public Godot.Collections.Dictionary ReadCombatState()
     {

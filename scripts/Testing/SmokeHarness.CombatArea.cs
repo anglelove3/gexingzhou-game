@@ -4,6 +4,8 @@ using System.Reflection;
 
 public partial class SmokeHarness
 {
+    private const string AreaTimingAdvice = "两人快靠拢时提前按 Q 回身横扫，留意对手起手。";
+
     private async Task CombatAreaChecks()
     {
         var session = GetNode<GameSession>("/root/GameSession");
@@ -22,6 +24,12 @@ public partial class SmokeHarness
         var demo = GD.Load<PackedScene>("res://scenes/combat/CombatDemo.tscn").Instantiate<CombatDemo>();
         AddChild(demo);
         await Frames(3);
+        var preparationHint = demo.GetNode<Label>("Prepare/Panel/Scroll/Content/WaveHint");
+        Require(preparationHint.IsVisibleInTree() && preparationHint.Text.Contains(AreaTimingAdvice, StringComparison.Ordinal) &&
+            preparationHint.Text.Contains("J 有效命中偶尔暴击。", StringComparison.Ordinal),
+            "Fourth-wave preparation must teach when to anticipate with Q");
+        Require(preparationHint.GetLineCount() == preparationHint.GetVisibleLineCount(), "Fourth-wave preparation hint was clipped");
+        await Capture("area-timing-prepare");
         var start = demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start");
         var action = demo.GetNode<Label>("Hud/Top/Content/Action");
         var selectPose = typeof(CombatArena).GetMethod("FootworkPose", BindingFlags.Static | BindingFlags.NonPublic)
@@ -31,7 +39,10 @@ public partial class SmokeHarness
         async Task Until(Func<bool> reached, string phase)
         {
             for (var i = 0; i < 80 && !reached(); i++)
+            {
                 await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                if (demo.Screen == "pause" && session.ApplicationFocused) demo.ResumeCombat();
+            }
             Require(reached(), "Q did not reach " + phase);
         }
 
@@ -43,6 +54,17 @@ public partial class SmokeHarness
             Require(demo.Screen == "fight" && demo.Match?.Wave.Id == "b2", "Fourth wave did not start with the saved progress");
             var match = demo.Match!;
             Require(action.Text.Contains("Q就绪", StringComparison.Ordinal), "Fourth wave HUD did not show a ready skill");
+            if (targets == 0)
+            {
+                var hint = demo.GetNode<Label>("Hud/Wave");
+                Require(hint.IsVisibleInTree() && hint.Text == $"{match.Wave.Name}\n{preparationHint.Text}",
+                    "Fourth-wave HUD and preparation must show the same timing advice");
+                Require(hint.GetLineCount() == hint.GetVisibleLineCount() &&
+                    demo.GetGlobalRect().Encloses(hint.GetGlobalRect()) &&
+                    !hint.GetGlobalRect().Intersects(demo.GetNode<Control>("Hud/Top").GetGlobalRect()),
+                    "Fourth-wave HUD timing hint must fit beside the combat HUD");
+                await Capture("area-timing-hud");
+            }
             for (var i = 0; i < match.Enemies.Count; i++)
             {
                 var e = match.Enemies[i];

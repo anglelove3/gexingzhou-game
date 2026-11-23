@@ -22,7 +22,7 @@ public partial class CombatDemo
         var wave = GetNode<OptionButton>(Prep + "Wave");
         for (int i = 0; i < Catalog.Waves.Count; i++) wave.SetItemDisabled(i, !Progress.CanEnter(Catalog.Waves[i].Id, Catalog));
         wave.Select(Catalog.Waves.FindIndex(w => w.Id == selectedWave));
-        GetNode<Label>(Prep + "WaveHint").Text = Catalog.Wave(selectedWave).Hint;
+        GetNode<Label>(Prep + "WaveHint").Text = WaveInstruction(Catalog.Wave(selectedWave));
         foreach (var item in Catalog.Items)
         {
             var b = GetNode<Button>(Prep + "Equipment/" + item.Id); bool owned = Progress.Owned.Contains(item.Id);

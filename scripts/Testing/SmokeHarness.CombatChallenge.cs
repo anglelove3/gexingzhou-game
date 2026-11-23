@@ -39,6 +39,18 @@ public partial class SmokeHarness
         {
             Require(demo.Match!.Player.Health == previousHealth, "Challenge health inheritance changed");
             Require(demo.Match.Player.Stamina == demo.Match.Player.Stats.Stamina, "Challenge stamina did not reset");
+            if (demo.Match.Wave.Id == "b2")
+            {
+                var hint = demo.GetNode<Label>("Hud/Wave");
+                Require(hint.Text.Contains(AreaTimingAdvice, StringComparison.Ordinal) &&
+                    hint.Text.Contains("连战 · 生命继承 / 耐力逐波回满", StringComparison.Ordinal),
+                    "Fourth-wave challenge must show Q timing and challenge rules");
+                Require(hint.GetLineCount() == hint.GetVisibleLineCount() &&
+                    demo.GetGlobalRect().Encloses(hint.GetGlobalRect()) &&
+                    !hint.GetGlobalRect().Intersects(demo.GetNode<Control>("Hud/Top").GetGlobalRect()),
+                    "Fourth-wave challenge timing hint was clipped or overlapped");
+                await Capture("area-timing-challenge");
+            }
             System.IO.FileStream? blocked = null;
             for (int tick = 0; tick < 12000 && demo.Match.Result == CombatResult.Running; tick++)
             {
