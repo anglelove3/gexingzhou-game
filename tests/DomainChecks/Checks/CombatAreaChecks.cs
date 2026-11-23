@@ -20,6 +20,20 @@ public static class CombatAreaChecks
 
     private static int CriticalSeed() => Enumerable.Range(0, 1000).First(seed => new Random(seed).NextDouble() < .1);
 
+    private static CombatMatch LaneBout(CombatCatalog catalog, double depth = 500)
+    {
+        var match = Bout(catalog);
+        match.Player.X = 500;
+        match.Player.Y = depth;
+        match.Enemies[0].X = 553;
+        match.Enemies[0].Y = depth;
+        match.Enemies[0].Cooldown = 0;
+        match.Enemies[1].X = 532;
+        match.Enemies[1].Y = depth;
+        match.Enemies[1].Cooldown = 0;
+        return match;
+    }
+
     private static JsonObject Numbers(CombatMatch match) => JsonSerializer.SerializeToNode(match.Statistics)!.AsObject();
 
     private static CombatEvent LightHit(CombatMatch match)
@@ -36,6 +50,79 @@ public static class CombatAreaChecks
 
     public static void Register(List<(string, string, Action)> tests)
     {
+        tests.Add(("CombatArea", "FrontOpponentMakesRoamerPauseThenMoveLaterally", () =>
+        {
+            var catalog = CombatChecks.Catalog();
+            Check.Equal("b2", catalog.Waves.Single(wave => wave.LaneBlocking).Id);
+            foreach (var direction in new[] { -1, 1 })
+            {
+                var match = LaneBout(catalog);
+                var roamer = match.Enemies[0];
+                var quick = match.Enemies[1];
+                var rearX = 500 + 53 * direction;
+                roamer.X = rearX;
+                quick.X = 500 + 32 * direction;
+                match.Step(default);
+                Check.Equal(CombatState.Idle, roamer.State);
+                Check.Equal(CombatState.Attack, quick.State);
+                for (var i = 0; i < 11; i++) match.Step(default);
+                Check.Equal((double)rearX, roamer.X);
+                Check.Equal(500d, roamer.Y);
+                match.Step(default);
+                Check.Equal((double)rearX, roamer.X);
+                Check.True(match.IsSidestepping(roamer) && roamer.Y > 500);
+            }
+        }));
+        tests.Add(("CombatArea", "WallDetourMovesInwardAndRoamerCanAttackAgain", () =>
+        {
+            foreach (var depth in new[] { 390d, 624d })
+            {
+                var match = LaneBout(CombatChecks.Catalog(), depth);
+                match.Enemies[1].Cooldown = 900;
+                var roamer = match.Enemies[0];
+                roamer.RoamSide = depth == 390 ? -1 : 1;
+                for (var i = 0; i < 26; i++) match.Step(default);
+                Check.True(Math.Abs(roamer.Y - depth) >= 28 && roamer.Y is >= 390 and <= 624);
+                for (var i = 0; i < 40 && match.IsSidestepping(roamer); i++) match.Step(default);
+                Check.Equal(depth == 390 ? 434d : 580d, roamer.Y);
+                for (var i = 0; i < 150 && roamer.AttackCount == 0; i++) match.Step(default);
+                Check.True(roamer.AttackCount > 0);
+            }
+        }));
+        tests.Add(("CombatArea", "LaneBlockingPreservesAnAttackAlreadyInProgress", () =>
+        {
+            var match = LaneBout(CombatChecks.Catalog());
+            var roamer = match.Enemies[0];
+            var quick = match.Enemies[1];
+            quick.Y += 28;
+            match.Step(default);
+            Check.Equal(CombatState.Attack, roamer.State);
+            var sequence = roamer.AttackSequence;
+            var frame = roamer.AttackFrame;
+            quick.Y = 500;
+            match.Step(default);
+            Check.Equal(CombatState.Attack, roamer.State);
+            Check.Equal(sequence, roamer.AttackSequence);
+            Check.Equal(frame + 1, roamer.AttackFrame);
+            Check.True(!match.IsSidestepping(roamer));
+        }));
+        tests.Add(("CombatArea", "ClearLaneAndOldSnapshotKeepTheRoamersAttack", () =>
+        {
+            var catalog = CombatChecks.Catalog();
+            var clear = LaneBout(catalog);
+            clear.Enemies[1].Y += 28;
+            clear.Step(default);
+            Check.Equal(CombatState.Attack, clear.Enemies[0].State);
+
+            var json = JsonNode.Parse(catalog.SourceJson)!;
+            json["balanceVersion"] = "combat-area-crit-0.1";
+            Check.True(json["waves"]![3]!.AsObject().Remove("laneBlocking"));
+            var old = CombatCatalog.Parse(json.ToJsonString());
+            Check.Equal<string?>(null, CombatChallenge.Start(old, CombatChallengeChecks.Complete(old)).Record.Validate());
+            var replay = LaneBout(old);
+            replay.Step(default);
+            Check.Equal(CombatState.Attack, replay.Enemies[0].State);
+        }));
         tests.Add(("CombatArea", "FourthWaveLightCanCriticallyHit", () =>
         {
             var catalog = CombatChecks.Catalog();
@@ -180,7 +267,7 @@ public static class CombatAreaChecks
             var data = JsonNode.Parse(c.SourceJson)!;
             data["balanceVersion"] = "combat-footwork-0.2";
             var wave = data["waves"]![3]!.AsObject();
-            foreach (var field in new[] { "areaSkill", "criticalChance", "criticalMultiplier" }) wave.Remove(field);
+            foreach (var field in new[] { "areaSkill", "criticalChance", "criticalMultiplier", "laneBlocking" }) wave.Remove(field);
             var moves = data["moves"]!.AsArray();
             moves.Remove(moves.Single(m => (string?)m!["id"] == CombatMove.AreaSkillId));
             var old = CombatCatalog.Parse(data.ToJsonString());

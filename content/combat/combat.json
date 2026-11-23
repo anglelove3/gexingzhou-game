@@ -1,6 +1,6 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-area-crit-0.1",
+  "balanceVersion": "combat-borrow-position-0.1",
   "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
@@ -287,6 +287,7 @@
       "name": "二 · 走位与节奏",
       "hint": "引近两人，再用 Q 回身横扫。J 有效命中偶尔暴击。",
       "areaSkill": true,
+      "laneBlocking": true,
       "criticalChance": 0.1,
       "criticalMultiplier": 1.5,
       "enemies": [

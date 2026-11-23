@@ -139,7 +139,8 @@ public partial class CombatArena : Node2D
             var width = f.Enemy.Id == "leader" ? 102 : 78;
             DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width, 5), new Color(.07f, .08f, .06f, .9f));
             DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width * f.Health / (float)f.Stats.Health, 5), new Color(.8f, .45f, .23f));
-            DrawString(font, point + new Vector2(-width / 2f, -height - 26), f.Name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
+            var name = Match!.IsSidestepping(f) ? f.Name + " · 绕侧" : f.Name;
+            DrawString(font, point + new Vector2(-width / 2f, -height - 26), name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
         }
         if (f.State == CombatState.Attack && !f.Attack!.IsAreaSkill && f.AttackFrame < f.Attack.Startup)
         {

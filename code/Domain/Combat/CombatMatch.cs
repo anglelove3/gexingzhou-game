@@ -13,14 +13,22 @@ public sealed class CombatMatch
     public int AreaCooldownRemaining => Math.Max(0, areaReadyTick - TickCount);
     public bool HitStopped => hitstop > 0;
     private const int LinkRecoveryFrames = 4;
+    private const int LanePauseFrames = 12;
+    private const int LaneRepeatFrames = 60;
+    private const double LaneDetourDepth = 44;
     public bool SweepCanBuffer => Wave.Footwork && Player.Attack is { Id: "light2" } move && Player.ConfirmedAttack &&
         Player.AttackFrame < move.Total - 1 && Player.Stamina >= Catalog.Move("sweep").Cost;
     private int hitstop, nextPermit, queueFrames;
     private int earlySweepUntilFrame;
     private int areaReadyTick, areaHitsThisCast;
+    private int laneMoveAt, laneReadyAt;
+    private double? laneTargetY;
     private readonly Func<double>? rollCriticalPower;
     private string? permitOwner, queued;
     private int restoredSequence = -1, riposteHitSequence = -1, breakHitSequence = -1;
+
+    public bool IsSidestepping(CombatFighter fighter) => laneTargetY.HasValue && TickCount >= laneMoveAt &&
+        fighter.Enemy?.Id == "roamer" && fighter.State == CombatState.Idle;
 
     public CombatMatch(CombatCatalog catalog, CombatProgress progress, string waveId, int? initialHealth = null, int? randomSeed = null)
     {
@@ -199,8 +207,11 @@ public sealed class CombatMatch
         var owner = Enemies.FirstOrDefault(e => e.Id == permitOwner);
         if (owner != null && (owner.State != CombatState.Attack || owner.AttackFrame >= owner.Attack!.Startup + owner.LastActiveOffset))
         { permitOwner = null; nextPermit = TickCount + 15; }
+        CombatFighter? yieldingRoamer = null;
         foreach (var e in Enemies)
         {
+            if (laneTargetY.HasValue && e.Enemy?.Id == "roamer" && e.State != CombatState.Idle)
+                laneTargetY = null;
             if (e.Health <= 0) continue;
             if (e.FinishedRecovery && e.Enemy!.Id == "guard") e.SetGuard(true);
             if (e.FinishedAttack)
@@ -224,6 +235,11 @@ public sealed class CombatMatch
             }
             if (e.State != CombatState.Idle) continue;
             e.WaitingFrames++;
+            if (Wave.LaneBlocking && e.Enemy!.Id == "roamer" && AdvanceLaneDetour(e))
+            {
+                yieldingRoamer = e;
+                continue;
+            }
             if (permitOwner != null && permitOwner != e.Id)
             {
                 var side = Enemies.IndexOf(e) % 2 == 0 ? -1 : 1;
@@ -245,11 +261,45 @@ public sealed class CombatMatch
             }
         }
         if (permitOwner != null || TickCount < nextPermit) return;
-        var ready = Enemies.Where(e => e.State == CombatState.Idle && e.Cooldown == 0 &&
+        var ready = Enemies.Where(e => e != yieldingRoamer && e.State == CombatState.Idle && e.Cooldown == 0 &&
             Math.Abs(e.X - Player.X) <= 58 && Math.Abs(e.Y - Player.Y) <= 22)
             .OrderByDescending(e => e.WaitingFrames).ThenBy(e => e.Id, StringComparer.Ordinal).FirstOrDefault();
         if (ready == null) return;
         StartEnemyAttack(ready);
+    }
+
+    private bool AdvanceLaneDetour(CombatFighter roamer)
+    {
+        if (laneTargetY is double targetY)
+        {
+            if (TickCount < laneMoveAt) roamer.Move(0, 0, turn: false);
+            else
+            {
+                var dy = targetY - roamer.Y;
+                var speedFactor = Math.Abs(dy) * 60 / roamer.Stats.MoveSpeed;
+                roamer.Move(0, Math.Sign(dy), Math.Min(.8, speedFactor), false);
+                if (speedFactor <= .8) laneTargetY = null;
+            }
+            return true;
+        }
+
+        var dx = roamer.X - Player.X;
+        var length = Math.Abs(dx);
+        if (TickCount < laneReadyAt || length is < 24 or > 116) return false;
+        var front = Enemies.FirstOrDefault(e => e.Enemy?.Id == "quick" && !e.Protected);
+        if (front == null) return false;
+        var offset = (front.X - Player.X) * Math.Sign(dx);
+        if (offset < 12 || offset > length - 12) return false;
+        var laneY = Player.Y + (roamer.Y - Player.Y) * offset / length;
+        if (Math.Abs(front.Y - laneY) > 14) return false;
+
+        var preferredY = roamer.Y + roamer.RoamSide * LaneDetourDepth;
+        laneTargetY = preferredY is >= 390 and <= 624
+            ? preferredY : roamer.Y - roamer.RoamSide * LaneDetourDepth;
+        laneMoveAt = TickCount + LanePauseFrames;
+        laneReadyAt = TickCount + LaneRepeatFrames;
+        roamer.Move(0, 0, turn: false);
+        return true;
     }
 
     private void StartEnemyAttack(CombatFighter e)

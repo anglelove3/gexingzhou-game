@@ -72,6 +72,7 @@ public sealed record CombatWave
     public double CriticalChance { get; init; }
     public double CriticalMultiplier { get; init; } = 1;
     public bool AreaSkill { get; init; }
+    public bool LaneBlocking { get; init; }
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public string Hint { get; init; } = "";
@@ -150,6 +151,7 @@ public sealed class CombatCatalog
                     !double.IsFinite(w.CriticalChance) || w.CriticalChance is < 0 or > 1 ||
                     !double.IsFinite(w.CriticalMultiplier) || w.CriticalMultiplier is < 1 or > 4 ||
                     w.CriticalChance > 0 && w.CriticalMultiplier <= 1 ||
+                    w.LaneBlocking && (w.Enemies.Length != 2 || !w.Enemies.Contains("quick") || !w.Enemies.Contains("roamer")) ||
                     w.Enemies.Any(id => !c.Enemies.Any(e => e.Id == id)) || w.Items.Any(id => !c.Items.Any(i => i.Id == id)))
                     throw new ArgumentException("波次配置异常。");
             if (c.Waves.Sum(w => (long)w.Experience) != c.ExperienceCap) throw new ArgumentException("经验预算异常。");

@@ -26,7 +26,8 @@ public partial class SmokeHarness
         await Frames(3);
         var preparationHint = demo.GetNode<Label>("Prepare/Panel/Scroll/Content/WaveHint");
         Require(preparationHint.IsVisibleInTree() && preparationHint.Text.Contains(AreaTimingAdvice, StringComparison.Ordinal) &&
-            preparationHint.Text.Contains("J 有效命中偶尔暴击。", StringComparison.Ordinal),
+            preparationHint.Text.Contains("J 有效命中偶尔暴击。", StringComparison.Ordinal) &&
+            preparationHint.Text.Contains("横移让快拳手挡在前，游走手会停步绕侧。", StringComparison.Ordinal),
             "Fourth-wave preparation must teach when to anticipate with Q");
         Require(preparationHint.GetLineCount() == preparationHint.GetVisibleLineCount(), "Fourth-wave preparation hint was clipped");
         await Capture("area-timing-prepare");
@@ -114,6 +115,45 @@ public partial class SmokeHarness
                 var totals = json.RootElement.GetProperty("statistics");
                 Require(totals.GetProperty("AreaDoubleHits").GetInt32() == 1 &&
                     totals.GetProperty("AreaDamage").GetInt32() == 27, "Q export differs from the result screen");
+            }
+            demo.ReturnToPreparation();
+            await Frames(3);
+        }
+
+        foreach (var moveInDepth in new[] { false, true })
+        {
+            start.GrabFocus();
+            KeyPress(Key.Enter);
+            await Frames(3);
+            Require(demo.Screen == "fight" && demo.Match?.Wave.LaneBlocking == true, "Borrow-position fixture did not start b2");
+            var lane = demo.Match!;
+            var roamer = lane.Enemies[0];
+            var quick = lane.Enemies[1];
+            lane.Player.X = 500;
+            lane.Player.Y = 440;
+            roamer.X = 544; roamer.Y = 478;
+            quick.X = 528; quick.Y = 492;
+            roamer.Cooldown = quick.Cooldown = 900;
+            if (moveInDepth)
+            {
+                Input.ParseInputEvent(new InputEventKey { Keycode = Key.S, PhysicalKeycode = Key.S, Pressed = true });
+                await Frames(8);
+                Input.ParseInputEvent(new InputEventKey { Keycode = Key.S, PhysicalKeycode = Key.S, Pressed = false });
+                Require(lane.Player.Y > 440, "Depth movement did not alter the line of approach");
+                await Until(() => lane.IsSidestepping(roamer), "borrow-position sidestep");
+                var detourX = roamer.X;
+                var detourY = roamer.Y;
+                await Frames(3);
+                Require(roamer.X == detourX && Math.Abs(roamer.Y - detourY) > 0, "Roamer did not move laterally after yielding");
+                await Capture("borrow-position-sidestep");
+            }
+            else
+            {
+                for (var frame = 0; frame < 40; frame++)
+                {
+                    await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+                    Require(!lane.IsSidestepping(roamer), "Stationary player should leave this lane open");
+                }
             }
             demo.ReturnToPreparation();
             await Frames(3);

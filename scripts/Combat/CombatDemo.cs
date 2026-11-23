@@ -394,7 +394,8 @@ public partial class CombatDemo : Control
     }
 
     private static string WaveInstruction(CombatWave wave) => wave is { Id: "b2", AreaSkill: true }
-        ? "两人快靠拢时提前按 Q 回身横扫，留意对手起手。J 有效命中偶尔暴击。"
+        ? (wave.LaneBlocking ? "横移让快拳手挡在前，游走手会停步绕侧。\n" : "") +
+          "两人快靠拢时提前按 Q 回身横扫，留意对手起手。J 有效命中偶尔暴击。"
         : wave.Hint;
 
     public Godot.Collections.Dictionary ReadCombatState()
