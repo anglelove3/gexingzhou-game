@@ -11,9 +11,9 @@
 
 ## 🎮 下载试玩
 
-回身横扫动作版于 **2026-11-20 18:19:12（北京时间，UTC+8）**发布。从主菜单进入街头练习，完成前三波后，可在第四波「二 · 走位与节奏」体验 J 轻击暴击和新版 Q 回身横扫。
+横扫双中与范围伤害版于 **2026-11-23 10:36:59（北京时间，UTC+8）**发布。从主菜单进入街头练习，完成前三波后，可在第四波「二 · 走位与节奏」使用 Q 回身横扫，并在本波结算查看双中次数和范围伤害。
 
-- **[下载最新版 Windows x64 试玩 ZIP（约 160 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-round-sweep-motion-20261120/gexingzhou-demo-vs01-round-sweep-motion-20261120-win64.zip)** · [发行说明与 SHA-256](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-round-sweep-motion-20261120)
+- **[下载最新版 Windows x64 试玩 ZIP（约 160 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-area-statistics-20261123/gexingzhou-demo-vs01-area-statistics-20261123-win64.zip)** · [发行说明与 SHA-256](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-area-statistics-20261123)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
 - GitHub 仅保留最新版试玩 Release；旧试玩先备份发行元数据、ZIP及解压目录，再撤下公开入口，保留源码和Git标签。
 - “回到故乡”包括小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。“战斗试玩 · 街头练习”提供5级、9件装备与三段六波挑战。
@@ -60,7 +60,7 @@
 
 轻拳套第三段有效命中返还耐力，短棍蓄力正面命中防御姿态目标获得破势加成，旧护手及时格挡后可发动强化反击。九件装备通过速度、距离、防护、耐力与机制条件形成取舍。
 
-第四波的 J 轻击每次有效命中有 10% 概率打出 1.5 倍伤害。Q 回身横扫消耗 30 耐力、冷却 1.5 秒，可以同时打中脚下范围内的两人。二级默认装备的双中样本为 13＋14 点伤害，同一次空挥仍会消耗耐力并进入冷却。[规则与实跑记录](docs/development/10_更新日志.md)
+第四波的 J 轻击每次有效命中有 10% 概率打出 1.5 倍伤害。Q 回身横扫消耗 30 耐力、冷却 1.5 秒。单次横扫有效打中两名对手记一次双中，范围伤害按实际扣血累计。二级默认装备的双中样本为 13＋14 点伤害，空挥仍会消耗耐力并进入冷却。[规则与实跑记录](docs/development/10_更新日志.md)
 
 普通通关后可开始5级六波连战，整轮锁定装备，剩余生命逐波继承、耐力每波回满。成绩带开场快照与配置版本保存，可查看历史并主动导出。
 
@@ -130,6 +130,6 @@ powershell -NoProfile -File tests/ShutdownChecks.ps1 -GodotExe '你的 Godot .NE
 
 当前提供首段叙事探索与独立战斗成长样板。战斗对手复用十二姿态图集，以颜色、尺寸、名称和行为区分，步行使用有限姿态交替。公开仓库保留制作来源和许可记录，私人原稿、现实照片、真实玩家存档及本机配置按现行约定保管。
 
-回身横扫动作版通过 215 项规则、55 组引擎回归及 297 项公开资源检查。20 和 32 字号 GPU 核对抬膝、伸腿、范围圈和收势。实际发行 PCK 完成普通六波、连战和故事首段，冷解压原生 EXE 从主菜单复验横扫空挥、单中和双中。真人手感与异机兼容待验。[本轮验收与发行](docs/development/10_更新日志.md) · [拳脚对练历史验收](docs/development/30_拳脚对练验收与发行.md)
+横扫统计版通过 217 项规则、55 组引擎回归及 297 项公开资源检查。20 和 32 字号 GPU 核对了结算新行。冷解压原生 EXE 从主菜单实跑并导出双中样本，实际发行 PCK 完成普通六波、连战和故事首段。真人手感与异机兼容待验。[本轮验收与发行](docs/development/10_更新日志.md) · [拳脚对练历史验收](docs/development/30_拳脚对练验收与发行.md)
 
 历史首页已归档至[开发记录](docs/development/18_历史首页归档.md)，不再把多轮历史接续堆在试玩入口之前。
