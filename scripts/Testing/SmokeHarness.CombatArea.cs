@@ -34,6 +34,10 @@ public partial class SmokeHarness
         var start = demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start");
         var action = demo.GetNode<Label>("Hud/Top/Content/Action");
         var arena = demo.GetNode<CombatArena>("Arena");
+        var audio = demo.GetNode<AudioDirector>("Audio");
+        var audioSlots = audio.GetNode("Effects").GetChildren().OfType<AudioStreamPlayer>().ToArray();
+        int DoubleHitPopups() => ((System.Collections.IEnumerable)DiagnosticField(arena, "floating")!)
+            .Cast<object>().Count(hit => ((CombatEvent)hit.GetType().GetField("Event")!.GetValue(hit)!).Kind == "area-double-hit");
         var selectPose = typeof(CombatArena).GetMethod("FootworkPose", BindingFlags.Static | BindingFlags.NonPublic)
             ?.CreateDelegate<Func<CombatFighter, int?>>()
             ?? throw new InvalidOperationException("Footwork pose selector missing");
@@ -86,9 +90,17 @@ public partial class SmokeHarness
                 "Q must show the raised knee before the first hit");
             Require(action.Text.Contains("Q冷却", StringComparison.Ordinal), "The skill cooldown was not displayed");
             if (targets == 2) await Capture("area-range");
+            audio.StopTransient();
+            Require(DoubleHitPopups() == 0, "A sweep displayed a double hit before contact");
             await Until(() => match.Player.AttackFrame == move.Startup, "first active frame");
             Require(selectPose(match.Player) == 6 && match.Statistics.AreaHits == targets,
                 "Q must extend the sweeping leg on the same frame as the hit check");
+            Require(DoubleHitPopups() == (targets == 2 ? 1 : 0), "Only two valid Q hits should show one double hit popup");
+            var accents = audioSlots.Where(slot => slot.Stream == audio.CombatDownStream).ToArray();
+            Require(accents.Length == (targets == 2 ? 1 : 0), "Only a double hit should play one low impact layer");
+            if (targets == 2)
+                Require(audioSlots.Any(slot => slot.Stream == audio.CombatHitStream) && accents[0].PitchScale < 1,
+                    "A double hit must keep the normal strike and add a low impact layer");
             if (targets == 2) await Capture("area-double-hit");
             await Until(() => match.Player.AttackFrame == move.Startup + move.Active, "recovery");
             Require(selectPose(match.Player) == 7, "Q must pull the leg back into its low stance after contact");
@@ -119,6 +131,7 @@ public partial class SmokeHarness
             }
             demo.ReturnToPreparation();
             await Frames(3);
+            Require(DoubleHitPopups() == 0, "The double hit popup leaked into preparation");
         }
 
         var readCues = typeof(CombatArena).GetMethod("GetBorrowPositionCues", BindingFlags.Instance | BindingFlags.NonPublic)

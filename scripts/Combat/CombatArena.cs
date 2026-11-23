@@ -51,7 +51,8 @@ public partial class CombatArena : Node2D
     {
         foreach (var ev in events)
         {
-            if (ev.Kind is "hit" or "block" or "down" or "break" or "tired" or "restore" or "perfect" or "riposte" or "break-bonus" or "cancel") floating.Add(new() { Event = ev });
+            if (ev.Kind is "hit" or "block" or "down" or "break" or "tired" or "restore" or "perfect" or "riposte" or "break-bonus" or "cancel" or "area-double-hit")
+                floating.Add(new() { Event = ev });
             if (ev.Kind is "hit" or "block" or "down" or "break")
             {
                 if (impacts.Count >= 24) impacts.RemoveAt(0);
@@ -81,6 +82,14 @@ public partial class CombatArena : Node2D
         foreach (var hit in floating)
         {
             var ev = hit.Event; var alpha = (float)(1 - hit.Age / .7);
+            if (ev.Kind == "area-double-hit")
+            {
+                var center = new Vector2((float)ev.X - 60, Math.Min((float)ev.Y + 50, 646));
+                const string cue = "横扫双中";
+                DrawStringOutline(font, center, cue, HorizontalAlignment.Center, 120, 22, 4, new Color(.08f, .06f, .025f, alpha));
+                DrawString(font, center, cue, HorizontalAlignment.Center, 120, 22, new Color(1, .92f, .64f, alpha));
+                continue;
+            }
             var text = ev.Kind switch
             {
                 "tired" => "留出耐力", "block" => "格挡 " + ev.Damage, "break" => "破防 " + ev.Damage,

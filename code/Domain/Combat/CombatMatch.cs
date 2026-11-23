@@ -348,7 +348,11 @@ public sealed class CombatMatch
                     if (move.IsAreaSkill)
                     {
                         Statistics.AreaHits++;
-                        if (++areaHitsThisCast == 2) Statistics.AreaDoubleHits++;
+                        if (++areaHitsThisCast == 2)
+                        {
+                            Statistics.AreaDoubleHits++;
+                            Events.Add(new("area-double-hit", source.Id, "", 0, source.X, source.Y, move.Id));
+                        }
                     }
                     source.ConfirmHit();
                     if (move.Id == "light2" && source.AttackFrame <= earlySweepUntilFrame && SweepCanBuffer)

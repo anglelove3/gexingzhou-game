@@ -333,6 +333,7 @@ public partial class CombatDemo : Control
     private void PlayEvents(IEnumerable<CombatEvent> events)
     {
         var list = events.ToArray();
+        bool areaDoubleHit = list.Any(e => e.Kind == "area-double-hit");
         foreach (var ev in list.Where(e => e.Kind == "attack").Take(1))
             audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId is "charged" or "sweep" or CombatMove.AreaSkillId ? .8f : 1, 1);
         var impact = list.Where(e => e.Kind is "hit" or "block" or "down" or "break")
@@ -346,10 +347,12 @@ public partial class CombatDemo : Control
                 bool heavy = impact.MoveId is "heavy" or "charged" or "enemy_heavy";
                 var pitch = impact.MoveId switch { "light1" => 1.12f, "light2" => 1.02f, "light3" => .92f, "sweep" => .83f, "charged" => .75f, _ => .85f };
                 audio.PlayImpactCue(AudioCue.CombatHit, pitch, heavy ? .68f : .9f);
-                if (heavy || impact.Kind is "down" or "break") audio.PlayImpactCue(AudioCue.CombatDown, impact.MoveId == "charged" ? .9f : 1.15f, .32f);
+                if (!areaDoubleHit && (heavy || impact.Kind is "down" or "break"))
+                    audio.PlayImpactCue(AudioCue.CombatDown, impact.MoveId == "charged" ? .9f : 1.15f, .32f);
             }
         }
         else if (list.Any(e => e.Kind == "perfect")) audio.PlayCue(AudioCue.CombatBlock);
+        if (areaDoubleHit) audio.PlayImpactCue(AudioCue.CombatDown, .9f, .28f);
     }
 
     public override void _Process(double delta)

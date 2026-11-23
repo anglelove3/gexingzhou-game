@@ -159,12 +159,15 @@ public static class CombatAreaChecks
                 Check.Equal(75d, m.Player.Stamina);
                 Check.Equal(90, m.AreaCooldownRemaining);
                 var hits = new List<CombatEvent>();
+                var doubleHits = new List<CombatEvent>();
                 for (var i = 0; i < 45; i++)
                 {
                     m.Step(default);
                     hits.AddRange(m.Events.Where(e => e.MoveId == CombatMove.AreaSkillId && e.Kind == "hit"));
+                    doubleHits.AddRange(m.Events.Where(e => e.Kind == "area-double-hit"));
                 }
                 Check.Equal(targets, hits.Count);
+                Check.Equal(targets == 2 ? 1 : 0, doubleHits.Count);
                 Check.Equal(targets, hits.Select(e => e.TargetId).Distinct().Count());
                 Check.Equal(targets == 2 ? 27 : targets == 1 ? 13 : 0, hits.Sum(e => e.Damage));
                 Check.True(hits.All(e => !e.Critical && e.Displacement == 0));
@@ -192,6 +195,37 @@ public static class CombatAreaChecks
             Check.Equal(4, match.Statistics.AreaHits);
             Check.Equal(53, (int?)Numbers(match)["AreaDamage"]);
             Check.True(match.Statistics.IsValid());
+        }));
+        tests.Add(("CombatArea", "DoubleHitCueWaitsForTheSecondValidTarget", () =>
+        {
+            foreach (var guard in new[] { false, true })
+            {
+                var match = Bout(CombatChecks.Catalog());
+                match.Step(new(AreaPressed: true));
+                for (var i = 0; i < 30 && !match.HitStopped; i++) match.Step(default);
+                Check.Equal(1, match.Statistics.AreaHits);
+                Check.True(match.Events.All(e => e.Kind != "area-double-hit"));
+
+                var second = match.Enemies[1];
+                second.X = match.Player.X + 32;
+                second.Y = match.Player.Y;
+                second.Facing = -1;
+                second.SetGuard(guard);
+                for (var i = 0; i < 12 && match.Events.All(e => e.TargetId != second.Id); i++) match.Step(default);
+                var contact = match.Events.Single(e => e.TargetId == second.Id);
+                Check.Equal(guard ? "block" : "hit", contact.Kind);
+                Check.Equal(guard ? 1 : 2, match.Statistics.AreaHits);
+                var cue = match.Events.SingleOrDefault(e => e.Kind == "area-double-hit");
+                if (guard) Check.True(cue == null);
+                else
+                {
+                    Check.True(cue != null);
+                    Check.Equal(CombatMove.AreaSkillId, cue!.MoveId);
+                    Check.Equal(match.Player.Id, cue.SourceId);
+                    Check.Equal(match.Player.X, cue.X);
+                    Check.Equal(match.Player.Y, cue.Y);
+                }
+            }
         }));
         tests.Add(("CombatArea", "BlockedHitKeepsTheNextCriticalRollAndQCanBeBlocked", () =>
         {
