@@ -15,6 +15,7 @@ public partial class CombatArena : Node2D
     private Font font = null!;
     private readonly List<FloatingHit> floating = new();
     private const int FloatingTextSize = 20;
+    private const float OpponentBarWidth = 78;
 
     private sealed record FrameData(double X, double Y, double Width, double Height, double PivotX, double PivotY, double VisibleHeight)
     {
@@ -110,8 +111,10 @@ public partial class CombatArena : Node2D
         DrawTextureRect(court, new Rect2(0, 0, 1280, 720), false);
         if (Match == null) return;
         DrawAreaSkillRange(Match.Player);
+        var (quickOffset, roamerOffset) = GetFourthWaveNameplateOffsets();
         var all = Match.Enemies.Append(Match.Player).OrderBy(f => f.Y).ThenBy(f => f.Id, StringComparer.Ordinal);
-        foreach (var fighter in all) DrawFighter(fighter);
+        foreach (var fighter in all)
+            DrawFighter(fighter, fighter.Enemy?.Id switch { "quick" => quickOffset, "roamer" => roamerOffset, _ => 0 });
         if (!ReducedMotion) foreach (var hit in impacts) DrawImpact(hit);
         foreach (var hit in floating)
         {
@@ -132,18 +135,35 @@ public partial class CombatArena : Node2D
             if (ev.Critical) DrawStringOutline(font, position, text, HorizontalAlignment.Left, -1, FloatingTextSize, 3, new Color(.08f, .06f, .025f, alpha));
             DrawString(font, position, text, HorizontalAlignment.Left, -1, FloatingTextSize, color);
         }
-        var (startup, sidestep) = GetBorrowPositionCues();
+        var (startup, sidestep) = GetBorrowPositionCues(quickOffset);
         if (startup.HasArea()) DrawOpponentCue(startup, "！起手", new Color(1, .76f, .38f));
         if (sidestep.HasArea()) DrawOpponentCue(sidestep, "绕侧", new Color(.62f, .92f, .98f));
     }
 
-    private (Rect2 Startup, Rect2 Sidestep) GetBorrowPositionCues()
+    private (float Quick, float Roamer) GetFourthWaveNameplateOffsets()
+    {
+        if (Match is not { Wave.Id: "b2" } round) return default;
+        var quick = round.Enemies.Find(f => f.Enemy?.Id == "quick");
+        var roamer = round.Enemies.Find(f => f.Enemy?.Id == "roamer");
+        if (quick is not { Health: > 0 } || roamer is not { Health: > 0 }) return default;
+
+        var separation = new Vector2((float)(roamer.X - quick.X), (float)(roamer.Y - quick.Y)) +
+            BodyOffset(roamer) - BodyOffset(quick);
+        const float nameplateHeight = 30;
+        const float depthTransition = 14;
+        const float clearance = 8;
+        var depthOverlap = 1 - Mathf.Clamp((Math.Abs(separation.Y) - nameplateHeight) / depthTransition, 0, 1);
+        var shift = Math.Max(0, OpponentBarWidth + clearance - Math.Abs(separation.X)) * depthOverlap / 2;
+        return separation.X >= 0 ? (-shift, shift) : (shift, -shift);
+    }
+
+    private (Rect2 Startup, Rect2 Sidestep) GetBorrowPositionCues(float quickOffset)
     {
         if (Match is not { Wave.LaneBlocking: true } lane) return default;
         var quick = lane.Enemies.Find(f => f.Enemy?.Id == "quick");
         var roamer = lane.Enemies.Find(f => f.Enemy?.Id == "roamer");
         var startup = quick is { Health: > 0, State: CombatState.Attack, Attack: { } attack } && quick.AttackFrame < attack.Startup
-            ? new Rect2((float)quick.X - 36, (float)quick.Y - 200, 72, 26)
+            ? new Rect2((float)quick.X + BodyOffset(quick).X + quickOffset - 36, (float)quick.Y - 200, 72, 26)
             : default;
         var sidestep = roamer is { Health: > 0 } && lane.IsSidestepping(roamer)
             ? new Rect2((float)roamer.X - 31, (float)roamer.Y + 8, 62, 26)
@@ -162,7 +182,7 @@ public partial class CombatArena : Node2D
         DrawString(font, new Vector2(bounds.Position.X, baseline), text, HorizontalAlignment.Center, bounds.Size.X, size, color);
     }
 
-    private void DrawFighter(CombatFighter f)
+    private void DrawFighter(CombatFighter f, float nameplateOffset)
     {
         var atlas = f.Enemy == null ? playerFrames : opponentFrames;
         var texture = f.Enemy == null ? player : opponents;
@@ -201,12 +221,7 @@ public partial class CombatArena : Node2D
         if (!ReducedMotion && f.Attack?.IsAreaSkill != true) DrawAttackTrail(f, point);
         if (f.Health <= 0) return;
         if (f.Enemy != null)
-        {
-            var width = f.Enemy.Id == "leader" ? 102 : 78;
-            DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width, 5), new Color(.07f, .08f, .06f, .9f));
-            DrawRect(new Rect2(point.X - width / 2f, point.Y - height - 19, width * f.Health / (float)f.Stats.Health, 5), new Color(.8f, .45f, .23f));
-            DrawString(font, point + new Vector2(-width / 2f, -height - 26), f.Name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
-        }
+            DrawOpponentNameplate(f, new Vector2(point.X, point.Y - height - 19), nameplateOffset);
         if (f.State == CombatState.Attack && !f.Attack!.IsAreaSkill && f.AttackFrame < f.Attack.Startup)
         {
             var text = f.Enemy == null ? "" : f.Attack.Id == "enemy_heavy" ? "重击！" : "！";
@@ -220,6 +235,24 @@ public partial class CombatArena : Node2D
             DrawArc(point + new Vector2(f.Facing * 27, -65), 25, -1.2f, 1.2f, 18, new Color(.6f, .83f, .96f, .8f), 3, true);
             DrawString(font, point + new Vector2(-45, -height - 38), "守势 · 可蓄力破势", HorizontalAlignment.Left, -1, 16, new Color(.73f, .89f, 1));
         }
+    }
+
+    private void DrawOpponentNameplate(CombatFighter fighter, Vector2 anchor, float offset)
+    {
+        var width = fighter.Enemy!.Id == "leader" ? 102 : OpponentBarWidth;
+        var left = anchor.X + offset - width / 2;
+        var bar = new Rect2(left, anchor.Y, width, 5);
+        if (Math.Abs(offset) >= 1)
+        {
+            var start = new Vector2(anchor.X + offset, bar.End.Y);
+            var end = anchor + new Vector2(0, 18);
+            DrawLine(start, end, new Color(.07f, .08f, .06f, .9f), 3, true);
+            DrawLine(start, end, new Color(1, .93f, .75f, .85f), 1, true);
+        }
+        DrawRect(bar, new Color(.07f, .08f, .06f, .9f));
+        bar.Size = new Vector2(width * fighter.Health / fighter.Stats.Health, bar.Size.Y);
+        DrawRect(bar, new Color(.8f, .45f, .23f));
+        DrawString(font, new Vector2(left, anchor.Y - 7), fighter.Name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
     }
 
     private int Pose(CombatFighter f) => f.State switch

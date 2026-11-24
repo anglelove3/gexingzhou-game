@@ -45,6 +45,16 @@ public partial class SmokeHarness
         (CombatEvent Event, float OffsetX)[] SweepNumbers() => ReadPopups()
             .Where(hit => hit.Event.MoveId == CombatMove.AreaSkillId && hit.Event.TargetId.Length > 0)
             .OrderBy(hit => hit.Event.X).ToArray();
+        var readNameplates = typeof(CombatArena).GetMethod("GetFourthWaveNameplateOffsets", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.CreateDelegate<Func<(float Quick, float Roamer)>>(arena) ?? (() => default);
+        void RequireNameplateSpacing(CombatFighter quick, CombatFighter roamer)
+        {
+            var (quickOffset, roamerOffset) = readNameplates();
+            var left = quick.X + quickOffset;
+            var right = roamer.X + roamerOffset;
+            Require(quickOffset < 0 && roamerOffset > 0 && right - left >= 85.9 &&
+                left - 39 >= 0 && right + 39 <= 1280, "Close opponent nameplates must fit side by side in target order");
+        }
         void RequireSeparatedSweepNumbers()
         {
             var numbers = SweepNumbers();
@@ -98,6 +108,23 @@ public partial class SmokeHarness
                 e.Y = match.Player.Y + (i == 0 ? -4 : 6);
                 e.Cooldown = 900;
             }
+            if (targets == 2)
+            {
+                var roamer = match.Enemies[0];
+                var quick = match.Enemies[1];
+                var (quickX, quickY, roamerX, roamerY) = (quick.X, quick.Y, roamer.X, roamer.Y);
+                foreach (var left in new[] { 92d, 1186d })
+                {
+                    quick.X = left; roamer.X = left + 2;
+                    quick.Y = roamer.Y = 390;
+                    RequireNameplateSpacing(quick, roamer);
+                }
+                roamer.X = 1000; quick.X = 800;
+                Require(readNameplates() == default, "Horizontally separated opponents must keep their normal labels");
+                roamer.X = quick.X; roamer.Y = quick.Y + 60;
+                Require(readNameplates() == default, "Opponents far apart in depth must keep their normal labels");
+                (quick.X, quick.Y, roamer.X, roamer.Y) = (quickX, quickY, roamerX, roamerY);
+            }
 
             KeyPress(Key.Q);
             await Until(() => match.Player.Attack?.IsAreaSkill == true, "startup");
@@ -115,7 +142,11 @@ public partial class SmokeHarness
             await Until(() => match.Player.AttackFrame == move.Startup, "first active frame");
             Require(selectPose(match.Player) == 6 && match.Statistics.AreaHits == targets,
                 "Q must extend the sweeping leg on the same frame as the hit check");
-            if (targets == 2) RequireSeparatedSweepNumbers();
+            if (targets == 2)
+            {
+                RequireSeparatedSweepNumbers();
+                RequireNameplateSpacing(match.Enemies[1], match.Enemies[0]);
+            }
             else Require(SweepNumbers().Length == targets && SweepNumbers().All(hit => hit.OffsetX == 0),
                 "A single hit or whiff must not shift any sweep numbers");
             Require(DoubleHitPopups() == (targets == 2 ? 1 : 0), "Only two valid Q hits should show one double hit popup");
@@ -151,6 +182,9 @@ public partial class SmokeHarness
                 var totals = json.RootElement.GetProperty("statistics");
                 Require(totals.GetProperty("AreaDoubleHits").GetInt32() == 1 &&
                     totals.GetProperty("AreaDamage").GetInt32() == 27, "Q export differs from the result screen");
+                match.Enemies[0].ReceiveHit(match.Player, demo.Catalog.Move("light1") with { Power = 100 });
+                Require(match.Enemies[0].Health == 0 && readNameplates() == default,
+                    "The remaining opponent must regain its regular nameplate position when the other is defeated");
             }
             demo.ReturnToPreparation();
             await Frames(3);
@@ -190,9 +224,10 @@ public partial class SmokeHarness
             await Frames(3);
         }
 
-        var readCues = typeof(CombatArena).GetMethod("GetBorrowPositionCues", BindingFlags.Instance | BindingFlags.NonPublic)
-            ?.CreateDelegate<Func<(Rect2 Startup, Rect2 Sidestep)>>(arena)
+        var getCues = typeof(CombatArena).GetMethod("GetBorrowPositionCues", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.CreateDelegate<Func<float, (Rect2 Startup, Rect2 Sidestep)>>(arena)
             ?? throw new InvalidOperationException("Fourth-wave draw layout must expose separate startup and sidestep cues");
+        (Rect2 Startup, Rect2 Sidestep) ReadCues() => getCues(readNameplates().Quick);
         foreach (var moveInDepth in new[] { false, true })
         {
             start.GrabFocus();
@@ -207,7 +242,7 @@ public partial class SmokeHarness
             roamer.X = 544; roamer.Y = 478;
             quick.X = 528; quick.Y = 492;
             roamer.Cooldown = quick.Cooldown = 900;
-            Require(readCues() == (default, default), "Idle opponents must not display either cue");
+            Require(ReadCues() == (default, default), "Idle opponents must not display either cue");
             if (moveInDepth)
             {
                 Input.ParseInputEvent(new InputEventKey { Keycode = Key.S, PhysicalKeycode = Key.S, Pressed = true });
@@ -219,31 +254,32 @@ public partial class SmokeHarness
                 var detourY = roamer.Y;
                 await Frames(3);
                 Require(roamer.X == detourX && Math.Abs(roamer.Y - detourY) > 0, "Roamer did not move laterally after yielding");
-                Require(readCues().Startup == default && readCues().Sidestep.Size.Y > 0,
+                Require(ReadCues().Startup == default && ReadCues().Sidestep.Size.Y > 0,
                     "The sidestep alone should only display the roamer cue");
                 quick.X = lane.Player.X + 35;
                 quick.Y = lane.Player.Y;
                 quick.Cooldown = 0;
                 await Until(() => quick.Attack != null, "front opponent's startup");
                 var attack = quick.Attack!;
-                var (startup, sidestep) = readCues();
+                var (startup, sidestep) = ReadCues();
+                var quickOffset = readNameplates().Quick;
                 Require(startup.Size.Y > 0 && startup.End.Y < quick.Y - 162 && sidestep.Position.Y > roamer.Y &&
-                    !startup.Intersects(sidestep) &&
-                    Math.Abs(startup.GetCenter().X - quick.X) < .01 && Math.Abs(sidestep.GetCenter().X - roamer.X) < .01,
-                    "The startup cue belongs above the quick opponent and the sidestep cue below the roamer");
+                    !startup.Intersects(sidestep) && Math.Abs(quickOffset) > 1 &&
+                    Math.Abs(startup.GetCenter().X - quick.X - quickOffset) < .01 && Math.Abs(sidestep.GetCenter().X - roamer.X) < .01,
+                    "The startup cue must follow the quick opponent's nameplate and the sidestep cue the roamer");
                 var (roamerY, quickX, quickY) = (roamer.Y, quick.X, quick.Y);
                 roamer.Y = 400;
                 quick.X = roamer.X;
                 quick.Y = 608;
-                var stacked = readCues();
+                var stacked = ReadCues();
                 Require(stacked.Sidestep.Position.Y > stacked.Startup.End.Y,
                     "Labels on the same screen line must keep a gap");
                 (roamer.Y, quick.X, quick.Y) = (roamerY, quickX, quickY);
                 await Capture("borrow-position-both-cues");
                 await Until(() => quick.AttackFrame >= attack.Startup, "enemy contact");
-                Require(readCues().Startup == default, "The startup cue must clear on the first active frame");
+                Require(ReadCues().Startup == default, "The startup cue must clear on the first active frame");
                 await Until(() => !lane.IsSidestepping(roamer), "end of sidestep");
-                Require(readCues().Sidestep == default, "The roamer cue must clear when the sidestep ends");
+                Require(ReadCues().Sidestep == default, "The roamer cue must clear when the sidestep ends");
             }
             else
             {
