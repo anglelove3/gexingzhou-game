@@ -11,9 +11,9 @@
 
 ## 🎮 下载试玩
 
-横扫跳字版于 **2026-11-24 11:19:20（北京时间，UTC+8）**发布。街头练习第四波「二 · 走位与节奏」里，同一次 Q 回身横扫碰到贴近的两名对手时，两笔跳字会按受击位置左右错开。
+对手姓名与血条版于 **2026-11-24 11:42:25（北京时间，UTC+8）**发布。街头练习第四波「二 · 走位与节奏」里，快拳手和游走手贴近时，两组姓名和血条会左右错开，细线连回各自的对手。
 
-- **[下载最新版 Windows x64 试玩 ZIP（约 160 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-sweep-numbers-20261124/gexingzhou-demo-vs01-sweep-numbers-20261124-win64.zip)** · [发行说明与 SHA-256](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-sweep-numbers-20261124)
+- **[下载最新版 Windows x64 试玩 ZIP（约 160 MiB）](https://github.com/anglelove3/gexingzhou-game/releases/download/vs01-opponent-labels-20261124/gexingzhou-demo-vs01-opponent-labels-20261124-win64.zip)** · [发行说明与 SHA-256](https://github.com/anglelove3/gexingzhou-game/releases/tag/vs01-opponent-labels-20261124)
 - 完整解压后，双击 `gexingzhou-demo.exe`。无需克隆源码、安装 Godot 或 .NET SDK；EXE、PCK 和 `data_GeXingzhou_windows_x86_64` 文件夹须保持一起，不要只复制 EXE，也不要在压缩软件内直接运行。
 - GitHub 仅保留最新版试玩 Release；旧试玩先备份发行元数据、ZIP及解压目录，再撤下公开入口，保留源码和Git标签。
 - “回到故乡”包括小区见面 → 街区递喜糖 → 汤店行动对白 → 硬币回忆 → 明天的伴郎约定。“战斗试玩 · 街头练习”提供5级、9件装备与三段六波挑战。
@@ -132,6 +132,6 @@ powershell -NoProfile -File tests/ShutdownChecks.ps1 -GodotExe '你的 Godot .NE
 
 当前提供首段叙事探索与独立战斗成长样板。战斗对手复用十二姿态图集，以颜色、尺寸、名称和行为区分，步行使用有限姿态交替。公开仓库保留制作来源和许可记录，私人原稿、现实照片、真实玩家存档及本机配置按现行约定保管。
 
-横扫跳字版通过 222 项规则、55 组引擎回归和 297 项公开资源检查。20／32 界面字号的 GPU 截图核对了贴身双中与格挡跳字。冷解压原生 EXE 复现双中 1 次、27 点范围伤害，发行 PCK 完成普通六波、连战和故事首段。真人能否在实战中辨认两笔数字、试听及异机兼容待验。[本轮验收与发行](docs/development/10_更新日志.md) · [借位后的出手对照](docs/design/11_借位解围后续出手对照.md)
+对手姓名与血条版通过 222 项规则、55 组引擎回归和 297 项公开资源检查。20／32 界面字号的 GPU 截图核对了姓名、血条和起手提示。冷解压原生 EXE 复现双中 1 次、27 点范围伤害，发行 PCK 完成普通六波、连战和故事首段。真人实战辨读、试听及异机兼容待验。[本轮验收与发行](docs/development/10_更新日志.md) · [借位后的出手对照](docs/design/11_借位解围后续出手对照.md)
 
 历史首页已归档至[开发记录](docs/development/18_历史首页归档.md)，不再把多轮历史接续堆在试玩入口之前。
