@@ -36,8 +36,28 @@ public partial class SmokeHarness
         var arena = demo.GetNode<CombatArena>("Arena");
         var audio = demo.GetNode<AudioDirector>("Audio");
         var audioSlots = audio.GetNode("Effects").GetChildren().OfType<AudioStreamPlayer>().ToArray();
-        int DoubleHitPopups() => ((System.Collections.IEnumerable)DiagnosticField(arena, "floating")!)
-            .Cast<object>().Count(hit => ((CombatEvent)hit.GetType().GetField("Event")!.GetValue(hit)!).Kind == "area-double-hit");
+        var numberFont = GD.Load<Font>("res://assets/fonts/SourceHanSerifSC-SemiBold.otf");
+        (CombatEvent Event, float OffsetX)[] ReadPopups() =>
+            ((System.Collections.IEnumerable)DiagnosticField(arena, "floating")!).Cast<object>()
+                .Select(hit => ((CombatEvent)hit.GetType().GetField("Event")!.GetValue(hit)!,
+                    (float?)hit.GetType().GetField("OffsetX")?.GetValue(hit) ?? 0)).ToArray();
+        int DoubleHitPopups() => ReadPopups().Count(hit => hit.Event.Kind == "area-double-hit");
+        (CombatEvent Event, float OffsetX)[] SweepNumbers() => ReadPopups()
+            .Where(hit => hit.Event.MoveId == CombatMove.AreaSkillId && hit.Event.TargetId.Length > 0)
+            .OrderBy(hit => hit.Event.X).ToArray();
+        void RequireSeparatedSweepNumbers()
+        {
+            var numbers = SweepNumbers();
+            Require(numbers.Length == 2 && numbers[0].Event.TargetId != numbers[1].Event.TargetId,
+                "Each sweep number must remain linked to its original target");
+            var left = numbers[0];
+            var right = numbers[1];
+            var leftText = left.Event.Kind == "block" ? "格挡 " + left.Event.Damage : left.Event.Damage.ToString();
+            var gap = right.Event.X + right.OffsetX - left.Event.X - left.OffsetX -
+                numberFont.GetStringSize(leftText, fontSize: 20).X;
+            Require(left.OffsetX < 0 && right.OffsetX > 0 && gap >= 7.9,
+                "Close sweep numbers must keep a gap in target order");
+        }
         var selectPose = typeof(CombatArena).GetMethod("FootworkPose", BindingFlags.Static | BindingFlags.NonPublic)
             ?.CreateDelegate<Func<CombatFighter, int?>>()
             ?? throw new InvalidOperationException("Footwork pose selector missing");
@@ -74,7 +94,7 @@ public partial class SmokeHarness
             for (var i = 0; i < match.Enemies.Count; i++)
             {
                 var e = match.Enemies[i];
-                e.X = match.Player.X + (i >= targets ? 300 : i == 0 ? -42 : 41);
+                e.X = match.Player.X + (i >= targets ? 300 : targets == 2 ? (i == 0 ? 40 : 33) : -42);
                 e.Y = match.Player.Y + (i == 0 ? -4 : 6);
                 e.Cooldown = 900;
             }
@@ -95,6 +115,9 @@ public partial class SmokeHarness
             await Until(() => match.Player.AttackFrame == move.Startup, "first active frame");
             Require(selectPose(match.Player) == 6 && match.Statistics.AreaHits == targets,
                 "Q must extend the sweeping leg on the same frame as the hit check");
+            if (targets == 2) RequireSeparatedSweepNumbers();
+            else Require(SweepNumbers().Length == targets && SweepNumbers().All(hit => hit.OffsetX == 0),
+                "A single hit or whiff must not shift any sweep numbers");
             Require(DoubleHitPopups() == (targets == 2 ? 1 : 0), "Only two valid Q hits should show one double hit popup");
             var accents = audioSlots.Where(slot => slot.Stream == audio.CombatDownStream).ToArray();
             Require(accents.Length == (targets == 2 ? 1 : 0), "Only a double hit should play one low impact layer");
@@ -132,6 +155,39 @@ public partial class SmokeHarness
             demo.ReturnToPreparation();
             await Frames(3);
             Require(DoubleHitPopups() == 0, "The double hit popup leaked into preparation");
+        }
+
+        foreach (var guard in new[] { false, true })
+        {
+            start.GrabFocus();
+            KeyPress(Key.Enter);
+            await Frames(3);
+            Require(demo.Screen == "fight" && demo.Match?.Wave.Id == "b2", "Sweep layout fixture did not start b2");
+            var match = demo.Match!;
+            var first = match.Enemies[0];
+            var second = match.Enemies[1];
+            first.X = match.Player.X + (guard ? 40 : -42);
+            second.X = match.Player.X + 300;
+            first.Y = second.Y = match.Player.Y;
+            first.Cooldown = second.Cooldown = 900;
+            KeyPress(Key.Q);
+            await Until(() => SweepNumbers().Length == 1, "first hit of a split sweep");
+            Require(SweepNumbers()[0].OffsetX == 0, "The first hit should stay in place until a second target is hit");
+            second.X = match.Player.X + (guard ? 33 : 41);
+            second.Y = match.Player.Y;
+            second.Facing = -1;
+            second.SetGuard(guard);
+            await Until(() => SweepNumbers().Length == 2, "second hit of a split sweep");
+            if (guard)
+            {
+                Require(SweepNumbers()[0].Event.Kind == "block" && DoubleHitPopups() == 0,
+                    "The blocked target must keep its guard label and must not trigger a double hit");
+                RequireSeparatedSweepNumbers();
+                await Capture("area-close-mixed");
+            }
+            else Require(SweepNumbers().All(hit => hit.OffsetX == 0), "Separated sweep numbers should stay in place");
+            demo.ReturnToPreparation();
+            await Frames(3);
         }
 
         var readCues = typeof(CombatArena).GetMethod("GetBorrowPositionCues", BindingFlags.Instance | BindingFlags.NonPublic)

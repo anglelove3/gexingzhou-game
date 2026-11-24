@@ -14,6 +14,7 @@ public partial class CombatArena : Node2D
     private AtlasData playerFrames = null!, opponentFrames = null!, itemFrames = null!, footworkFrames = null!;
     private Font font = null!;
     private readonly List<FloatingHit> floating = new();
+    private const int FloatingTextSize = 20;
 
     private sealed record FrameData(double X, double Y, double Width, double Height, double PivotX, double PivotY, double VisibleHeight)
     {
@@ -24,6 +25,8 @@ public partial class CombatArena : Node2D
     {
         public required CombatEvent Event;
         public double Age;
+        public float OffsetX;
+        public int? SweepCast;
     }
 
     public override void _Ready()
@@ -52,7 +55,7 @@ public partial class CombatArena : Node2D
         foreach (var ev in events)
         {
             if (ev.Kind is "hit" or "block" or "down" or "break" or "tired" or "restore" or "perfect" or "riposte" or "break-bonus" or "cancel" or "area-double-hit")
-                floating.Add(new() { Event = ev });
+                AddFloatingHit(ev);
             if (ev.Kind is "hit" or "block" or "down" or "break")
             {
                 if (impacts.Count >= 24) impacts.RemoveAt(0);
@@ -60,6 +63,37 @@ public partial class CombatArena : Node2D
             }
         }
     }
+
+    private void AddFloatingHit(CombatEvent ev)
+    {
+        var hit = new FloatingHit { Event = ev };
+        if (ev.MoveId == CombatMove.AreaSkillId && ev.SourceId == "player" && ev.TargetId.Length > 0 && Match is { } current)
+        {
+            hit.SweepCast = current.Player.AttackSequence;
+            var other = floating.FindLast(h => h.SweepCast == hit.SweepCast && h.Event.TargetId != ev.TargetId);
+            if (other != null) SpaceSweepNumbers(other, hit);
+        }
+        floating.Add(hit);
+    }
+
+    private void SpaceSweepNumbers(FloatingHit left, FloatingHit right)
+    {
+        if (left.Event.X > right.Event.X || (left.Event.X == right.Event.X && left.Event.Y > right.Event.Y))
+            (left, right) = (right, left);
+        const float gap = 8;
+        var leftWidth = font.GetStringSize(FloatingText(left.Event), fontSize: FloatingTextSize).X;
+        var separation = (float)(right.Event.X - left.Event.X);
+        var shift = Math.Max(0, leftWidth + gap - separation) / 2;
+        left.OffsetX = -shift;
+        right.OffsetX = shift;
+    }
+
+    private static string FloatingText(CombatEvent ev) => ev.Kind switch
+    {
+        "tired" => "留出耐力", "block" => "格挡 " + ev.Damage, "break" => "破防 " + ev.Damage,
+        "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", "cancel" => "闪避衔接",
+        _ => ev.Critical ? $"暴击 {ev.Damage}" : ev.Damage.ToString()
+    };
 
     public override void _Process(double delta)
     {
@@ -90,18 +124,13 @@ public partial class CombatArena : Node2D
                 DrawString(font, center, cue, HorizontalAlignment.Center, 120, 22, new Color(1, .92f, .64f, alpha));
                 continue;
             }
-            var text = ev.Kind switch
-            {
-                "tired" => "留出耐力", "block" => "格挡 " + ev.Damage, "break" => "破防 " + ev.Damage,
-                "restore" => "连段回气", "perfect" => "及时格挡", "riposte" => "反击", "break-bonus" => "破势", "cancel" => "闪避衔接",
-                _ => ev.Critical ? $"暴击 {ev.Damage}" : ev.Damage.ToString()
-            };
+            var text = FloatingText(ev);
             var color = ev.Kind == "block" ? new Color(.65f, .85f, .95f, alpha) :
                 ev.Critical ? new Color(1, .72f, .18f, alpha) : new Color(1, .84f, .45f, alpha);
             var height = ev.Kind is "restore" or "perfect" or "riposte" or "break-bonus" ? 138 : 108;
-            var position = new Vector2((float)ev.X - 22, (float)(ev.Y - height - (ReducedMotion ? 0 : hit.Age * 42)));
-            if (ev.Critical) DrawStringOutline(font, position, text, HorizontalAlignment.Left, -1, 20, 3, new Color(.08f, .06f, .025f, alpha));
-            DrawString(font, position, text, HorizontalAlignment.Left, -1, 20, color);
+            var position = new Vector2((float)ev.X - 22 + hit.OffsetX, (float)(ev.Y - height - (ReducedMotion ? 0 : hit.Age * 42)));
+            if (ev.Critical) DrawStringOutline(font, position, text, HorizontalAlignment.Left, -1, FloatingTextSize, 3, new Color(.08f, .06f, .025f, alpha));
+            DrawString(font, position, text, HorizontalAlignment.Left, -1, FloatingTextSize, color);
         }
         var (startup, sidestep) = GetBorrowPositionCues();
         if (startup.HasArea()) DrawOpponentCue(startup, "！起手", new Color(1, .76f, .38f));
