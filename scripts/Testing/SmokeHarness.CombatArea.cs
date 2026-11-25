@@ -342,6 +342,55 @@ public partial class SmokeHarness
             enemy.Cooldown = 900;
             enemy.SetGuard(false);
         }
+        var readFifthNameplates = typeof(CombatArena).GetMethod("GetFifthWaveNameplateOffsets", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.CreateDelegate<Func<Dictionary<CombatFighter, float>>>(arena) ?? (() => new());
+        var readBodyOffset = typeof(CombatArena).GetMethod("BodyOffset", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .CreateDelegate<Func<CombatFighter, Vector2>>(arena);
+        var ordered = fifth.Enemies.ToArray();
+        var fifthGuard = ordered.Single(enemy => enemy.Enemy!.Id == "guard");
+        const string guardHint = "守势 · 可蓄力破势";
+        var guardHalfWidth = numberFont.GetStringSize(guardHint, fontSize: 16).X / 2;
+        void RequireFifthSpacing(float x, bool guarding, bool attacking = false)
+        {
+            for (var i = 0; i < ordered.Length; i++)
+            {
+                ordered[i].X = x + 5 * i;
+                ordered[i].Y = fifth.Player.Y;
+            }
+            fifthGuard.SetGuard(guarding);
+            Require((fifthGuard.State == CombatState.Guard) == guarding && (fifthGuard.State == CombatState.Attack) == attacking,
+                "Fifth-wave guard or startup cue fixture is in the wrong state");
+            var offsets = readFifthNameplates();
+            Require(offsets.Count == 3, "Fifth wave needs a layout for all three living opponents");
+            var right = 0f;
+            foreach (var enemy in ordered)
+            {
+                var center = enemy.X + readBodyOffset(enemy).X + offsets[enemy];
+                var halfWidth = enemy == fifthGuard && guarding ? guardHalfWidth :
+                    enemy == fifthGuard && attacking ? numberFont.GetStringSize("重击！", fontSize: 22).X / 2 : 39;
+                halfWidth = Math.Max(39, halfWidth);
+                Require(center - halfWidth >= right + 7.9 && center + halfWidth <= 1272.1,
+                    "Fifth-wave names, health bars and tied cues must fit in target order with a visible gap");
+                right = (float)(center + halfWidth);
+            }
+        }
+        RequireFifthSpacing(96, true);
+        RequireFifthSpacing(1172, true);
+        RequireFifthSpacing((float)fifth.Player.X + 28, false);
+        ordered[2].X += 300;
+        Require(Math.Abs(readFifthNameplates()[ordered[2]]) < .01, "A distant fifth-wave nameplate moved with the group");
+        ordered[2].X -= 300;
+        ordered[2].Y -= 110;
+        Require(Math.Abs(readFifthNameplates()[ordered[2]]) < .01, "A fifth-wave nameplate in a different depth band moved");
+        ordered[2].Y = fifth.Player.Y;
+        Require(fifthGuard.TryAttack(demo.Catalog.Move("light1") with { Id = "enemy_heavy", Startup = 60 }), "Could not start fifth-wave heavy cue");
+        RequireFifthSpacing((float)fifth.Player.X + 28, false, true);
+        await Capture("wave5-sweep-startup-nameplates");
+        fifthGuard.Recover(1);
+        await Frames(3);
+        RequireFifthSpacing((float)fifth.Player.X + 28, true);
+        await Capture("wave5-sweep-guard-nameplates");
+        RequireFifthSpacing((float)fifth.Player.X + 28, false);
         KeyPress(Key.Q);
         await Until(() => fifth.Statistics.AreaHits == 3, "three fifth-wave contacts");
         var triple = SweepNumbers();
@@ -370,6 +419,12 @@ public partial class SmokeHarness
         Require(fifthExport.GetProperty("AreaHits").GetInt32() == 3 &&
             fifthExport.GetProperty("AreaDoubleHits").GetInt32() == 1 && fifthExport.GetProperty("AreaDamage").GetInt32() == 44,
             "Fifth-wave multi-target export must use the existing statistics fields");
+
+        foreach (var enemy in ordered.Where(enemy => enemy != fifthGuard))
+            enemy.ReceiveHit(fifth.Player, demo.Catalog.Move("light1") with { Power = 100 });
+        var survivingPlate = readFifthNameplates();
+        Require(survivingPlate.Count == 1 && survivingPlate.TryGetValue(fifthGuard, out var remainingOffset) && remainingOffset == 0,
+            "Defeated fifth-wave opponents must give the remaining nameplate its original position");
 
         demo.Free();
         await Frames(3);

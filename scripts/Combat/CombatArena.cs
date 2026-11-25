@@ -16,6 +16,10 @@ public partial class CombatArena : Node2D
     private readonly List<FloatingHit> floating = new();
     private const int FloatingTextSize = 20;
     private const float OpponentBarWidth = 78;
+    private const float StandardFighterHeight = 136;
+    private const int OpponentLabelSize = 16;
+    private const int StartupCueSize = 22;
+    private const string GuardHint = "守势 · 可蓄力破势";
 
     private sealed record FrameData(double X, double Y, double Width, double Height, double PivotX, double PivotY, double VisibleHeight)
     {
@@ -118,8 +122,12 @@ public partial class CombatArena : Node2D
         DrawAreaSkillRange(Match.Player);
         var (quickOffset, roamerOffset) = GetFourthWaveNameplateOffsets();
         var all = Match.Enemies.Append(Match.Player).OrderBy(f => f.Y).ThenBy(f => f.Id, StringComparer.Ordinal);
+        var fifthWave = Match.Wave.Id == "c1";
         foreach (var fighter in all)
-            DrawFighter(fighter, fighter.Enemy?.Id switch { "quick" => quickOffset, "roamer" => roamerOffset, _ => 0 });
+            DrawFighter(fighter, fighter.Enemy?.Id switch { "quick" => quickOffset, "roamer" => roamerOffset, _ => 0 }, fifthWave);
+        if (fifthWave)
+            foreach (var (fighter, offset) in GetFifthWaveNameplateOffsets())
+                DrawFifthWaveNameplate(fighter, offset);
         if (!ReducedMotion) foreach (var hit in impacts) DrawImpact(hit);
         foreach (var hit in floating)
         {
@@ -162,6 +170,98 @@ public partial class CombatArena : Node2D
         return separation.X >= 0 ? (-shift, shift) : (shift, -shift);
     }
 
+    private Dictionary<CombatFighter, float> GetFifthWaveNameplateOffsets()
+    {
+        const float gap = 8;
+        const float edge = 8;
+        const float courtWidth = 1280;
+        var plates = Match!.Enemies.Where(fighter => fighter.Health > 0)
+            .Select(fighter => (Fighter: fighter, Anchor: FifthWaveNameplateAnchor(fighter)))
+            .OrderBy(plate => plate.Anchor.X).ThenBy(plate => plate.Anchor.Y)
+            .ThenBy(plate => plate.Fighter.Id, StringComparer.Ordinal)
+            .Select(plate => (plate.Fighter, Bounds: FifthWaveNameplateBounds(plate.Fighter, plate.Anchor)))
+            .ToArray();
+        var offsets = new float[plates.Length];
+        var groups = Enumerable.Range(0, plates.Length).ToArray();
+
+        bool SharesDepth(int left, int right) =>
+            plates[left].Bounds.Position.Y < plates[right].Bounds.End.Y &&
+            plates[right].Bounds.Position.Y < plates[left].Bounds.End.Y;
+        float RequiredShift(int left, int right) =>
+            plates[left].Bounds.End.X + offsets[left] + gap - plates[right].Bounds.Position.X;
+
+        // Merge groups only when their labels would collide, including after a group moves in from a court edge.
+        for (var left = 0; left < plates.Length; left++)
+        {
+            for (var right = left + 1; right < plates.Length; right++)
+            {
+                if (groups[left] == groups[right] || !SharesDepth(left, right) ||
+                    RequiredShift(left, right) <= offsets[right] + .001f) continue;
+
+                var first = groups[left];
+                var last = Array.LastIndexOf(groups, groups[right]);
+                float shiftSum = 0, minX = float.PositiveInfinity, maxX = float.NegativeInfinity;
+                for (var i = first; i <= last; i++)
+                {
+                    groups[i] = first;
+                    offsets[i] = 0;
+                    for (var j = first; j < i; j++)
+                        if (SharesDepth(j, i)) offsets[i] = Math.Max(offsets[i], RequiredShift(j, i));
+                    shiftSum += offsets[i];
+                    minX = Math.Min(minX, plates[i].Bounds.Position.X + offsets[i]);
+                    maxX = Math.Max(maxX, plates[i].Bounds.End.X + offsets[i]);
+                }
+                var translation = Mathf.Clamp(-shiftSum / (last - first + 1), edge - minX, courtWidth - edge - maxX);
+                for (var i = first; i <= last; i++) offsets[i] += translation;
+
+                // Each restart joins at least two groups, so at most two restarts are needed in C1.
+                left = -1;
+                break;
+            }
+        }
+        return plates.Select((plate, index) => (plate.Fighter, Offset: offsets[index]))
+            .ToDictionary(plate => plate.Fighter, plate => plate.Offset);
+    }
+
+    private Vector2 FifthWaveNameplateAnchor(CombatFighter fighter) =>
+        new Vector2((float)fighter.X, (float)fighter.Y - StandardFighterHeight - 19) + BodyOffset(fighter);
+
+    private Rect2 FifthWaveNameplateBounds(CombatFighter fighter, Vector2 anchor)
+    {
+        var left = anchor.X - OpponentBarWidth / 2;
+        var top = anchor.Y - 7 - font.GetAscent(OpponentLabelSize);
+        var right = Math.Max(left + font.GetStringSize(fighter.Name, fontSize: OpponentLabelSize).X, anchor.X + OpponentBarWidth / 2);
+        var (cue, baseline, size) = FifthWaveCue(fighter);
+        if (cue.Length > 0)
+        {
+            var halfWidth = font.GetStringSize(cue, fontSize: size).X / 2;
+            left = Math.Min(left, anchor.X - halfWidth);
+            right = Math.Max(right, anchor.X + halfWidth);
+            top = anchor.Y + baseline - font.GetAscent(size);
+        }
+        return new Rect2(left, top, right - left, anchor.Y + 5 - top);
+    }
+
+    private static (string Text, float Baseline, int Size) FifthWaveCue(CombatFighter fighter)
+    {
+        if (fighter.Enemy?.Id == "guard" && fighter.State == CombatState.Guard)
+            return (GuardHint, -25, OpponentLabelSize);
+        if (fighter.State == CombatState.Attack && fighter.Attack is { IsAreaSkill: false } attack && fighter.AttackFrame < attack.Startup)
+            return (attack.Id == "enemy_heavy" ? "重击！" : "！", -36, StartupCueSize);
+        return ("", 0, 0);
+    }
+
+    private void DrawFifthWaveNameplate(CombatFighter fighter, float offset)
+    {
+        var anchor = FifthWaveNameplateAnchor(fighter);
+        DrawOpponentNameplate(fighter, anchor, offset);
+        var (cue, baseline, size) = FifthWaveCue(fighter);
+        if (cue.Length == 0) return;
+        var halfWidth = font.GetStringSize(cue, fontSize: size).X / 2;
+        var color = fighter.State == CombatState.Guard ? new Color(.73f, .89f, 1) : new Color(1, .73f, .3f);
+        DrawString(font, anchor + new Vector2(offset - halfWidth, baseline), cue, HorizontalAlignment.Left, -1, size, color);
+    }
+
     private (Rect2 Startup, Rect2 Sidestep) GetBorrowPositionCues(float quickOffset)
     {
         if (Match is not { Wave.LaneBlocking: true } lane) return default;
@@ -187,7 +287,7 @@ public partial class CombatArena : Node2D
         DrawString(font, new Vector2(bounds.Position.X, baseline), text, HorizontalAlignment.Center, bounds.Size.X, size, color);
     }
 
-    private void DrawFighter(CombatFighter f, float nameplateOffset)
+    private void DrawFighter(CombatFighter f, float nameplateOffset, bool fifthWave)
     {
         var atlas = f.Enemy == null ? playerFrames : opponentFrames;
         var texture = f.Enemy == null ? player : opponents;
@@ -201,7 +301,7 @@ public partial class CombatArena : Node2D
         if (f.State == CombatState.Down && f.StateFrame < 5 && impacts.Any(h => h.Event.TargetId == f.Id && h.Event.MoveId == "sweep"))
             pose = 7;
         var frame = atlas.Frames[pose];
-        var height = f.Enemy?.Id == "leader" ? 148f : 136f;
+        var height = f.Enemy?.Id == "leader" ? 148f : StandardFighterHeight;
         var scale = height / (float)atlas.Frames[0].VisibleHeight;
         var point = new Vector2((float)f.X, (float)f.Y) + BodyOffset(f);
         DrawSetTransform(point, 0, new Vector2(1, .23f));
@@ -225,12 +325,12 @@ public partial class CombatArena : Node2D
         DrawSetTransform(Vector2.Zero);
         if (!ReducedMotion && f.Attack?.IsAreaSkill != true) DrawAttackTrail(f, point);
         if (f.Health <= 0) return;
-        if (f.Enemy != null)
+        if (!fifthWave && f.Enemy != null)
             DrawOpponentNameplate(f, new Vector2(point.X, point.Y - height - 19), nameplateOffset);
         if (f.State == CombatState.Attack && !f.Attack!.IsAreaSkill && f.AttackFrame < f.Attack.Startup)
         {
             var text = f.Enemy == null ? "" : f.Attack.Id == "enemy_heavy" ? "重击！" : "！";
-            if (text.Length > 0 && !(Match!.Wave.LaneBlocking && f.Enemy?.Id == "quick"))
+            if (!fifthWave && text.Length > 0 && !(Match!.Wave.LaneBlocking && f.Enemy?.Id == "quick"))
                 DrawString(font, point + new Vector2(-16, -height - 55), text, HorizontalAlignment.Left, -1, 22, new Color(1, .73f, .3f));
             var portion = f.AttackFrame / (float)f.Attack.Startup;
             DrawArc(point, 29, -Mathf.Pi, -Mathf.Pi + portion * Mathf.Tau, 24, new Color(1, .65f, .3f, .85f), 2, true);
@@ -238,7 +338,8 @@ public partial class CombatArena : Node2D
         if (f.Enemy?.Id == "guard" && f.State == CombatState.Guard)
         {
             DrawArc(point + new Vector2(f.Facing * 27, -65), 25, -1.2f, 1.2f, 18, new Color(.6f, .83f, .96f, .8f), 3, true);
-            DrawString(font, point + new Vector2(-45, -height - 38), "守势 · 可蓄力破势", HorizontalAlignment.Left, -1, 16, new Color(.73f, .89f, 1));
+            if (!fifthWave)
+                DrawString(font, point + new Vector2(-45, -height - 38), GuardHint, HorizontalAlignment.Left, -1, OpponentLabelSize, new Color(.73f, .89f, 1));
         }
     }
 
@@ -257,7 +358,7 @@ public partial class CombatArena : Node2D
         DrawRect(bar, new Color(.07f, .08f, .06f, .9f));
         bar.Size = new Vector2(width * fighter.Health / fighter.Stats.Health, bar.Size.Y);
         DrawRect(bar, new Color(.8f, .45f, .23f));
-        DrawString(font, new Vector2(left, anchor.Y - 7), fighter.Name, HorizontalAlignment.Left, -1, 16, new Color(1, .93f, .75f));
+        DrawString(font, new Vector2(left, anchor.Y - 7), fighter.Name, HorizontalAlignment.Left, -1, OpponentLabelSize, new Color(1, .93f, .75f));
     }
 
     private int Pose(CombatFighter f) => f.State switch
