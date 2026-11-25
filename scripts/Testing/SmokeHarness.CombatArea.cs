@@ -5,6 +5,8 @@ using System.Reflection;
 public partial class SmokeHarness
 {
     private const string AreaTimingAdvice = "两人快靠拢时提前按 Q 回身横扫，留意对手起手。";
+    private const string FifthWaveAreaAdvice = "两人快靠拢时用 Q 回身横扫，守势手正面格挡时可用 K 蓄力破防。";
+    private const string FifthWaveAreaCount = "横扫多目标次数（≥2）";
 
     private async Task CombatAreaChecks()
     {
@@ -318,7 +320,60 @@ public partial class SmokeHarness
 
         demo.Free();
         await Frames(3);
+        Require(repository.Save(progress.Reward("b2", catalog)).Success, "Could not seed fifth-wave progress");
+        demo = GD.Load<PackedScene>("res://scenes/combat/CombatDemo.tscn").Instantiate<CombatDemo>();
+        AddChild(demo);
+        await Frames(3);
+        arena = demo.GetNode<CombatArena>("Arena");
+        preparationHint = demo.GetNode<Label>("Prepare/Panel/Scroll/Content/WaveHint");
+        Require(preparationHint.Text.Contains(FifthWaveAreaAdvice, StringComparison.Ordinal) &&
+            preparationHint.GetLineCount() == preparationHint.GetVisibleLineCount(), "Fifth-wave Q and K advice is missing or clipped");
+        await Capture("wave5-sweep-prepare");
+        demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start").GrabFocus();
+        KeyPress(Key.Enter);
+        await Frames(3);
+        Require(demo.Screen == "fight" && demo.Match?.Wave is { Id: "c1", AreaSkill: true }, "Fifth-wave Q fixture did not start");
+        var fifth = demo.Match!;
+        for (var i = 0; i < fifth.Enemies.Count; i++)
+        {
+            var enemy = fifth.Enemies[i];
+            enemy.X = fifth.Player.X + 28 + 5 * i;
+            enemy.Y = fifth.Player.Y;
+            enemy.Cooldown = 900;
+            enemy.SetGuard(false);
+        }
+        KeyPress(Key.Q);
+        await Until(() => fifth.Statistics.AreaHits == 3, "three fifth-wave contacts");
+        var triple = SweepNumbers();
+        Require(triple.Length == 3 && triple.Select(hit => hit.Event.TargetId).Distinct().Count() == 3 && DoubleHitPopups() == 1,
+            "Three targets must display three damage popups and one confirmation");
+        for (var i = 1; i < triple.Length; i++)
+        {
+            var previous = triple[i - 1];
+            var next = triple[i];
+            var gap = next.Event.X + next.OffsetX - previous.Event.X - previous.OffsetX -
+                numberFont.GetStringSize(previous.Event.Damage.ToString(), fontSize: 20).X;
+            Require(gap >= 7.9, "All three fifth-wave damage popups must have room");
+        }
+        await Capture("wave5-sweep-three-targets");
+        fifth.Player.ReceiveHit(fifth.Enemies[0], demo.Catalog.Move("light1") with { Power = 100 });
+        await Until(() => demo.Screen == "result", "fifth-wave result");
+        var fifthStats = demo.GetNode<Label>("Result/Panel/Scroll/Content/Statistics");
+        Require(fifthStats.Text.Contains(FifthWaveAreaCount + " 1", StringComparison.Ordinal) &&
+            fifthStats.Text.Contains("范围伤害 44", StringComparison.Ordinal) &&
+            fifthStats.GetLineCount() == fifthStats.GetVisibleLineCount(), "Three-hit result is missing or clipped");
+        await Capture("wave5-sweep-result");
+        demo.GetNode<Button>("Result/Panel/Scroll/Content/Export").EmitSignal(Button.SignalName.Pressed);
+        var reports = System.IO.Directory.GetFiles(ProjectSettings.GlobalizePath(root + "/combat-v1/exports"), "combat-*.json");
+        var fifthExport = reports.Select(path => System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(System.IO.File.ReadAllText(path)))
+            .Single(report => report.GetProperty("wave").GetString() == "c1").GetProperty("statistics");
+        Require(fifthExport.GetProperty("AreaHits").GetInt32() == 3 &&
+            fifthExport.GetProperty("AreaDoubleHits").GetInt32() == 1 && fifthExport.GetProperty("AreaDamage").GetInt32() == 44,
+            "Fifth-wave multi-target export must use the existing statistics fields");
+
+        demo.Free();
+        await Frames(3);
         session.SetOptions(options, false);
-        GD.Print("COMBAT_AREA_PASS FourthWave KeyboardQ ZeroOneTwo Cooldown StartupContactRecoveryPoses");
+        GD.Print("COMBAT_AREA_PASS FourthWave FifthWave KeyboardQ ZeroOneTwoThree Cooldown StartupContactRecoveryPoses");
     }
 }

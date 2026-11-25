@@ -1,6 +1,6 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-borrow-position-0.1",
+  "balanceVersion": "combat-wave5-sweep-prototype-0.1",
   "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
@@ -302,7 +302,8 @@
     {
       "id": "c1",
       "name": "三 · 应对围攻",
-      "hint": "先调整位置，让对手聚在一侧。连续空挥会耗尽耐力。",
+      "hint": "两人快靠拢时用 Q 回身横扫，守势手正面格挡时可用 K 蓄力破防。",
+      "areaSkill": true,
       "enemies": [
         "guard",
         "roamer",

@@ -211,8 +211,7 @@ public partial class CombatDemo : Control
             GetNode<Button>(ResultPath + "Retry").Disabled = false;
             GetNode<Label>(ResultPath + "Message").Text = "";
         }
-        var s = Match.Statistics;
-        GetNode<Label>(ResultPath + "Statistics").Text = StatisticsText(s);
+        GetNode<Label>(ResultPath + "Statistics").Text = StatisticsText(Match);
         GetNode<Button>(ResultPath + "Retry").Text = "重试本波";
         BindFocus(ResultPath, new[] { "Continue", "Retry", "Export", "Menu" });
     }

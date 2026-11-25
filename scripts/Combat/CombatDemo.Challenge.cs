@@ -64,7 +64,7 @@ public partial class CombatDemo
             record.Outcome == ChallengeOutcome.Lost ? "本次连战结束" : "连战波次完成";
         GetNode<Label>(ResultPath + "Reward").Text = $"已完成 {record.CompletedWaves}/6 波 · 剩余生命 {Match!.Player.Health}/{Match.Player.Stats.Health}\n" +
             (record.Outcome == ChallengeOutcome.Running ? "下一波继承当前生命，耐力回满。装备保持开场快照。" : "本次成绩保留，可以回准备界面调整装备。");
-        GetNode<Label>(ResultPath + "Statistics").Text = StatisticsText(Match.Statistics) + $"\n连战累计战斗总时间 {record.TotalSeconds:0.0} 秒";
+        GetNode<Label>(ResultPath + "Statistics").Text = StatisticsText(Match) + $"\n连战累计战斗总时间 {record.TotalSeconds:0.0} 秒";
         GetNode<Button>(ResultPath + "Continue").Text = saved ? record.Outcome == ChallengeOutcome.Running ? "继续下一波" : "返回准备界面" : "重试保存并继续";
         GetNode<Button>(ResultPath + "Retry").Text = "重新挑战六波";
         GetNode<Button>(ResultPath + "Retry").Disabled = !saved;
@@ -89,7 +89,7 @@ public partial class CombatDemo
             ChangeScreen("result");
             GetNode<Label>(ResultPath + "Title").Text = "挑战已结束，记录待保存";
             GetNode<Label>(ResultPath + "Reward").Text = $"已完成 {challenge.Record.CompletedWaves}/6 波，保存后可返回准备界面。";
-            GetNode<Label>(ResultPath + "Statistics").Text = Match == null ? "" : StatisticsText(Match.Statistics);
+            GetNode<Label>(ResultPath + "Statistics").Text = Match == null ? "" : StatisticsText(Match);
             GetNode<Button>(ResultPath + "Continue").Text = "重试保存并返回";
             GetNode<Button>(ResultPath + "Retry").Disabled = true;
             BindFocus(ResultPath, new[] { "Continue", "Export", "Menu" });
@@ -154,8 +154,11 @@ public partial class CombatDemo
         GetNode<ScrollContainer>("Result/Panel/Scroll").ScrollVertical = 0;
     }
 
-    private static string StatisticsText(CombatStatistics s) =>
-        $"可操作时间 {s.ActiveSeconds:0.0}秒 · 战斗总时间 {s.TotalSeconds:0.0}秒\n" +
+    private static string StatisticsText(CombatMatch match)
+    {
+        var s = match.Statistics;
+        var sweepCount = match.Wave.Id == "c1" ? "横扫多目标次数（≥2）" : "横扫双中次数";
+        return $"可操作时间 {s.ActiveSeconds:0.0}秒 · 战斗总时间 {s.TotalSeconds:0.0}秒\n" +
         $"轻击 {s.LightAttacks} · 重击 {s.HeavyAttacks} · 闪避 {s.Dodges}（衔接{s.DodgeCancels}）· 格挡 {s.Blocks}\n" +
         $"造成伤害 {s.DamageDealt} · 有效伤害 {s.EffectiveDamage}\n受击 {s.HitsTaken}次 · 承受伤害 {s.DamageTaken}\n" +
         $"有效伤害/秒 {(s.TotalSeconds > 0 ? (s.EffectiveDamage / s.TotalSeconds).ToString("0.0") : "暂无")} · 耐力不足 {s.EmptyStamina}次\n" +
@@ -163,5 +166,6 @@ public partial class CombatDemo
         $"反击发动/命中 {s.RiposteAttacks}/{s.RiposteHits} · 破势蓄力发动/命中 {s.BreakAttacks}/{s.BreakHits}" +
         (s.CriticalHits > 0 || s.AreaCasts > 0 ? $"\n暴击 {s.CriticalHits} · 横扫发动/有效命中 {s.AreaCasts}/{s.AreaHits}" : "") +
         (s.AreaDoubleHits is int doubleHits && s.AreaDamage is int areaDamage ?
-            $"\n横扫双中次数 {doubleHits} · 范围伤害 {areaDamage}" : "");
+            $"\n{sweepCount} {doubleHits} · 范围伤害 {areaDamage}" : "");
+    }
 }

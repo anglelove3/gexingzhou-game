@@ -290,15 +290,62 @@ public static class CombatAreaChecks
             Check.Equal(0, tired.AreaCooldownRemaining);
             Check.Equal(1, tired.Statistics.EmptyStamina);
         }));
+        tests.Add(("CombatArea", "FifthWaveSweepSeparatesGuardedAndMultipleHits", () =>
+        {
+            var catalog = CombatChecks.Catalog();
+            var progress = catalog.Waves.Take(4).Aggregate(CombatProgress.New(catalog), (p, w) => p.Reward(w.Id, catalog));
+            foreach (var (near, guardBlocks, valid, damage) in new[]
+            {
+                (0, true, 0, 0), (2, true, 1, 17), (3, true, 2, 32), (3, false, 3, 44)
+            })
+            {
+                var match = new CombatMatch(catalog, progress, "c1", randomSeed: 1);
+                for (int i = 0; i < match.Enemies.Count; i++)
+                {
+                    var enemy = match.Enemies[i];
+                    enemy.X = match.Player.X + (i >= near ? 330 : 28 + i * 5);
+                    enemy.Y = match.Player.Y;
+                    enemy.Facing = -1;
+                    enemy.Cooldown = 900;
+                }
+                match.Enemies[0].SetGuard(guardBlocks);
+                match.Step(new(AreaPressed: true));
+                Check.Equal(1, match.Statistics.AreaCasts);
+                Check.Equal(80d, match.Player.Stamina);
+                Check.Equal(90, match.AreaCooldownRemaining);
+                var confirmations = 0;
+                for (var frame = 0; frame < 44; frame++)
+                {
+                    match.Step(default);
+                    confirmations += match.Events.Count(e => e.Kind == "area-double-hit");
+                }
+                Check.Equal(valid, match.Statistics.AreaHits);
+                Check.Equal(damage, match.Statistics.AreaDamage);
+                Check.Equal(valid >= 2 ? 1 : 0, match.Statistics.AreaDoubleHits);
+                Check.Equal(valid >= 2 ? 1 : 0, confirmations);
+                Check.Equal(0, match.Statistics.CriticalHits);
+            }
+        }));
         tests.Add(("CombatArea", "OtherWavesAndLegacyChallengeSnapshotUseOriginalRules", () =>
         {
             var c = CombatChecks.Catalog();
-            Check.Equal("b2", c.Waves.Single(w => w.AreaSkill || w.CriticalChance > 0).Id);
+            Check.Equal("b2,c1", string.Join(",", c.Waves.Where(w => w.AreaSkill).Select(w => w.Id)));
+            Check.Equal("b2", c.Waves.Single(w => w.CriticalChance > 0).Id);
             var first = new CombatMatch(c, CombatProgress.New(c), "a1", randomSeed: CriticalSeed());
             first.Step(new(AreaPressed: true));
             Check.True(first.Player.State == CombatState.Idle);
 
             var data = JsonNode.Parse(c.SourceJson)!;
+            data["balanceVersion"] = "combat-borrow-position-0.1";
+            data["waves"]![4]!.AsObject().Remove("areaSkill");
+            var previous = CombatCatalog.Parse(data.ToJsonString());
+            var previousProfile = previous.Waves.Take(4).Aggregate(CombatProgress.New(previous), (p, w) => p.Reward(w.Id, previous));
+            var oldFifth = new CombatMatch(previous, previousProfile, "c1", randomSeed: 1);
+            oldFifth.Step(new(AreaPressed: true));
+            Check.Equal(0, oldFifth.Statistics.AreaCasts);
+            Check.True(oldFifth.Statistics.AreaDoubleHits == null);
+            Check.Equal<string?>(null, CombatChallenge.Start(previous, CombatChallengeChecks.Complete(previous)).Record.Validate());
+
             data["balanceVersion"] = "combat-footwork-0.2";
             var wave = data["waves"]![3]!.AsObject();
             foreach (var field in new[] { "areaSkill", "criticalChance", "criticalMultiplier", "laneBlocking" }) wave.Remove(field);

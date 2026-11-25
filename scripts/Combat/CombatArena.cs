@@ -68,25 +68,30 @@ public partial class CombatArena : Node2D
     private void AddFloatingHit(CombatEvent ev)
     {
         var hit = new FloatingHit { Event = ev };
+        floating.Add(hit);
         if (ev.MoveId == CombatMove.AreaSkillId && ev.SourceId == "player" && ev.TargetId.Length > 0 && Match is { } current)
         {
             hit.SweepCast = current.Player.AttackSequence;
-            var other = floating.FindLast(h => h.SweepCast == hit.SweepCast && h.Event.TargetId != ev.TargetId);
-            if (other != null) SpaceSweepNumbers(other, hit);
+            SpaceSweepNumbers(current.Player.AttackSequence);
         }
-        floating.Add(hit);
     }
 
-    private void SpaceSweepNumbers(FloatingHit left, FloatingHit right)
+    private void SpaceSweepNumbers(int cast)
     {
-        if (left.Event.X > right.Event.X || (left.Event.X == right.Event.X && left.Event.Y > right.Event.Y))
-            (left, right) = (right, left);
+        var hits = floating.Where(hit => hit.SweepCast == cast)
+            .OrderBy(hit => hit.Event.X).ThenBy(hit => hit.Event.Y).ToArray();
         const float gap = 8;
-        var leftWidth = font.GetStringSize(FloatingText(left.Event), fontSize: FloatingTextSize).X;
-        var separation = (float)(right.Event.X - left.Event.X);
-        var shift = Math.Max(0, leftWidth + gap - separation) / 2;
-        left.OffsetX = -shift;
-        right.OffsetX = shift;
+        hits[0].OffsetX = 0;
+        for (var i = 1; i < hits.Length; i++)
+        {
+            var previous = hits[i - 1];
+            var width = font.GetStringSize(FloatingText(previous.Event), fontSize: FloatingTextSize).X;
+            var separation = (float)(hits[i].Event.X - previous.Event.X);
+            hits[i].OffsetX = Math.Max(0, previous.OffsetX + width + gap - separation);
+        }
+        // Keep the group centered on the contacts after making room for each label.
+        var centerOffset = hits.Average(hit => hit.OffsetX);
+        foreach (var hit in hits) hit.OffsetX -= centerOffset;
     }
 
     private static string FloatingText(CombatEvent ev) => ev.Kind switch
@@ -122,7 +127,7 @@ public partial class CombatArena : Node2D
             if (ev.Kind == "area-double-hit")
             {
                 var center = new Vector2((float)ev.X - 60, Math.Min((float)ev.Y + 50, 646));
-                const string cue = "横扫双中";
+                var cue = Match.Wave.Id == "c1" ? "横扫多目标" : "横扫双中";
                 DrawStringOutline(font, center, cue, HorizontalAlignment.Center, 120, 22, 4, new Color(.08f, .06f, .025f, alpha));
                 DrawString(font, center, cue, HorizontalAlignment.Center, 120, 22, new Color(1, .92f, .64f, alpha));
                 continue;

@@ -51,6 +51,16 @@ public partial class SmokeHarness
                     "Fourth-wave challenge timing hint was clipped or overlapped");
                 await Capture("area-timing-challenge");
             }
+            if (demo.Match.Wave.Id == "c1")
+            {
+                var hint = demo.GetNode<Label>("Hud/Wave");
+                Require(hint.Text.Contains(FifthWaveAreaAdvice, StringComparison.Ordinal) &&
+                    hint.Text.Contains("连战 · 生命继承 / 耐力逐波回满", StringComparison.Ordinal) &&
+                    hint.GetLineCount() == hint.GetVisibleLineCount(), "Fifth-wave challenge advice is missing or clipped");
+                Require(demo.GetNode<Label>("Hud/Top/Content/Action").Text.Contains("Q就绪", StringComparison.Ordinal),
+                    "Challenge fifth-wave Q was not ready at the start");
+                await Capture("wave5-sweep-challenge");
+            }
             System.IO.FileStream? blocked = null;
             for (int tick = 0; tick < 12000 && demo.Match.Result == CombatResult.Running; tick++)
             {
@@ -69,6 +79,9 @@ public partial class SmokeHarness
             foreach (var key in keys.ToArray()) SetKey(key, false);
             for (int settle = 0; settle < 30 && demo.Screen == "finish"; settle++) await Frames(1);
             Require(demo.Match.Result == CombatResult.Won, "Challenge physical keyboard failed wave " + wave);
+            if (demo.Match.Wave.Id == "c1")
+                Require(demo.GetNode<Label>("Result/Panel/Scroll/Content/Statistics").Text.Contains(FifthWaveAreaCount + " 0", StringComparison.Ordinal),
+                    "Challenge fifth-wave result must report zero multi-target casts when Q was unused");
             previousHealth = demo.Match.Player.Health;
             Require(demo.ChallengeRecord!.CompletedWaves == wave + 1, "Challenge duplicate or missing completion");
             if (blocked != null)
