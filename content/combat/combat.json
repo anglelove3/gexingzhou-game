@@ -1,6 +1,6 @@
 {
   "version": "combat-0.1",
-  "balanceVersion": "combat-wave5-sweep-prototype-0.1",
+  "balanceVersion": "combat-wave5-area-skills-0.1",
   "impactFeedback": true,
   "growth": {
     "health": 100, "attack": 14, "defense": 8, "stamina": 100,
@@ -199,6 +199,36 @@
       "depth": 34,
       "stun": 0.16,
       "push": 0
+    },
+    {
+      "id": "ground_stomp",
+      "name": "踏地震步",
+      "power": 0.65,
+      "startup": 8,
+      "active": 2,
+      "recovery": 20,
+      "cost": 34,
+      "cooldownFrames": 132,
+      "hitstopFrames": 4,
+      "reach": 51,
+      "depth": 32,
+      "stun": 0.38,
+      "push": 0
+    },
+    {
+      "id": "opening_palms",
+      "name": "推掌开路",
+      "power": 0.8,
+      "startup": 15,
+      "active": 3,
+      "recovery": 22,
+      "cost": 38,
+      "cooldownFrames": 156,
+      "hitstopFrames": 4,
+      "reach": 104,
+      "depth": 32,
+      "stun": 0.18,
+      "push": 36
     }
   ],
   "enemies": [
@@ -301,8 +331,10 @@
     },
     {
       "id": "c1",
+      "additionalAreaSkills": true,
+      "sweepPowerMultiplier": 1.2,
       "name": "三 · 应对围攻",
-      "hint": "两人快靠拢时用 Q 回身横扫，守势手正面格挡时可用 K 蓄力破防。",
+      "hint": "聚拢时 Q 回身横扫 · 贴身 E 踏地震步 · 正面 R 推掌开路。遇到正面格挡可蓄力 K。",
       "areaSkill": true,
       "enemies": [
         "guard",

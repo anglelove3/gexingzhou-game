@@ -296,7 +296,7 @@ public static class CombatAreaChecks
             var progress = catalog.Waves.Take(4).Aggregate(CombatProgress.New(catalog), (p, w) => p.Reward(w.Id, catalog));
             foreach (var (near, guardBlocks, valid, damage) in new[]
             {
-                (0, true, 0, 0), (2, true, 1, 17), (3, true, 2, 32), (3, false, 3, 44)
+                (0, true, 0, 0), (2, true, 1, 21), (3, true, 2, 39), (3, false, 3, 52)
             })
             {
                 var match = new CombatMatch(catalog, progress, "c1", randomSeed: 1);
@@ -326,6 +326,66 @@ public static class CombatAreaChecks
                 Check.Equal(0, match.Statistics.CriticalHits);
             }
         }));
+        tests.Add(("CombatArea", "FifthWaveStompInterruptsAndPalmsPushWithIndependentCooldowns", () =>
+        {
+            var catalog = CombatChecks.Catalog();
+            var progress = catalog.Waves.Take(4).Aggregate(CombatProgress.New(catalog), (p, w) => p.Reward(w.Id, catalog));
+            foreach (var facing in new[] { -1, 1 })
+            {
+                var match = new CombatMatch(catalog, progress, "c1", randomSeed: 1);
+                match.Step(new(MoveX: facing));
+                var front = match.Enemies[1];
+                var rear = match.Enemies[2];
+                var guard = match.Enemies[0];
+                void Place(CombatFighter enemy, int gap)
+                {
+                    enemy.X = match.Player.X + facing * gap;
+                    enemy.Y = match.Player.Y;
+                    enemy.Facing = -facing;
+                    enemy.Cooldown = 900;
+                }
+                Place(front, 35);
+                Place(rear, -35);
+                Place(guard, 300);
+                Check.True(front.TryAttack(catalog.Move("light1") with { Startup = 60 }));
+                match.Step(new(GroundStompPressed: true));
+                Check.Equal(132, match.AreaCooldownRemainingFor(CombatMove.GroundStompId));
+                Check.Equal(76d, match.Player.Stamina);
+                Check.Equal(0, match.AreaCooldownRemainingFor(CombatMove.OpeningPalmsId));
+                for (int frame = 0; frame < 12; frame++) match.Step(default);
+                Check.Equal(CombatState.Hurt, front.State);
+                Check.Equal(new AreaMoveStatistics(1, 2, 22), match.Statistics.GroundStomp);
+
+                for (int frame = 0; frame < 35; frame++) match.Step(default);
+                Place(front, 45);
+                Place(rear, -28);
+                Place(guard, 48);
+                guard.SetGuard(false);
+                var rearHealth = rear.Health;
+                double frontStart = front.X, guardStart = guard.X;
+                match.Step(new(OpeningPalmsPressed: true));
+                Check.Equal(156, match.AreaCooldownRemainingFor(CombatMove.OpeningPalmsId));
+                Check.True(match.AreaCooldownRemainingFor(CombatMove.GroundStompId) > 0);
+                for (int frame = 0; frame < 19; frame++) match.Step(default);
+                Check.Equal(rearHealth, rear.Health);
+                Check.True((front.X - frontStart) * facing >= 32);
+                Check.True((guard.X - guardStart) * facing >= 32);
+                Check.Equal(new AreaMoveStatistics(1, 2,
+                    CombatCatalog.Damage(match.Player.Stats.Attack, .8, front.Stats.Defense) +
+                    CombatCatalog.Damage(match.Player.Stats.Attack, .8, guard.Stats.Defense)), match.Statistics.OpeningPalms);
+                Check.Equal(0, match.AreaCooldownRemaining);
+                Check.Equal(0, match.Statistics.AreaCasts);
+                Check.Equal(0, match.Statistics.AreaHits);
+                var restored = JsonSerializer.Deserialize<CombatStatistics>(JsonSerializer.Serialize(match.Statistics))!;
+                Check.True(restored.IsValid());
+                Check.Equal(match.Statistics.GroundStomp, restored.GroundStomp);
+                Check.Equal(match.Statistics.OpeningPalms, restored.OpeningPalms);
+            }
+            var fourth = new CombatMatch(catalog, progress, "b2");
+            fourth.Step(new(GroundStompPressed: true, OpeningPalmsPressed: true));
+            Check.Equal(CombatState.Idle, fourth.Player.State);
+            Check.True(fourth.Statistics.GroundStomp == null && fourth.Statistics.OpeningPalms == null);
+        }));
         tests.Add(("CombatArea", "OtherWavesAndLegacyChallengeSnapshotUseOriginalRules", () =>
         {
             var c = CombatChecks.Catalog();
@@ -337,7 +397,22 @@ public static class CombatAreaChecks
 
             var data = JsonNode.Parse(c.SourceJson)!;
             data["balanceVersion"] = "combat-borrow-position-0.1";
-            data["waves"]![4]!.AsObject().Remove("areaSkill");
+            var currentFifth = data["waves"]![4]!.AsObject();
+            currentFifth.Remove("additionalAreaSkills");
+            currentFifth.Remove("sweepPowerMultiplier");
+            var moves = data["moves"]!.AsArray();
+            foreach (var id in new[] { CombatMove.GroundStompId, CombatMove.OpeningPalmsId })
+                moves.Remove(moves.Single(m => (string?)m!["id"] == id));
+            var oldPrototype = CombatCatalog.Parse(data.ToJsonString());
+            var oldProfile = oldPrototype.Waves.Take(4).Aggregate(CombatProgress.New(oldPrototype), (p, w) => p.Reward(w.Id, oldPrototype));
+            var oldPrototypeBout = new CombatMatch(oldPrototype, oldProfile, "c1");
+            oldPrototypeBout.Step(new(GroundStompPressed: true));
+            oldPrototypeBout.Step(new(OpeningPalmsPressed: true));
+            Check.Equal(CombatState.Idle, oldPrototypeBout.Player.State);
+            oldPrototypeBout.Step(new(AreaPressed: true));
+            Check.Equal(.9, oldPrototypeBout.Player.Attack!.Power);
+            Check.True(oldPrototypeBout.Statistics.GroundStomp == null && oldPrototypeBout.Statistics.OpeningPalms == null);
+            currentFifth.Remove("areaSkill");
             var previous = CombatCatalog.Parse(data.ToJsonString());
             var previousProfile = previous.Waves.Take(4).Aggregate(CombatProgress.New(previous), (p, w) => p.Reward(w.Id, previous));
             var oldFifth = new CombatMatch(previous, previousProfile, "c1", randomSeed: 1);
@@ -349,7 +424,6 @@ public static class CombatAreaChecks
             data["balanceVersion"] = "combat-footwork-0.2";
             var wave = data["waves"]![3]!.AsObject();
             foreach (var field in new[] { "areaSkill", "criticalChance", "criticalMultiplier", "laneBlocking" }) wave.Remove(field);
-            var moves = data["moves"]!.AsArray();
             moves.Remove(moves.Single(m => (string?)m!["id"] == CombatMove.AreaSkillId));
             var old = CombatCatalog.Parse(data.ToJsonString());
             var oldBout = Bout(old, CriticalSeed());

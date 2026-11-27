@@ -5,7 +5,7 @@ using System.Reflection;
 public partial class SmokeHarness
 {
     private const string AreaTimingAdvice = "两人快靠拢时提前按 Q 回身横扫，留意对手起手。";
-    private const string FifthWaveAreaAdvice = "两人快靠拢时用 Q 回身横扫，守势手正面格挡时可用 K 蓄力破防。";
+    private const string FifthWaveAreaAdvice = "聚拢时 Q 回身横扫 · 贴身 E 踏地震步 · 正面 R 推掌开路。遇到正面格挡可蓄力 K。";
     private const string FifthWaveAreaCount = "横扫多目标次数（≥2）";
 
     private async Task CombatAreaChecks()
@@ -409,7 +409,7 @@ public partial class SmokeHarness
         await Until(() => demo.Screen == "result", "fifth-wave result");
         var fifthStats = demo.GetNode<Label>("Result/Panel/Scroll/Content/Statistics");
         Require(fifthStats.Text.Contains(FifthWaveAreaCount + " 1", StringComparison.Ordinal) &&
-            fifthStats.Text.Contains("范围伤害 44", StringComparison.Ordinal) &&
+            fifthStats.Text.Contains("范围伤害 52", StringComparison.Ordinal) &&
             fifthStats.GetLineCount() == fifthStats.GetVisibleLineCount(), "Three-hit result is missing or clipped");
         await Capture("wave5-sweep-result");
         demo.GetNode<Button>("Result/Panel/Scroll/Content/Export").EmitSignal(Button.SignalName.Pressed);
@@ -417,7 +417,7 @@ public partial class SmokeHarness
         var fifthExport = reports.Select(path => System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(System.IO.File.ReadAllText(path)))
             .Single(report => report.GetProperty("wave").GetString() == "c1").GetProperty("statistics");
         Require(fifthExport.GetProperty("AreaHits").GetInt32() == 3 &&
-            fifthExport.GetProperty("AreaDoubleHits").GetInt32() == 1 && fifthExport.GetProperty("AreaDamage").GetInt32() == 44,
+            fifthExport.GetProperty("AreaDoubleHits").GetInt32() == 1 && fifthExport.GetProperty("AreaDamage").GetInt32() == 52,
             "Fifth-wave multi-target export must use the existing statistics fields");
 
         foreach (var enemy in ordered.Where(enemy => enemy != fifthGuard))
@@ -426,6 +426,37 @@ public partial class SmokeHarness
         Require(survivingPlate.Count == 1 && survivingPlate.TryGetValue(fifthGuard, out var remainingOffset) && remainingOffset == 0,
             "Defeated fifth-wave opponents must give the remaining nameplate its original position");
 
+        foreach (var (key, moveId, caption) in new[]
+        {
+            (Key.E, CombatMove.GroundStompId, "wave5-ground-stomp"),
+            (Key.R, CombatMove.OpeningPalmsId, "wave5-opening-palms")
+        })
+        {
+            demo.ReturnToPreparation();
+            await Frames(3);
+            demo.GetNode<Button>("Prepare/Footer/Content/Actions/Start").GrabFocus();
+            KeyPress(Key.Enter);
+            await Frames(3);
+            Require(demo.Screen == "fight" && demo.Match is { Wave.AdditionalAreaSkills: true },
+                "Additional area skill fixture did not start");
+            var bout = demo.Match!;
+            for (var i = 0; i < bout.Enemies.Count; i++)
+            {
+                var enemy = bout.Enemies[i];
+                enemy.X = bout.Player.X + (i == 2 ? -32 : 32 + i * 6);
+                enemy.Y = bout.Player.Y;
+                enemy.Cooldown = 900;
+                enemy.SetGuard(false);
+            }
+            KeyPress(key);
+            await Until(() => bout.Player.Attack?.Id == moveId && bout.Player.ActivePulse >= 0, caption + " contact");
+            Require(bout.AreaCooldownRemainingFor(moveId) > 0 && bout.AreaCooldownRemaining == 0,
+                "New area moves must have an independent cooldown");
+            var stats = key == Key.E ? bout.Statistics.GroundStomp : bout.Statistics.OpeningPalms;
+            Require(stats is { Casts: 1 } && stats.Value.Hits == (key == Key.E ? 3 : 2),
+                "Stomp must hit nearby enemies on either side while palms hit only in front");
+            await Capture(caption);
+        }
         demo.Free();
         await Frames(3);
         session.SetOptions(options, false);

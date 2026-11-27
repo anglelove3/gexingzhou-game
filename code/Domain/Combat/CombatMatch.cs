@@ -10,7 +10,8 @@ public sealed class CombatMatch
     public CombatStatistics Statistics { get; } = new();
     public CombatResult Result { get; private set; }
     public int TickCount { get; private set; }
-    public int AreaCooldownRemaining => Math.Max(0, areaReadyTick - TickCount);
+    public int AreaCooldownRemaining => AreaCooldownRemainingFor(CombatMove.AreaSkillId);
+    public int AreaCooldownRemainingFor(string moveId) => Math.Max(0, areaReadyTicks.GetValueOrDefault(moveId) - TickCount);
     public bool HitStopped => hitstop > 0;
     private const int LinkRecoveryFrames = 4;
     private const int LanePauseFrames = 12;
@@ -20,7 +21,8 @@ public sealed class CombatMatch
         Player.AttackFrame < move.Total - 1 && Player.Stamina >= Catalog.Move("sweep").Cost;
     private int hitstop, nextPermit, queueFrames;
     private int earlySweepUntilFrame;
-    private int areaReadyTick, areaHitsThisCast;
+    private readonly Dictionary<string, int> areaReadyTicks = new(StringComparer.Ordinal);
+    private int areaHitsThisCast;
     private int laneMoveAt, laneReadyAt;
     private double? laneTargetY;
     private readonly Func<double>? rollCriticalPower;
@@ -39,6 +41,11 @@ public sealed class CombatMatch
         {
             Statistics.AreaDoubleHits = 0;
             Statistics.AreaDamage = 0;
+        }
+        if (Wave.AdditionalAreaSkills)
+        {
+            Statistics.GroundStomp = new AreaMoveStatistics();
+            Statistics.OpeningPalms = new AreaMoveStatistics();
         }
         if (Wave.CriticalChance > 0)
         {
@@ -115,9 +122,14 @@ public sealed class CombatMatch
             }
             else { queued = "charge"; queueFrames = 6; }
         }
-        if (input.AreaPressed && !input.LightPressed && !input.HeavyPressed && Wave.AreaSkill &&
-            AreaCooldownRemaining == 0 && Player.State != CombatState.Charging)
-        { queued = CombatMove.AreaSkillId; queueFrames = 6; }
+        if (!input.LightPressed && !input.HeavyPressed && Player.State != CombatState.Charging)
+        {
+            var area = input.AreaPressed && Wave.AreaSkill ? CombatMove.AreaSkillId :
+                input.GroundStompPressed && Wave.AdditionalAreaSkills ? CombatMove.GroundStompId :
+                input.OpeningPalmsPressed && Wave.AdditionalAreaSkills ? CombatMove.OpeningPalmsId : null;
+            if (area != null && AreaCooldownRemainingFor(area) == 0)
+            { queued = area; queueFrames = 6; }
+        }
         if (input.DodgePressed) { queued = "dodge"; queueFrames = 6; earlySweepUntilFrame = 0; }
     }
 
@@ -183,12 +195,18 @@ public sealed class CombatMatch
     private bool StartPlayerAttack(string id, bool linked = false)
     {
         var move = Catalog.EquippedMove(id, Player.Stats);
+        if (id == CombatMove.AreaSkillId && Wave.SweepPowerMultiplier != 1)
+            move = move with { Power = move.Power * Wave.SweepPowerMultiplier };
         if (!(linked ? Player.TryLinkAttack(move) : Player.TryAttack(move))) { EmptyStamina(); return false; }
         if (move.IsAreaSkill)
         {
-            areaReadyTick = TickCount + move.CooldownFrames;
-            areaHitsThisCast = 0;
-            Statistics.AreaCasts++;
+            areaReadyTicks[id] = TickCount + move.CooldownFrames;
+            if (id == CombatMove.AreaSkillId)
+            {
+                areaHitsThisCast = 0;
+                Statistics.AreaCasts++;
+            }
+            else Statistics.RecordAdditionalArea(id, casts: 1, hits: 0, damage: 0);
         }
         else if (move.IsLight) Statistics.LightAttacks++;
         else Statistics.HeavyAttacks++;
@@ -341,11 +359,14 @@ public sealed class CombatMatch
                 int effectiveDamage = beforeHealth - target.Health;
                 Statistics.DamageDealt += hit.Damage;
                 Statistics.EffectiveDamage += effectiveDamage;
-                if (move.IsAreaSkill) Statistics.AreaDamage += effectiveDamage;
-                if (hit.Damage > 0 && !hit.Blocked)
+                bool effectiveHit = hit.Damage > 0 && !hit.Blocked;
+                if (move.Id == CombatMove.AreaSkillId) Statistics.AreaDamage += effectiveDamage;
+                else if (move.IsAreaSkill)
+                    Statistics.RecordAdditionalArea(move.Id, casts: 0, hits: effectiveHit ? 1 : 0, damage: effectiveDamage);
+                if (effectiveHit)
                 {
                     if (hit.Critical) Statistics.CriticalHits++;
-                    if (move.IsAreaSkill)
+                    if (move.Id == CombatMove.AreaSkillId)
                     {
                         Statistics.AreaHits++;
                         if (++areaHitsThisCast == 2)

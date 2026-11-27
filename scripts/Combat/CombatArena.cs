@@ -12,6 +12,8 @@ public partial class CombatArena : Node2D
     }
     private Texture2D court = null!, player = null!, opponents = null!, items = null!, footwork = null!;
     private AtlasData playerFrames = null!, opponentFrames = null!, itemFrames = null!, footworkFrames = null!;
+    private Texture2D roundSweep = null!, areaSkills = null!;
+    private AtlasData roundSweepFrames = null!, areaSkillFrames = null!;
     private Font font = null!;
     private readonly List<FloatingHit> floating = new();
     private const int FloatingTextSize = 20;
@@ -43,6 +45,10 @@ public partial class CombatArena : Node2D
         itemFrames = ReadAtlas(root + "equipment.json");
         footwork = GD.Load<Texture2D>(root + "player-footwork-v1.png");
         footworkFrames = ReadAtlas(root + "player-footwork-v1.json");
+        roundSweep = GD.Load<Texture2D>(root + "player-round-sweep-v1.png");
+        roundSweepFrames = ReadAtlas(root + "player-round-sweep-v1.json");
+        areaSkills = GD.Load<Texture2D>(root + "player-area-skills-v1.png");
+        areaSkillFrames = ReadAtlas(root + "player-area-skills-v1.json");
         font = GD.Load<Font>("res://assets/fonts/SourceHanSerifSC-SemiBold.otf");
     }
 
@@ -73,7 +79,7 @@ public partial class CombatArena : Node2D
     {
         var hit = new FloatingHit { Event = ev };
         floating.Add(hit);
-        if (ev.MoveId == CombatMove.AreaSkillId && ev.SourceId == "player" && ev.TargetId.Length > 0 && Match is { } current)
+        if (CombatMove.IsAreaMoveId(ev.MoveId) && ev.SourceId == "player" && ev.TargetId.Length > 0 && Match is { } current)
         {
             hit.SweepCast = current.Player.AttackSequence;
             SpaceSweepNumbers(current.Player.AttackSequence);
@@ -291,13 +297,21 @@ public partial class CombatArena : Node2D
     {
         var atlas = f.Enemy == null ? playerFrames : opponentFrames;
         var texture = f.Enemy == null ? player : opponents;
-        var footworkPose = f.Enemy == null && (Match!.Wave.Footwork || f.Attack?.IsAreaSkill == true) ? FootworkPose(f) : null;
-        if (footworkPose.HasValue)
+        var areaPose = f.Enemy == null && Match!.Wave.AdditionalAreaSkills ? AreaSkillPose(f) : null;
+        var footworkPose = f.Enemy == null && areaPose == null &&
+            (Match!.Wave.Footwork || f.Attack?.Id == CombatMove.AreaSkillId) ? FootworkPose(f) : null;
+        if (areaPose.HasValue)
+        {
+            var isSweep = f.Attack!.Id == CombatMove.AreaSkillId;
+            atlas = isSweep ? roundSweepFrames : areaSkillFrames;
+            texture = isSweep ? roundSweep : areaSkills;
+        }
+        else if (footworkPose.HasValue)
         {
             atlas = footworkFrames;
             texture = footwork;
         }
-        var pose = footworkPose ?? Pose(f);
+        var pose = areaPose ?? footworkPose ?? Pose(f);
         if (f.State == CombatState.Down && f.StateFrame < 5 && impacts.Any(h => h.Event.TargetId == f.Id && h.Event.MoveId == "sweep"))
             pose = 7;
         var frame = atlas.Frames[pose];
@@ -317,7 +331,7 @@ public partial class CombatArena : Node2D
             tint = tint.Lerp(new Color(1, .87f, .67f, tint.A), .65f);
         var rect = new Rect2(-(float)frame.PivotX * scale, -(float)frame.PivotY * scale, (float)frame.Width * scale, (float)frame.Height * scale);
         DrawTextureRectRegion(texture, rect, frame.Region, tint);
-        if (!footworkPose.HasValue && f.Enemy == null && f.Stats.Weapon.Id == "stick" && f.State is CombatState.Attack or CombatState.Charging or CombatState.Guard)
+        if (!areaPose.HasValue && !footworkPose.HasValue && f.Enemy == null && f.Stats.Weapon.Id == "stick" && f.State is CombatState.Attack or CombatState.Charging or CombatState.Guard)
         {
             DrawSetTransform(point + new Vector2(f.Facing * 23, -70), f.Facing * .55f, new Vector2(f.Facing, 1));
             DrawTextureRectRegion(items, new Rect2(-12, -25, 58, 58), itemFrames.Frames[2].Region);
@@ -373,6 +387,18 @@ public partial class CombatArena : Node2D
             f.ActivePulse >= 0 ? f.Attack.IsLight || f.Attack.Id == "enemy_jab" ? 3 : 5 : 6,
         _ => f.IsMoving && Match!.TickCount % 24 < 12 ? 11 : 0
     };
+
+    private static int? AreaSkillPose(CombatFighter fighter)
+    {
+        if (fighter.State != CombatState.Attack || fighter.Attack is not { IsAreaSkill: true } move) return null;
+        var frame = fighter.AttackFrame;
+        var afterContact = frame - move.Startup - move.Active;
+        if (afterContact >= Math.Min(12, move.Recovery)) return null;
+        if (move.Id == CombatMove.AreaSkillId)
+            return frame < move.Startup / 2 ? 0 : frame < move.Startup ? 1 : afterContact < 0 ? 2 : 3;
+        var start = move.Id == CombatMove.OpeningPalmsId ? 3 : 0;
+        return start + (frame < move.Startup ? 0 : afterContact < 0 ? 1 : 2);
+    }
 
     private static int? FootworkPose(CombatFighter f)
     {

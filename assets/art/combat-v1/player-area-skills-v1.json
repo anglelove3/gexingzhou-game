@@ -1,0 +1,59 @@
+{
+  "SourceSha256": "BAEED87ECBEE759393A4A24367894D37B8C5A53D9ADF06256849B06E7C00F568",
+  "Frames": [
+    {
+      "X": 0,
+      "Y": 0,
+      "Width": 512,
+      "Height": 512,
+      "PivotX": 226,
+      "PivotY": 486,
+      "VisibleHeight": 456
+    },
+    {
+      "X": 512,
+      "Y": 0,
+      "Width": 512,
+      "Height": 512,
+      "PivotX": 250,
+      "PivotY": 486,
+      "VisibleHeight": 456
+    },
+    {
+      "X": 1024,
+      "Y": 0,
+      "Width": 512,
+      "Height": 512,
+      "PivotX": 241,
+      "PivotY": 486,
+      "VisibleHeight": 456
+    },
+    {
+      "X": 0,
+      "Y": 512,
+      "Width": 512,
+      "Height": 512,
+      "PivotX": 238,
+      "PivotY": 490,
+      "VisibleHeight": 456
+    },
+    {
+      "X": 512,
+      "Y": 512,
+      "Width": 512,
+      "Height": 512,
+      "PivotX": 232,
+      "PivotY": 490,
+      "VisibleHeight": 456
+    },
+    {
+      "X": 1024,
+      "Y": 512,
+      "Width": 512,
+      "Height": 512,
+      "PivotX": 243,
+      "PivotY": 490,
+      "VisibleHeight": 456
+    }
+  ]
+}

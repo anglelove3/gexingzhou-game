@@ -23,7 +23,7 @@ public partial class CombatDemo : Control
     private const string PrepActions = "Prepare/Footer/Content/Actions/";
     private const string Pause = "Pause/Panel/Scroll/Content/";
     private const string ResultPath = "Result/Panel/Scroll/Content/";
-    private static readonly Key[] CombatKeys = { Key.W, Key.A, Key.S, Key.D, Key.Up, Key.Down, Key.Left, Key.Right, Key.J, Key.K, Key.L, Key.Q, Key.Space };
+    private static readonly Key[] CombatKeys = { Key.W, Key.A, Key.S, Key.D, Key.Up, Key.Down, Key.Left, Key.Right, Key.J, Key.K, Key.L, Key.Q, Key.E, Key.R, Key.Space };
 
     public override void _Ready()
     {
@@ -286,7 +286,9 @@ public partial class CombatDemo : Control
             LightPressed = pendingInput.LightPressed || code == Key.J,
             HeavyPressed = pendingInput.HeavyPressed || code == Key.K,
             DodgePressed = pendingInput.DodgePressed || code == Key.Space,
-            AreaPressed = pendingInput.AreaPressed || code == Key.Q
+            AreaPressed = pendingInput.AreaPressed || code == Key.Q,
+            GroundStompPressed = pendingInput.GroundStompPressed || code == Key.E,
+            OpeningPalmsPressed = pendingInput.OpeningPalmsPressed || code == Key.R
         };
         GetViewport().SetInputAsHandled();
     }
@@ -334,7 +336,7 @@ public partial class CombatDemo : Control
         var list = events.ToArray();
         bool areaDoubleHit = list.Any(e => e.Kind == "area-double-hit");
         foreach (var ev in list.Where(e => e.Kind == "attack").Take(1))
-            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId is "charged" or "sweep" or CombatMove.AreaSkillId ? .8f : 1, 1);
+            audio.PlayImpactCue(AudioCue.CombatSwing, ev.MoveId is "charged" or "sweep" || CombatMove.IsAreaMoveId(ev.MoveId) ? .8f : 1, 1);
         var impact = list.Where(e => e.Kind is "hit" or "block" or "down" or "break")
             .OrderByDescending(e => e.MoveId == "charged" ? 4 : e.MoveId is "heavy" or "enemy_heavy" ? 3 : e.MoveId == "light3" ? 2 : 1)
             .ThenByDescending(e => e.Kind != "block").FirstOrDefault();
@@ -346,12 +348,18 @@ public partial class CombatDemo : Control
                 bool heavy = impact.MoveId is "heavy" or "charged" or "enemy_heavy";
                 var pitch = impact.MoveId switch { "light1" => 1.12f, "light2" => 1.02f, "light3" => .92f, "sweep" => .83f, "charged" => .75f, _ => .85f };
                 audio.PlayImpactCue(AudioCue.CombatHit, pitch, heavy ? .68f : .9f);
-                if (!areaDoubleHit && (heavy || impact.Kind is "down" or "break"))
+                if (impact.MoveId == CombatMove.GroundStompId)
+                    audio.PlayImpactCue(AudioCue.CombatDown, .76f, .47f);
+                else if (!areaDoubleHit && (heavy || impact.Kind is "down" or "break"))
                     audio.PlayImpactCue(AudioCue.CombatDown, impact.MoveId == "charged" ? .9f : 1.15f, .32f);
             }
         }
         else if (list.Any(e => e.Kind == "perfect")) audio.PlayCue(AudioCue.CombatBlock);
-        if (areaDoubleHit) audio.PlayImpactCue(AudioCue.CombatDown, .9f, .28f);
+        if (areaDoubleHit)
+        {
+            var strongerSweep = Match?.Wave.AdditionalAreaSkills == true;
+            audio.PlayImpactCue(AudioCue.CombatDown, strongerSweep ? .82f : .9f, strongerSweep ? .45f : .28f);
+        }
     }
 
     public override void _Process(double delta)
@@ -391,8 +399,16 @@ public partial class CombatDemo : Control
         if (Match.SweepCanBuffer) action.Text += " · J正踢 / K低扫腿（24耐力）";
         else if (p.CanDodgeCancel && p.DodgeReady) action.Text += " · Space闪避衔接（24耐力）";
         if (wave.AreaSkill)
-            action.Text += Match.AreaCooldownRemaining > 0 ? $" · Q冷却 {Match.AreaCooldownRemaining / 60d:0.0}秒" :
-                p.Stamina >= Catalog.Move(CombatMove.AreaSkillId).Cost ? " · Q就绪" : " · Q耐力不足";
+            action.Text += " · " + AreaStatus("Q", CombatMove.AreaSkillId);
+        if (wave.AdditionalAreaSkills)
+            action.Text += " · " + AreaStatus("E", CombatMove.GroundStompId) + " · " + AreaStatus("R", CombatMove.OpeningPalmsId);
+    }
+
+    private string AreaStatus(string key, string moveId)
+    {
+        var cooldown = Match!.AreaCooldownRemainingFor(moveId);
+        return cooldown > 0 ? $"{key}冷却 {cooldown / 60d:0.0}秒" :
+            Match.Player.Stamina >= Catalog.Move(moveId).Cost ? $"{key}就绪" : $"{key}耐力不足";
     }
 
     private static string WaveInstruction(CombatWave wave) => wave is { Id: "b2", AreaSkill: true }

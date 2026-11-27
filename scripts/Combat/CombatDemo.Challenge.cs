@@ -166,6 +166,8 @@ public partial class CombatDemo
         $"反击发动/命中 {s.RiposteAttacks}/{s.RiposteHits} · 破势蓄力发动/命中 {s.BreakAttacks}/{s.BreakHits}" +
         (s.CriticalHits > 0 || s.AreaCasts > 0 ? $"\n暴击 {s.CriticalHits} · 横扫发动/有效命中 {s.AreaCasts}/{s.AreaHits}" : "") +
         (s.AreaDoubleHits is int doubleHits && s.AreaDamage is int areaDamage ?
-            $"\n{sweepCount} {doubleHits} · 范围伤害 {areaDamage}" : "");
+            $"\n{sweepCount} {doubleHits} · 范围伤害 {areaDamage}" : "") +
+        (s.GroundStomp is { Casts: > 0 } stomp ? $"\n踏地震步 发动/命中 {stomp.Casts}/{stomp.Hits} · 范围伤害 {stomp.Damage}" : "") +
+        (s.OpeningPalms is { Casts: > 0 } palms ? $"\n推掌开路 发动/命中 {palms.Casts}/{palms.Hits} · 范围伤害 {palms.Damage}" : "");
     }
 }

@@ -33,6 +33,9 @@ public sealed record CombatItem
 public sealed record CombatMove
 {
     public const string AreaSkillId = "round_sweep";
+    public const string GroundStompId = "ground_stomp";
+    public const string OpeningPalmsId = "opening_palms";
+    public static bool IsAreaMoveId(string id) => id is AreaSkillId or GroundStompId or OpeningPalmsId;
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
     public double Power { get; init; }
@@ -48,7 +51,7 @@ public sealed record CombatMove
     public int DodgeCancelRecoveryFrames { get; init; }
     public int CooldownFrames { get; init; }
     public bool IsLight => Id.StartsWith("light", StringComparison.Ordinal);
-    public bool IsAreaSkill => Id == AreaSkillId;
+    public bool IsAreaSkill => IsAreaMoveId(Id);
     public int Total => Startup + Active + Recovery;
 }
 
@@ -72,6 +75,8 @@ public sealed record CombatWave
     public double CriticalChance { get; init; }
     public double CriticalMultiplier { get; init; } = 1;
     public bool AreaSkill { get; init; }
+    public bool AdditionalAreaSkills { get; init; }
+    public double SweepPowerMultiplier { get; init; } = 1;
     public bool LaneBlocking { get; init; }
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
@@ -115,7 +120,7 @@ public sealed class CombatCatalog
                 c.Growth.LevelHealth < 0 || c.Growth.LevelAttack < 0 || c.Growth.LevelDefense < 0 || c.Growth.LevelStamina < 0 ||
                 new[] { c.Growth.Recovery, c.Growth.MoveSpeed, c.Growth.DodgeSeconds }.Any(v => !double.IsFinite(v) || v <= 0) ||
                 c.Items == null || c.Moves == null || c.Enemies == null || c.Waves == null ||
-                c.Items.Count != 9 || c.Moves.Count is < 5 or > 7 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
+                c.Items.Count != 9 || c.Moves.Count is < 5 or > 9 || c.Enemies.Count != 4 || c.Waves.Count != 6 ||
                 c.Items.Any(i => i == null) || c.Moves.Any(m => m == null) || c.Enemies.Any(e => e == null) || c.Waves.Any(w => w == null))
                 throw new ArgumentException("战斗配置结构或版本异常。");
             Unique(c.Items.Select(i => i.Id)); Unique(c.Moves.Select(i => i.Id));
@@ -151,6 +156,8 @@ public sealed class CombatCatalog
                     !double.IsFinite(w.CriticalChance) || w.CriticalChance is < 0 or > 1 ||
                     !double.IsFinite(w.CriticalMultiplier) || w.CriticalMultiplier is < 1 or > 4 ||
                     w.CriticalChance > 0 && w.CriticalMultiplier <= 1 ||
+                    !double.IsFinite(w.SweepPowerMultiplier) || w.SweepPowerMultiplier is < 1 or > 2 ||
+                    !w.AreaSkill && (w.AdditionalAreaSkills || w.SweepPowerMultiplier != 1) ||
                     w.LaneBlocking && (w.Enemies.Length != 2 || !w.Enemies.Contains("quick") || !w.Enemies.Contains("roamer")) ||
                     w.Enemies.Any(id => !c.Enemies.Any(e => e.Id == id)) || w.Items.Any(id => !c.Items.Any(i => i.Id == id)))
                     throw new ArgumentException("波次配置异常。");
@@ -159,8 +166,12 @@ public sealed class CombatCatalog
             foreach (var id in new[] { "light1", "light2", "light3", "heavy", "charged" }) c.Move(id);
             var hasSweep = c.Waves.Any(w => w.Footwork);
             var hasArea = c.Waves.Any(w => w.AreaSkill);
-            if (hasSweep != c.Moves.Any(m => m.Id == "sweep") || hasArea != c.Moves.Any(m => m.IsAreaSkill) ||
-                c.Moves.Count != 5 + (hasSweep ? 1 : 0) + (hasArea ? 1 : 0))
+            var hasAdvancedArea = c.Waves.Any(w => w.AdditionalAreaSkills);
+            if (hasSweep != c.Moves.Any(m => m.Id == "sweep") ||
+                hasArea != c.Moves.Any(m => m.Id == CombatMove.AreaSkillId) ||
+                hasAdvancedArea != c.Moves.Any(m => m.Id == CombatMove.GroundStompId) ||
+                hasAdvancedArea != c.Moves.Any(m => m.Id == CombatMove.OpeningPalmsId) ||
+                c.Moves.Count != 5 + (hasSweep ? 1 : 0) + (hasArea ? 1 : 0) + (hasAdvancedArea ? 2 : 0))
                 throw new ArgumentException("波次缺少招式配置或包含未知招式。");
             c.ConfigHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
             c.SourceJson = json;

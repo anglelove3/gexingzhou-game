@@ -22,20 +22,46 @@ public partial class CombatArena
         if (fighter.State != CombatState.Attack || fighter.Attack is not { IsAreaSkill: true } move ||
             fighter.AttackFrame >= move.Startup + move.Active) return;
         var center = new Vector2((float)fighter.X, (float)fighter.Y);
-        const int segments = 48;
-        var points = new Vector2[segments + 1];
+        var active = fighter.ActivePulse >= 0;
+        var palms = move.Id == CombatMove.OpeningPalmsId;
+        var reach = new Vector2((float)move.Reach * fighter.Facing, (float)move.Depth);
+        var color = move.Id switch
+        {
+            CombatMove.GroundStompId => new Color(.86f, .69f, .49f),
+            CombatMove.OpeningPalmsId => new Color(.72f, .89f, 1),
+            _ => new Color(1, .82f, .49f)
+        };
+        var outline = AreaArc(center, reach, palms ? -Mathf.Pi / 2 : 0, palms ? Mathf.Pi : Mathf.Tau, 48, close: palms);
+        DrawPolyline(outline, new Color(.09f, .06f, .025f, .78f), active ? 7 : 5, true);
+        var activeColor = move.Id == CombatMove.AreaSkillId ? new Color(1, .92f, .64f) : color.Lightened(.36f);
+        DrawPolyline(outline, active ? activeColor : color with { A = .77f }, active ? 4 : 2, true);
+        if (!active || ReducedMotion || !Match!.Wave.AdditionalAreaSkills) return;
+        var progress = (fighter.AttackFrame - move.Startup + 1f) / move.Active;
+        var accent = move.Id switch
+        {
+            CombatMove.AreaSkillId => AreaArc(center - new Vector2(0, 8), reach * .96f, -.15f + progress * Mathf.Tau - 2.7f, 2.7f, 28),
+            CombatMove.GroundStompId => AreaArc(center, reach * (.4f + .6f * progress), 0, Mathf.Tau, 32),
+            _ => AreaArc(center - new Vector2(0, 28), reach * (.5f + .5f * progress), -.95f, 1.9f, 26)
+        };
+        DrawPolyline(accent, color.Darkened(.58f), 8, true);
+        DrawPolyline(accent, color.Lightened(.22f), 4, true);
+    }
+
+    private static Vector2[] AreaArc(Vector2 center, Vector2 reach, float start, float span, int segments, bool close = false)
+    {
+        var points = new Vector2[segments + (close ? 2 : 1)];
         for (var i = 0; i <= segments; i++)
         {
-            var angle = i * Mathf.Tau / segments;
-            points[i] = center + new Vector2(Mathf.Cos(angle) * (float)move.Reach, Mathf.Sin(angle) * (float)move.Depth);
+            var angle = start + i * span / segments;
+            points[i] = center + new Vector2(Mathf.Cos(angle) * reach.X, Mathf.Sin(angle) * reach.Y);
         }
-        var active = fighter.ActivePulse >= 0;
-        DrawPolyline(points, new Color(.09f, .06f, .025f, .78f), active ? 7 : 5, true);
-        DrawPolyline(points, active ? new Color(1, .92f, .64f) : new Color(1, .82f, .49f, .77f), active ? 4 : 2, true);
+        if (close) points[^1] = points[0];
+        return points;
     }
 
     private static float Weight(string move) => move switch
     {
+        CombatMove.GroundStompId => 1.6f, CombatMove.OpeningPalmsId => 1.25f,
         "light2" => 1.15f, "light3" => 1.5f, "sweep" => 1.65f, "heavy" or "enemy_heavy" => 1.8f, "charged" => 2.3f, _ => 1
     };
 
@@ -70,7 +96,8 @@ public partial class CombatArena
         var ev = hit.Event; float weight = Weight(ev.MoveId);
         bool sweep = ev.MoveId == "sweep";
         bool frontKick = ev.MoveId == "light3" && Match!.Wave.Footwork;
-        var center = new Vector2((float)ev.X, (float)ev.Y - (sweep ? 15 : frontKick ? 63 : 74));
+        var lowArea = Match!.Wave.AdditionalAreaSkills && ev.MoveId is CombatMove.GroundStompId or CombatMove.AreaSkillId;
+        var center = new Vector2((float)ev.X, (float)ev.Y - (sweep || lowArea ? 15 : frontKick ? 63 : 74));
         bool blocked = ev.Kind == "block";
         var color = blocked ? new Color(.66f, .86f, 1, (1 - t) * .85f) : new Color(1, .86f, .56f, (1 - t) * .9f);
         if (blocked)

@@ -4,6 +4,26 @@
   "art_style": "pixel-inspired semi-realistic raster illustration; not certified hand-authored 48x80 pixel animation",
   "used_assets": [
     {
+      "id": "combat-player-round-sweep-v1",
+      "file": "assets/art/combat-v1/player-round-sweep-v1.png",
+      "size": [1263, 1246],
+      "sha256": "0C904D2EFD6B6CE931E715BA026B220229203AC4CAED3CD3959AA20F9B47C3C7",
+      "usage": "fifth-wave Q pivot, contact and recovery",
+      "source": "built-in image_gen with the existing player footwork atlas as identity reference",
+      "generated_on": "2026-11-25",
+      "provenance": "licenses/AI_ART_AREA_SKILLS_20261125.md"
+    },
+    {
+      "id": "combat-player-area-skills-v1",
+      "file": "assets/art/combat-v1/player-area-skills-v1.png",
+      "size": [1536, 1024],
+      "sha256": "BAEED87ECBEE759393A4A24367894D37B8C5A53D9ADF06256849B06E7C00F568",
+      "usage": "fifth-wave ground stomp and opening palms key poses",
+      "source": "built-in image_gen with the existing player footwork atlas as identity reference",
+      "generated_on": "2026-11-25",
+      "provenance": "licenses/AI_ART_AREA_SKILLS_20261125.md"
+    },
+    {
       "id": "combat-player-footwork-v1",
       "file": "assets/art/combat-v1/player-footwork-v1.png",
       "size": [1536, 1024],

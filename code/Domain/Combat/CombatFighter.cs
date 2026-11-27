@@ -3,7 +3,7 @@ namespace GeXingzhou.Domain;
 public enum CombatState { Idle, Attack, Charging, Guard, Dodge, Hurt, Down, Rising, Recovery, Dead }
 public readonly record struct CombatInput(double MoveX = 0, double MoveY = 0, bool LightPressed = false,
     bool HeavyPressed = false, bool HeavyHeld = false, bool HeavyReleased = false, bool GuardHeld = false, bool DodgePressed = false,
-    bool AreaPressed = false);
+    bool AreaPressed = false, bool GroundStompPressed = false, bool OpeningPalmsPressed = false);
 public readonly record struct CombatHit(bool Applied, int Damage, bool Blocked, bool GuardBroken, bool KnockedDown,
     bool PerfectGuard = false, bool BreakBonus = false, bool Critical = false);
 
@@ -131,6 +131,7 @@ public sealed class CombatFighter
         var dy = target.Y - Y;
         if (move.IsAreaSkill)
         {
+            if (move.Id == CombatMove.OpeningPalmsId && dx * Facing < 0) return false;
             var x = dx / move.Reach;
             var y = dy / move.Depth;
             return x * x + y * y <= 1;

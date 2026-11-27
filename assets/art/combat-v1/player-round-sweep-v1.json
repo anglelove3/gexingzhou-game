@@ -1,0 +1,41 @@
+{
+  "SourceSha256": "0C904D2EFD6B6CE931E715BA026B220229203AC4CAED3CD3959AA20F9B47C3C7",
+  "Frames": [
+    {
+      "X": 0,
+      "Y": 0,
+      "Width": 631,
+      "Height": 623,
+      "PivotX": 301,
+      "PivotY": 569,
+      "VisibleHeight": 555
+    },
+    {
+      "X": 631,
+      "Y": 0,
+      "Width": 632,
+      "Height": 623,
+      "PivotX": 269,
+      "PivotY": 571,
+      "VisibleHeight": 555
+    },
+    {
+      "X": 0,
+      "Y": 623,
+      "Width": 631,
+      "Height": 623,
+      "PivotX": 304,
+      "PivotY": 555,
+      "VisibleHeight": 555
+    },
+    {
+      "X": 631,
+      "Y": 623,
+      "Width": 632,
+      "Height": 623,
+      "PivotX": 282,
+      "PivotY": 557,
+      "VisibleHeight": 555
+    }
+  ]
+}
